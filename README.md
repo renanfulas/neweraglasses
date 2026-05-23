@@ -114,28 +114,77 @@ Start here:
 
 - [docs/specs/README.md](docs/specs/README.md)
 - [docs/specs/0001-platform-foundation.md](docs/specs/0001-platform-foundation.md)
+- [docs/specs/0002-pwa-shell.md](docs/specs/0002-pwa-shell.md)
 
 ## Repository Map
 
 ```text
+src/
+  new_era/
+    domain/
+    application/
+    infrastructure/
+tests/
+  unit/
 docs/
   architecture/
     ai-prompt-contracts.md
     overview.md
     performance-latency.md
+    pwa-frontend.md
     security-implementation.md
   specs/
     README.md
     spec-template.md
     0001-platform-foundation.md
+    0002-pwa-shell.md
 ```
 
 Main documents:
 
 - [docs/architecture/overview.md](docs/architecture/overview.md)
 - [docs/architecture/performance-latency.md](docs/architecture/performance-latency.md)
+- [docs/architecture/pwa-frontend.md](docs/architecture/pwa-frontend.md)
 - [docs/architecture/security-implementation.md](docs/architecture/security-implementation.md)
 - [docs/architecture/ai-prompt-contracts.md](docs/architecture/ai-prompt-contracts.md)
+
+## Development
+
+The first executable foundation lives in `src/new_era`.
+
+It includes:
+
+- observation contracts for simulated input
+- domain contracts for attention, events, lens commands, and device capabilities
+- an `AttentionPolicy` v1 with deterministic budget rules
+- a simple observation interpreter that turns simulated grocery observations into `AlertCandidate`
+- a `GrocerySessionService` as the first MVP-facing application entry point
+- an `EvaluateAlertCandidate` use case
+- a `DeviceGateway` port and `DeliverLensCommand` use case
+- a `ProcessAlertCandidate` orchestrator for the first end-to-end alert flow
+- a `ProcessObservation` orchestrator for the first observation-to-display flow
+- a FastAPI adapter that exposes the grocery simulation flow over HTTP
+- a `BrowserSimulationAdapter` for PWA/app simulation before hardware integration
+- an in-memory event store adapter for tests and simulation
+- unit tests for policy, event redaction, observation mapping, lens command generation, device delivery, and alert processing
+
+Run the tests:
+
+```powershell
+$env:PYTHONPATH='src'; python -m unittest discover
+```
+
+Run the HTTP adapter:
+
+```powershell
+$env:PYTHONPATH='src'; python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
+```
+
+Initial endpoints:
+
+- `GET /`
+- `GET /health`
+- `POST /api/simulations/grocery/missing-item`
 
 Recommended next documentation:
 
@@ -168,4 +217,4 @@ Recommended next documentation:
 
 This repository is in the architecture and MVP foundation phase.
 
-No production runtime has been implemented yet. The current priority is to define the product architecture, documentation, contracts, and technical decisions that will let the MVP evolve safely.
+The current runtime foundation implements the core contracts from `SPEC-0001` without tying the product to a web framework, database, AI provider, or glasses vendor.

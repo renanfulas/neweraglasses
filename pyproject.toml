@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "new-era-glasses"
+version = "0.1.0"
+description = "Contextual intelligence foundation for New Era smart glasses."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "New Era" }]
+dependencies = [
+    "fastapi>=0.136,<1.0",
+    "uvicorn>=0.34,<1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

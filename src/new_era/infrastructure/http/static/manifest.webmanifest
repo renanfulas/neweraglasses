@@ -1,0 +1,10 @@
+{
+  "name": "New Era Simulator",
+  "short_name": "New Era",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4efe4",
+  "theme_color": "#143126",
+  "description": "PWA simulation for New Era contextual smart glasses.",
+  "icons": []
+}

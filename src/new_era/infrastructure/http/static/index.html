@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#143126">
+    <title>New Era Simulator</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero-band">
+        <div class="hero-copy">
+          <p class="eyebrow">New Era PWA Simulation</p>
+          <h1>Context, attention, and display in one loop.</h1>
+          <p class="hero-text">
+            Simulate what the glasses would see, how the core interprets it,
+            and what reaches the user's lens.
+          </p>
+        </div>
+        <div class="status-strip" id="network-status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span>API ready</span>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="workspace-grid">
+          <section class="panel control-panel">
+            <div class="panel-header">
+              <p class="panel-kicker">Observation Input</p>
+              <h2>MVP Simulation Modules</h2>
+            </div>
+            <div class="module-switcher" role="tablist" aria-label="Simulation modules">
+              <button class="module-tab module-tab-active" type="button" id="tab-grocery" data-module="grocery">Grocery</button>
+              <button class="module-tab" type="button" id="tab-document" data-module="documents">Contracts</button>
+            </div>
+
+            <form id="grocery-form" class="control-form">
+              <label>
+                <span>Item name</span>
+                <input id="item-name" name="item_name" type="text" value="eggs" required>
+              </label>
+              <label>
+                <span>Confidence</span>
+                <input id="grocery-confidence" name="confidence" type="range" min="0" max="1" step="0.01" value="0.88">
+                <output id="grocery-confidence-output" for="grocery-confidence">0.88</output>
+              </label>
+              <label>
+                <span>Attention mode</span>
+                <select id="grocery-mode" name="mode">
+                  <option value="essential">Essential</option>
+                  <option value="balanced" selected>Balanced</option>
+                  <option value="proactive">Proactive</option>
+                </select>
+              </label>
+              <label>
+                <span>Recent category count</span>
+                <input id="grocery-recent-count" name="recent_category_count" type="number" min="0" step="1" value="0">
+              </label>
+              <button id="grocery-simulate-button" type="submit">Run grocery simulation</button>
+            </form>
+
+            <form id="document-form" class="control-form module-form-hidden">
+              <label>
+                <span>Contract excerpt</span>
+                <textarea id="document-text" name="document_text" rows="8" required>Plano com fidelidade de 12 meses, renovação automática por igual período e multa de cancelamento antecipado.</textarea>
+              </label>
+              <label>
+                <span>Confidence</span>
+                <input id="document-confidence" name="confidence" type="range" min="0" max="1" step="0.01" value="0.92">
+                <output id="document-confidence-output" for="document-confidence">0.92</output>
+              </label>
+              <label>
+                <span>Attention mode</span>
+                <select id="document-mode" name="mode">
+                  <option value="essential">Essential</option>
+                  <option value="balanced" selected>Balanced</option>
+                  <option value="proactive">Proactive</option>
+                </select>
+              </label>
+              <label>
+                <span>Recent document alerts</span>
+                <input id="document-recent-count" name="recent_category_count" type="number" min="0" step="1" value="0">
+              </label>
+              <button id="document-simulate-button" type="submit">Run contract simulation</button>
+            </form>
+          </section>
+
+          <section class="panel lens-panel">
+            <div class="panel-header">
+              <p class="panel-kicker">Lens Output</p>
+              <h2>Display Preview</h2>
+            </div>
+            <div class="lens-stage" id="lens-stage">
+              <div class="lens-overlay lens-overlay-idle" id="lens-overlay">
+                <p class="lens-label">Waiting for observation</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel telemetry-panel">
+            <div class="panel-header">
+              <p class="panel-kicker">Session Trace</p>
+              <h2>Decision Story</h2>
+            </div>
+            <dl class="telemetry-grid">
+              <div>
+                <dt>Outcome</dt>
+                <dd id="outcome">idle</dd>
+              </div>
+              <div>
+                <dt>Candidate</dt>
+                <dd id="candidate-created">no</dd>
+              </div>
+              <div>
+                <dt>Events</dt>
+                <dd id="event-count">0</dd>
+              </div>
+              <div>
+                <dt>Delivered</dt>
+                <dd id="delivered-count">0</dd>
+              </div>
+            </dl>
+            <div class="insight-log" id="insight-log">
+              <p>Simulated observations will appear here.</p>
+            </div>
+            <ol class="trace-list" id="trace-list" aria-live="polite">
+              <li class="trace-item trace-item-idle">
+                <div class="trace-step">idle</div>
+                <div class="trace-content">
+                  <h3>Waiting for session events</h3>
+                  <p>The observation, candidate, decision, and delivery flow will appear here.</p>
+                </div>
+              </li>
+            </ol>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

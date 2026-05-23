@@ -51,7 +51,9 @@ Related foundation documents:
 
 - [../specs/README.md](../specs/README.md)
 - [../specs/0001-platform-foundation.md](../specs/0001-platform-foundation.md)
+- [../specs/0002-pwa-shell.md](../specs/0002-pwa-shell.md)
 - [performance-latency.md](performance-latency.md)
+- [pwa-frontend.md](pwa-frontend.md)
 - [security-implementation.md](security-implementation.md)
 - [ai-prompt-contracts.md](ai-prompt-contracts.md)
 
