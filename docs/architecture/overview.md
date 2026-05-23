@@ -45,6 +45,15 @@ This loop supports the first product directions:
 8. Build RAG readiness now, but do not ship a heavy RAG system in the MVP.
 9. Apply privacy and security by design, not as a later compliance patch.
 10. Make the glasses display minimal. The app/PWA is where configuration, history, metrics, and detailed controls live.
+11. Use Spec-Driven Development for implementation-driving work: specs must define contracts, acceptance criteria, security rules, performance budgets, events, and evals before code.
+
+Related foundation documents:
+
+- [../specs/README.md](../specs/README.md)
+- [../specs/0001-platform-foundation.md](../specs/0001-platform-foundation.md)
+- [performance-latency.md](performance-latency.md)
+- [security-implementation.md](security-implementation.md)
+- [ai-prompt-contracts.md](ai-prompt-contracts.md)
 
 ## 4. Target Architecture
 

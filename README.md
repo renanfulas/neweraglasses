@@ -86,18 +86,56 @@ Out of scope:
 - **RAG ready, not RAG heavy:** retrieval interfaces should exist early, while vector search and semantic memory can arrive later.
 - **Privacy as UX:** memory must be explicit, inspectable, and deletable; sensitive data must not leak into generic event metadata.
 - **Lens commands, not UI coupling:** backend responses should be device-neutral commands that PWA, app, or glasses adapters can render.
+- **Spec-driven development:** important features must start from specs, contracts, acceptance criteria, security rules, and performance budgets.
+
+## Spec-Driven Development
+
+New Era uses Spec-Driven Development (SDD) to keep product behavior, architecture, AI prompts, security, and performance aligned before implementation.
+
+The delivery loop is:
+
+```text
+problem -> spec -> design -> tasks -> implementation -> tests -> telemetry
+```
+
+Each serious capability should define:
+
+- objective and non-goals
+- functional requirements
+- data/privacy classification
+- security controls
+- performance budget
+- events and observability
+- failure modes
+- acceptance criteria
+- test/eval plan
+
+Start here:
+
+- [docs/specs/README.md](docs/specs/README.md)
+- [docs/specs/0001-platform-foundation.md](docs/specs/0001-platform-foundation.md)
 
 ## Repository Map
 
 ```text
 docs/
   architecture/
+    ai-prompt-contracts.md
     overview.md
+    performance-latency.md
+    security-implementation.md
+  specs/
+    README.md
+    spec-template.md
+    0001-platform-foundation.md
 ```
 
-The main architecture document is:
+Main documents:
 
 - [docs/architecture/overview.md](docs/architecture/overview.md)
+- [docs/architecture/performance-latency.md](docs/architecture/performance-latency.md)
+- [docs/architecture/security-implementation.md](docs/architecture/security-implementation.md)
+- [docs/architecture/ai-prompt-contracts.md](docs/architecture/ai-prompt-contracts.md)
 
 Recommended next documentation:
 
