@@ -51,11 +51,34 @@ class SimpleSimulationObservationAdapterTest(TestCase):
             kind=ObservationKind.DOCUMENT_CONTRACT_REVIEW,
             summary="Contract review requested",
             metadata={
-                "document_text": (
-                    "Contrato com renovacao automatica, multa de cancelamento "
-                    "e fidelidade de 12 meses."
-                ),
-                "confidence": 0.91,
+                "document_analysis": {
+                    "extracted_text": (
+                        "Contrato com renovacao automatica, multa de cancelamento "
+                        "e fidelidade de 12 meses."
+                    ),
+                    "source_confidence": 0.91,
+                    "review_confidence": 0.84,
+                    "summary_title": "Contract clause needs attention",
+                    "summary_body": (
+                        "Possible automatic renewal, cancellation fee. "
+                        "This clause deserves review before signing."
+                    ),
+                    "findings": [
+                        {
+                            "finding_type": "automatic_renewal",
+                            "label": "automatic renewal",
+                            "excerpt": "renovacao automatica",
+                            "confidence": 0.84,
+                        },
+                        {
+                            "finding_type": "cancellation_fee",
+                            "label": "cancellation fee",
+                            "excerpt": "multa de cancelamento",
+                            "confidence": 0.81,
+                        },
+                    ],
+                    "parsing_notes": [],
+                }
             },
         )
 
@@ -65,6 +88,7 @@ class SimpleSimulationObservationAdapterTest(TestCase):
         self.assertEqual(candidate.title, "Contract clause needs attention")
         self.assertEqual(candidate.category, "documents")
         self.assertIn("automatic renewal", candidate.body)
+        self.assertEqual(candidate.confidence, 0.84)
 
     def test_returns_none_for_document_observation_without_detected_risk(self) -> None:
         adapter = SimpleSimulationObservationAdapter()
@@ -76,8 +100,15 @@ class SimpleSimulationObservationAdapterTest(TestCase):
             kind=ObservationKind.DOCUMENT_CONTRACT_REVIEW,
             summary="Contract review requested",
             metadata={
-                "document_text": "Horario de atendimento de segunda a sexta.",
-                "confidence": 0.91,
+                "document_analysis": {
+                    "extracted_text": "Horario de atendimento de segunda a sexta.",
+                    "source_confidence": 0.91,
+                    "review_confidence": 0.31,
+                    "summary_title": "No contract risk signal found",
+                    "summary_body": "No known renewal or fee pattern was detected.",
+                    "findings": [],
+                    "parsing_notes": [],
+                }
             },
         )
 

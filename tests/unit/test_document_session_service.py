@@ -17,6 +17,7 @@ class DocumentSessionServiceTest(TestCase):
                 "Plano com fidelidade de 12 meses, renovacao automatica "
                 "e multa de cancelamento."
             ),
+            document_image_base64=None,
             confidence=0.92,
             mode=AttentionMode.BALANCED,
             recent_category_count=0,
@@ -26,6 +27,12 @@ class DocumentSessionServiceTest(TestCase):
 
         self.assertTrue(result.candidate_created)
         self.assertEqual(result.outcome.value, "delivered")
+        self.assertGreaterEqual(result.analysis.review_confidence, 0.6)
+        self.assertEqual(result.analysis.summary_title, "Contract clause needs attention")
+        self.assertEqual(
+            service.analysis_store.get(result.analysis_record.analysis_id),
+            result.analysis_record,
+        )
         self.assertEqual(len(service.device_gateway.delivered_commands), 1)
         self.assertEqual(
             [event.event_type for event in service.event_store.events],
@@ -45,6 +52,7 @@ class DocumentSessionServiceTest(TestCase):
             user_id="user_1",
             session_id="session_1",
             document_text="Horario de atendimento de segunda a sexta, sem clausulas adicionais.",
+            document_image_base64=None,
             confidence=0.92,
             mode=AttentionMode.BALANCED,
             recent_category_count=0,
@@ -54,6 +62,11 @@ class DocumentSessionServiceTest(TestCase):
 
         self.assertFalse(result.candidate_created)
         self.assertEqual(result.outcome.value, "suppressed")
+        self.assertLess(result.analysis.review_confidence, 0.45)
+        self.assertEqual(
+            service.analysis_store.get(result.analysis_record.analysis_id),
+            result.analysis_record,
+        )
         self.assertEqual(service.device_gateway.delivered_commands, [])
         self.assertEqual(
             [event.event_type for event in service.event_store.events],

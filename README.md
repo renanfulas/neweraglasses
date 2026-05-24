@@ -156,20 +156,23 @@ It includes:
 
 - observation contracts for simulated input
 - domain contracts for attention, events, lens commands, and device capabilities
-- job contracts for future long-running document analysis
+- job contracts for long-running document analysis
 - an `AttentionPolicy` v1 with deterministic budget rules
 - a simple observation interpreter that turns simulated grocery observations into `AlertCandidate`
 - `GrocerySessionService` and `DocumentSessionService` as the first MVP-facing application entry points
 - a shared `SimulationRuntime` that keeps session state readable across requests in the same app process
+- a real OCR adapter for image-based contract extraction
+- deterministic contract parsing with excerpt extraction, structured findings, and refined alert language
 - an `EvaluateAlertCandidate` use case
 - a `DeviceGateway` port and `DeliverLensCommand` use case
 - a `ProcessAlertCandidate` orchestrator for the first end-to-end alert flow
 - a `ProcessObservation` orchestrator for the first observation-to-display flow
 - a `GetSessionTrace` read model use case for session history
-- an `EnqueueDocumentAnalysisJob` use case plus job status lookup for future async document flows
+- an `EnqueueDocumentAnalysisJob` use case, `RunDocumentAnalysisJob` runner, and job status/result lookup for async document flows
+- a threaded in-memory document analysis worker with retries, timeout policy, and persisted analysis results
 - a FastAPI adapter that exposes the grocery simulation flow over HTTP
 - a `BrowserSimulationAdapter` for PWA/app simulation before hardware integration
-- in-memory event and job store adapters for tests and simulation
+- in-memory event, job, job payload, and document analysis store adapters for tests and simulation
 - unit tests for policy, event redaction, observation mapping, lens command generation, device delivery, and alert processing
 
 Run the tests:
@@ -193,6 +196,7 @@ Initial endpoints:
 - `GET /api/sessions/{session_id}/trace`
 - `POST /api/jobs/documents/contract-analysis`
 - `GET /api/jobs/{job_id}`
+- `GET /api/jobs/{job_id}/result`
 - `POST /api/jobs/{job_id}/status`
 
 Recommended next documentation:

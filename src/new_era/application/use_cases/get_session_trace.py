@@ -63,6 +63,10 @@ def build_trace_title(event: Event) -> str:
         return "Document analysis job completed"
     if event.event_type == EventType.JOB_FAILED:
         return "Document analysis job failed"
+    if event.event_type == EventType.AI_CALL_FAILED:
+        return "Document analysis attempt failed"
+    if event.event_type == EventType.ALERT_FEEDBACK_GIVEN:
+        return "Lens feedback recorded"
     return event.event_type.value.replace("_", " ").title()
 
 
@@ -100,6 +104,12 @@ def build_trace_detail(event: Event) -> str:
         return f"Completed {metadata.get('job_type', 'job')}."
     if event.event_type == EventType.JOB_FAILED:
         return f"Failed {metadata.get('job_type', 'job')}."
+    if event.event_type == EventType.AI_CALL_FAILED:
+        retry_text = "retry scheduled" if metadata.get("retry_scheduled") else "no retry"
+        return f"Attempt {metadata.get('attempt', 'unknown')} failed; {retry_text}."
+    if event.event_type == EventType.ALERT_FEEDBACK_GIVEN:
+        feedback = str(metadata.get("feedback", "feedback")).replace("_", " ")
+        return f"Marked the lens alert as {feedback}."
     return "Event recorded."
 
 
@@ -119,6 +129,10 @@ def build_trace_step(event_type: EventType) -> str:
         EventType.JOB_FAILED,
     ):
         return "job"
+    if event_type == EventType.AI_CALL_FAILED:
+        return "provider"
+    if event_type == EventType.ALERT_FEEDBACK_GIVEN:
+        return "feedback"
     return "system"
 
 

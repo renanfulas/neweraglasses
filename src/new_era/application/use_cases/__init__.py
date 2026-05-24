@@ -2,8 +2,14 @@
 
 from new_era.application.use_cases.document_analysis_jobs import (
     AdvanceDocumentAnalysisJob,
+    DocumentAnalysisJobTimedOut,
     EnqueueDocumentAnalysisJob,
     GetJobStatus,
+    RunDocumentAnalysisJob,
+)
+from new_era.application.use_cases.get_document_analysis import (
+    GetDocumentAnalysis,
+    ListDocumentAnalysesBySession,
 )
 from new_era.application.use_cases.deliver_lens_command import DeliverLensCommand
 from new_era.application.use_cases.evaluate_alert_candidate import EvaluateAlertCandidate
@@ -21,19 +27,31 @@ from new_era.application.use_cases.process_alert_candidate import (
     AlertProcessingResult,
     ProcessAlertCandidate,
 )
+from new_era.application.use_cases.record_lens_feedback import (
+    LensFeedbackResult,
+    LensFeedbackValue,
+    RecordLensFeedback,
+)
 
 __all__ = [
     "AlertProcessingOutcome",
     "AlertProcessingResult",
     "AdvanceDocumentAnalysisJob",
+    "DocumentAnalysisJobTimedOut",
     "DeliverLensCommand",
     "EnqueueDocumentAnalysisJob",
     "EvaluateAlertCandidate",
+    "GetDocumentAnalysis",
     "GetJobStatus",
     "GetSessionTrace",
+    "LensFeedbackResult",
+    "LensFeedbackValue",
+    "ListDocumentAnalysesBySession",
     "ObservationProcessingResult",
     "ProcessObservation",
     "ProcessAlertCandidate",
+    "RecordLensFeedback",
+    "RunDocumentAnalysisJob",
     "SessionTraceEntry",
     "SessionTraceReadModel",
 ]
