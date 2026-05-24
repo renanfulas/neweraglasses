@@ -15,13 +15,31 @@
           <p class="eyebrow">New Era PWA Simulation</p>
           <h1>Context, attention, and display in one loop.</h1>
           <p class="hero-text">
-            Simulate what the glasses would see, how the core interprets it,
-            and what reaches the user's lens.
+            Companion control surface for observation, decision, delivery, and feedback.
           </p>
         </div>
         <div class="status-strip" id="network-status" aria-live="polite">
           <span class="status-dot"></span>
           <span>API ready</span>
+        </div>
+      </section>
+
+      <section class="session-rail" aria-label="Companion session state">
+        <div class="session-pill">
+          <span>Module</span>
+          <strong id="session-module-label">Grocery</strong>
+        </div>
+        <div class="session-pill" id="sync-state-card" data-state="idle">
+          <span>Sync</span>
+          <strong id="sync-state-label">Idle</strong>
+        </div>
+        <div class="session-pill" id="async-state-card" data-state="idle">
+          <span>Async</span>
+          <strong id="async-state-label">Standby</strong>
+        </div>
+        <div class="session-pill" id="feedback-state-card" data-state="idle">
+          <span>Feedback</span>
+          <strong id="feedback-state-label">Waiting</strong>
         </div>
       </section>
 
@@ -65,7 +83,11 @@
             <form id="document-form" class="control-form module-form-hidden">
               <label>
                 <span>Contract excerpt</span>
-                <textarea id="document-text" name="document_text" rows="8" required>Plano com fidelidade de 12 meses, renovacao automatica por igual periodo e multa de cancelamento antecipado.</textarea>
+                <textarea id="document-text" name="document_text" rows="8">Plano com fidelidade de 12 meses, renovacao automatica por igual periodo e multa de cancelamento antecipado.</textarea>
+              </label>
+              <label>
+                <span>Contract image (optional OCR)</span>
+                <input id="document-image" name="document_image" type="file" accept="image/png,image/jpeg,image/webp">
               </label>
               <label>
                 <span>Confidence</span>
@@ -106,6 +128,10 @@
                     <dt>Source</dt>
                     <dd id="job-source">pwa_simulation</dd>
                   </div>
+                  <div>
+                    <dt>Linked analysis</dt>
+                    <dd id="job-analysis-id">none</dd>
+                  </div>
                 </dl>
                 <div class="job-actions">
                   <button id="job-enqueue-button" type="button">Queue job</button>
@@ -126,6 +152,20 @@
             <div class="lens-stage" id="lens-stage">
               <div class="lens-overlay lens-overlay-idle" id="lens-overlay">
                 <p class="lens-label">Waiting for observation</p>
+              </div>
+            </div>
+            <div class="feedback-card" id="feedback-card" data-state="idle">
+              <div class="feedback-card-header">
+                <div>
+                  <p class="panel-kicker">Feedback</p>
+                  <h3 id="feedback-target-title">No delivered alert</h3>
+                </div>
+                <span class="feedback-badge" id="feedback-badge">waiting</span>
+              </div>
+              <p id="feedback-copy" class="feedback-copy">Run a simulation that reaches the lens.</p>
+              <div class="feedback-actions" aria-label="Lens alert feedback">
+                <button id="feedback-useful-button" type="button" disabled>Useful</button>
+                <button id="feedback-not-useful-button" type="button" disabled>Not useful</button>
               </div>
             </div>
           </section>

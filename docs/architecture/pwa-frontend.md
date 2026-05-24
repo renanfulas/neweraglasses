@@ -46,13 +46,13 @@ Implemented now:
 - lens preview surface
 - decision summary panel
 - API integration with `POST /api/simulations/grocery/missing-item`
+- session/history panel backed by server-side user sessions
+- user-scoped session trace reads with module/step/event filters
 
 Not implemented yet:
 
 - user authentication
-- persistent sessions
-- history view
-- contract/document flow UI
+- production document upload consent/deletion flow
 - offline mutation queue
 - install education
 - push notifications
@@ -268,11 +268,10 @@ The lens preview is representational. It must remain readable even when the real
 Recommended order:
 
 1. Stabilize grocery simulation shell.
-2. Add a session/history panel for event traces.
-3. Add document simulation module to the same shell.
-4. Add auth and real user session handling.
-5. Split static modules when the JS surface grows.
-6. Reassess whether a frontend framework is justified.
+2. Add document simulation module to the same shell.
+3. Replace demo user IDs with real authentication.
+4. Split static modules when the JS surface grows.
+5. Reassess whether a frontend framework is justified.
 
 ## 14. Risks to Avoid
 

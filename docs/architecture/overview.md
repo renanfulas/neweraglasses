@@ -619,8 +619,12 @@ BrowserSimulationAdapter
   - simulates lens UI in PWA
   - uses phone/browser camera where available
 
-MobileCameraAdapter
-  - uses phone camera as stand-in for glasses camera
+HTTP camera bridge
+  - accepts real phone/hardware camera image input
+  - feeds the same document observation pipeline through OCR
+
+HttpDeviceBridgeAdapter
+  - sends LensCommand JSON to a native app, local hardware daemon, or vendor wrapper
 
 MetaRayBanAdapter
   - future adapter for Meta Ray-Ban Display or supported Meta glasses
@@ -805,6 +809,7 @@ Success:
 - Phone camera acts as glasses input.
 - Backend processes selected images/observations.
 - PWA displays simulated lens overlay.
+- Current runtime supports document camera input through `POST /api/device-bridge/camera/document-contract-review`.
 
 Success:
 
@@ -816,6 +821,7 @@ Success:
 - Integrate one real smart-glasses platform if available.
 - Keep the same backend/domain contracts.
 - Replace only the adapter/display path.
+- Current runtime can route display delivery to an HTTP bridge with `NEW_ERA_DEVICE_BRIDGE_URL`.
 
 Success:
 

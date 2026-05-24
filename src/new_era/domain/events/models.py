@@ -30,6 +30,7 @@ class EventType(StrEnum):
     AI_CALL_FAILED = "ai_call_failed"
     LENS_COMMAND_DELIVERED = "lens_command_delivered"
     DEVICE_CAPABILITY_MISSING = "device_capability_missing"
+    DEVICE_DELIVERY_FAILED = "device_delivery_failed"
 
 
 @dataclass(frozen=True, slots=True)
