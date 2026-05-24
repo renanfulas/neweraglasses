@@ -4,14 +4,19 @@ from pathlib import Path
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
-from new_era.application.services import DocumentSessionService, GrocerySessionService
+from new_era.application.services import (
+    DocumentSessionService,
+    GrocerySessionService,
+    SimulationRuntime,
+)
+from new_era.application.use_cases import AdvanceDocumentAnalysisJob, GetJobStatus, GetSessionTrace
 from new_era.domain.attention import AttentionMode
-from new_era.domain.events import Event, EventType
+from new_era.domain.jobs import JobRecord, JobStatus
 
 
 class HealthResponse(BaseModel):
@@ -55,106 +60,111 @@ class SimulationResponse(BaseModel):
     session_trace: list[dict[str, object]]
 
 
-def build_trace_title(event: Event) -> str:
-    if event.event_type == EventType.OBSERVATION_CREATED:
-        return "Observation captured"
-    if event.event_type == EventType.ALERT_CANDIDATE_CREATED:
-        return "Alert candidate created"
-    if event.event_type == EventType.ALERT_SHOWN:
-        return "Attention policy allowed display"
-    if event.event_type == EventType.ALERT_SUPPRESSED:
-        return "Attention policy suppressed alert"
-    if event.event_type == EventType.LENS_COMMAND_DELIVERED:
-        return "Lens command delivered"
-    if event.event_type == EventType.DEVICE_CAPABILITY_MISSING:
-        return "Device capability missing"
-    return event.event_type.value.replace("_", " ").title()
+class SessionTraceResponse(BaseModel):
+    session_id: str
+    trace_id: str | None
+    event_count: int
+    session_trace: list[dict[str, object]]
 
 
-def build_trace_detail(event: Event) -> str:
-    metadata = event.metadata
-    if event.event_type == EventType.OBSERVATION_CREATED:
-        return str(metadata.get("summary", "Observation received."))
-    if event.event_type == EventType.ALERT_CANDIDATE_CREATED:
-        priority = str(metadata.get("priority", "unknown")).replace("_", " ")
-        confidence = metadata.get("confidence")
-        return (
-            f"{metadata.get('alert_type', 'alert')} candidate "
-            f"with {priority} priority at confidence {confidence}."
-        )
-    if event.event_type in (EventType.ALERT_SHOWN, EventType.ALERT_SUPPRESSED):
-        return str(metadata.get("reason", "No decision reason recorded."))
-    if event.event_type == EventType.LENS_COMMAND_DELIVERED:
-        return f"Rendered by {metadata.get('adapter_name', 'device adapter')}."
-    if event.event_type == EventType.DEVICE_CAPABILITY_MISSING:
-        return (
-            f"Missing {metadata.get('missing_capability', 'required capability')} on "
-            f"{metadata.get('adapter_name', 'device adapter')}."
-        )
-    return "Event recorded."
+class DocumentAnalysisJobRequest(BaseModel):
+    user_id: str
+    session_id: str
+    artifact_label: str = Field(min_length=1)
+    source_type: str = Field(min_length=1, default="pwa_simulation")
+    idempotency_key: str = Field(min_length=8)
+    correlation_id: str | None = None
+    trace_id: str | None = None
 
 
-def build_trace_step(event_type: EventType) -> str:
-    if event_type == EventType.OBSERVATION_CREATED:
-        return "observation"
-    if event_type == EventType.ALERT_CANDIDATE_CREATED:
-        return "candidate"
-    if event_type in (EventType.ALERT_SHOWN, EventType.ALERT_SUPPRESSED):
-        return "decision"
-    if event_type in (EventType.LENS_COMMAND_DELIVERED, EventType.DEVICE_CAPABILITY_MISSING):
-        return "delivery"
-    return "system"
+class JobResponse(BaseModel):
+    job_id: str
+    job_type: str
+    status: str
+    user_id: str
+    session_id: str
+    module: str
+    idempotency_key: str
+    created_at: str
+    updated_at: str
+    metadata: dict[str, object]
 
 
-def serialize_session_trace(events: list[Event], trace_id: str) -> list[dict[str, object]]:
-    trace_events = [event for event in events if event.trace_id == trace_id]
-    serialized_trace: list[dict[str, object]] = []
-
-    for event in trace_events:
-        serialized_trace.append(
-            {
-                "event_id": event.event_id,
-                "event_type": event.event_type.value,
-                "step": build_trace_step(event.event_type),
-                "title": build_trace_title(event),
-                "detail": build_trace_detail(event),
-                "created_at": event.created_at.isoformat(),
-            }
-        )
-
-    return serialized_trace
+class JobTransitionRequest(BaseModel):
+    target_status: JobStatus
+    correlation_id: str | None = None
+    trace_id: str | None = None
 
 
-def get_grocery_session_service() -> GrocerySessionService:
-    return GrocerySessionService.build_default_simulation()
+def serialize_job(job: JobRecord) -> JobResponse:
+    return JobResponse(**job.to_dict())
 
 
-def get_document_session_service() -> DocumentSessionService:
-    return DocumentSessionService.build_default_simulation()
+def get_runtime(request: Request) -> SimulationRuntime:
+    return request.app.state.runtime
+
+
+def get_grocery_session_service(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> GrocerySessionService:
+    return runtime.grocery_service
+
+
+def get_document_session_service(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> DocumentSessionService:
+    return runtime.document_service
+
+
+def get_session_trace_reader(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> GetSessionTrace:
+    return runtime.session_trace_reader
+
+
+def get_document_job_enqueuer(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+):
+    return runtime.document_job_enqueuer
+
+
+def get_job_status_reader(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> GetJobStatus:
+    return runtime.job_status_reader
+
+
+def get_document_job_advancer(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> AdvanceDocumentAnalysisJob:
+    return runtime.document_job_advancer
 
 
 def build_simulation_response(
     *,
     result,
-    event_store_events: list[Event],
+    session_trace_reader: GetSessionTrace,
+    session_id: str,
     delivered_commands: list[object],
     trace_id: str,
 ) -> SimulationResponse:
+    session_trace = session_trace_reader.execute(session_id=session_id, trace_id=trace_id)
     return SimulationResponse(
         outcome=result.outcome.value,
         candidate_created=result.candidate_created,
         command=result.alert_result.command.to_dict()
         if result.alert_result and result.alert_result.command
         else None,
-        event_count=len(event_store_events),
+        event_count=session_trace.event_count,
         delivered_commands_count=len(delivered_commands),
-        session_trace=serialize_session_trace(event_store_events, trace_id),
+        session_trace=[entry.to_dict() for entry in session_trace.session_trace],
     )
 
 
 def create_app() -> FastAPI:
     app = FastAPI(title="New Era Glasses API", version="0.1.0")
     static_dir = Path(__file__).with_name("static")
+    app.state.runtime = SimulationRuntime.build_default()
 
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
@@ -181,6 +191,7 @@ def create_app() -> FastAPI:
     def simulate_grocery_missing_item(
         request: GroceryMissingItemRequest,
         service: Annotated[GrocerySessionService, Depends(get_grocery_session_service)],
+        session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
     ) -> SimulationResponse:
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
         result = service.process_missing_item(
@@ -198,7 +209,8 @@ def create_app() -> FastAPI:
 
         return build_simulation_response(
             result=result,
-            event_store_events=service.event_store.events,
+            session_trace_reader=session_trace_reader,
+            session_id=request.session_id,
             delivered_commands=delivered_commands,
             trace_id=trace_id,
         )
@@ -210,6 +222,7 @@ def create_app() -> FastAPI:
     def simulate_contract_review(
         request: DocumentContractReviewRequest,
         service: Annotated[DocumentSessionService, Depends(get_document_session_service)],
+        session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
     ) -> SimulationResponse:
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
         result = service.process_contract_review(
@@ -227,9 +240,72 @@ def create_app() -> FastAPI:
 
         return build_simulation_response(
             result=result,
-            event_store_events=service.event_store.events,
+            session_trace_reader=session_trace_reader,
+            session_id=request.session_id,
             delivered_commands=delivered_commands,
             trace_id=trace_id,
         )
+
+    @app.get(
+        "/api/sessions/{session_id}/trace",
+        response_model=SessionTraceResponse,
+    )
+    def get_session_trace(
+        session_id: str,
+        trace_id: str | None = None,
+        reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)] = None,
+    ) -> SessionTraceResponse:
+        trace = reader.execute(session_id=session_id, trace_id=trace_id)
+        return SessionTraceResponse(**trace.to_dict())
+
+    @app.post(
+        "/api/jobs/documents/contract-analysis",
+        response_model=JobResponse,
+    )
+    def enqueue_document_analysis_job(
+        request: DocumentAnalysisJobRequest,
+        enqueuer=Depends(get_document_job_enqueuer),
+    ) -> JobResponse:
+        trace_id = request.trace_id or f"trace_{uuid4().hex}"
+        job = enqueuer.execute(
+            user_id=request.user_id,
+            session_id=request.session_id,
+            idempotency_key=request.idempotency_key,
+            correlation_id=request.correlation_id or f"corr_{uuid4().hex}",
+            trace_id=trace_id,
+            artifact_label=request.artifact_label,
+            source_type=request.source_type,
+        )
+        return serialize_job(job)
+
+    @app.get("/api/jobs/{job_id}", response_model=JobResponse)
+    def get_job_status(
+        job_id: str,
+        reader: Annotated[GetJobStatus, Depends(get_job_status_reader)],
+    ) -> JobResponse:
+        job = reader.execute(job_id=job_id)
+        if job is None:
+            raise HTTPException(status_code=404, detail="job_not_found")
+        return serialize_job(job)
+
+    @app.post("/api/jobs/{job_id}/status", response_model=JobResponse)
+    def advance_job_status(
+        job_id: str,
+        request: JobTransitionRequest,
+        advancer: Annotated[AdvanceDocumentAnalysisJob, Depends(get_document_job_advancer)],
+    ) -> JobResponse:
+        trace_id = request.trace_id or f"trace_{uuid4().hex}"
+        try:
+            job = advancer.execute(
+                job_id=job_id,
+                target_status=request.target_status,
+                correlation_id=request.correlation_id or f"corr_{uuid4().hex}",
+                trace_id=trace_id,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        if job is None:
+            raise HTTPException(status_code=404, detail="job_not_found")
+        return serialize_job(job)
 
     return app

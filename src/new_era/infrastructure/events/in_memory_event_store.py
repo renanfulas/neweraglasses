@@ -12,3 +12,16 @@ class InMemoryEventStore(EventStore):
 
     def append(self, event: Event) -> None:
         self.events.append(event)
+
+    def list_events(
+        self,
+        *,
+        session_id: str | None = None,
+        trace_id: str | None = None,
+    ) -> list[Event]:
+        filtered_events = self.events
+        if session_id is not None:
+            filtered_events = [event for event in filtered_events if event.session_id == session_id]
+        if trace_id is not None:
+            filtered_events = [event for event in filtered_events if event.trace_id == trace_id]
+        return list(filtered_events)

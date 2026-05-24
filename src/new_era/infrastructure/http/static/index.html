@@ -65,7 +65,7 @@
             <form id="document-form" class="control-form module-form-hidden">
               <label>
                 <span>Contract excerpt</span>
-                <textarea id="document-text" name="document_text" rows="8" required>Plano com fidelidade de 12 meses, renovação automática por igual período e multa de cancelamento antecipado.</textarea>
+                <textarea id="document-text" name="document_text" rows="8" required>Plano com fidelidade de 12 meses, renovacao automatica por igual periodo e multa de cancelamento antecipado.</textarea>
               </label>
               <label>
                 <span>Confidence</span>
@@ -85,6 +85,36 @@
                 <input id="document-recent-count" name="recent_category_count" type="number" min="0" step="1" value="0">
               </label>
               <button id="document-simulate-button" type="submit">Run contract simulation</button>
+
+              <div class="job-card" id="document-job-card">
+                <div class="job-card-header">
+                  <div>
+                    <p class="panel-kicker">Async Shape</p>
+                    <h3>Document Analysis Job</h3>
+                  </div>
+                  <span class="job-badge" id="job-status-badge">idle</span>
+                </div>
+                <p class="job-card-copy" id="job-summary">
+                  Queue a simulated analysis job, then move it through running, succeeded, or failed.
+                </p>
+                <dl class="job-meta">
+                  <div>
+                    <dt>Job ID</dt>
+                    <dd id="job-id">none</dd>
+                  </div>
+                  <div>
+                    <dt>Source</dt>
+                    <dd id="job-source">pwa_simulation</dd>
+                  </div>
+                </dl>
+                <div class="job-actions">
+                  <button id="job-enqueue-button" type="button">Queue job</button>
+                  <button id="job-running-button" type="button" class="job-action-secondary">Set running</button>
+                  <button id="job-success-button" type="button" class="job-action-secondary">Set succeeded</button>
+                  <button id="job-failed-button" type="button" class="job-action-secondary">Set failed</button>
+                  <button id="job-refresh-button" type="button" class="job-action-secondary">Refresh status</button>
+                </div>
+              </div>
             </form>
           </section>
 
@@ -135,6 +165,30 @@
                 </div>
               </li>
             </ol>
+            <div class="history-block">
+              <div class="history-header">
+                <div>
+                  <p class="panel-kicker">Session History</p>
+                  <h3>Accumulated Runtime Events</h3>
+                </div>
+                <div class="history-controls">
+                  <div class="scope-switcher" role="tablist" aria-label="History scope">
+                    <button id="scope-latest-button" type="button" class="scope-tab scope-tab-active">Latest execution</button>
+                    <button id="scope-session-button" type="button" class="scope-tab">Full session</button>
+                  </div>
+                  <button id="refresh-history-button" type="button" class="job-action-secondary">Refresh history</button>
+                </div>
+              </div>
+              <ol class="history-list" id="history-list" aria-live="polite">
+                <li class="trace-item trace-item-idle">
+                  <div class="trace-step">idle</div>
+                  <div class="trace-content">
+                    <h3>Waiting for stored session history</h3>
+                    <p>The full session timeline for the active module will appear here.</p>
+                  </div>
+                </li>
+              </ol>
+            </div>
           </section>
         </div>
       </section>

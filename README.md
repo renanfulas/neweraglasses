@@ -156,16 +156,20 @@ It includes:
 
 - observation contracts for simulated input
 - domain contracts for attention, events, lens commands, and device capabilities
+- job contracts for future long-running document analysis
 - an `AttentionPolicy` v1 with deterministic budget rules
 - a simple observation interpreter that turns simulated grocery observations into `AlertCandidate`
-- a `GrocerySessionService` as the first MVP-facing application entry point
+- `GrocerySessionService` and `DocumentSessionService` as the first MVP-facing application entry points
+- a shared `SimulationRuntime` that keeps session state readable across requests in the same app process
 - an `EvaluateAlertCandidate` use case
 - a `DeviceGateway` port and `DeliverLensCommand` use case
 - a `ProcessAlertCandidate` orchestrator for the first end-to-end alert flow
 - a `ProcessObservation` orchestrator for the first observation-to-display flow
+- a `GetSessionTrace` read model use case for session history
+- an `EnqueueDocumentAnalysisJob` use case plus job status lookup for future async document flows
 - a FastAPI adapter that exposes the grocery simulation flow over HTTP
 - a `BrowserSimulationAdapter` for PWA/app simulation before hardware integration
-- an in-memory event store adapter for tests and simulation
+- in-memory event and job store adapters for tests and simulation
 - unit tests for policy, event redaction, observation mapping, lens command generation, device delivery, and alert processing
 
 Run the tests:
@@ -185,6 +189,11 @@ Initial endpoints:
 - `GET /`
 - `GET /health`
 - `POST /api/simulations/grocery/missing-item`
+- `POST /api/simulations/documents/contract-review`
+- `GET /api/sessions/{session_id}/trace`
+- `POST /api/jobs/documents/contract-analysis`
+- `GET /api/jobs/{job_id}`
+- `POST /api/jobs/{job_id}/status`
 
 Recommended next documentation:
 
