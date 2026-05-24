@@ -448,6 +448,7 @@ function renderJobState(job) {
 }
 
 async function refreshSessionHistory(moduleName) {
+  const userId = DEMO_USERS[moduleName];
   const sessionId = DEMO_SESSIONS[moduleName];
   const traceId = appState.lastTraceIdByModule[moduleName];
   const wantsLatestScope = appState.historyScope === "latest";
@@ -459,10 +460,19 @@ async function refreshSessionHistory(moduleName) {
     return;
   }
 
-  const query =
-    wantsLatestScope && traceId ? `?trace_id=${encodeURIComponent(traceId)}` : "";
+  const query = new URLSearchParams({
+    module: moduleName,
+    limit: "50",
+  });
+  if (wantsLatestScope && traceId) {
+    query.set("trace_id", traceId);
+  }
   try {
-    const response = await fetch(`/api/sessions/${sessionId}/trace${query}`);
+    const response = await fetch(
+      `/api/users/${encodeURIComponent(userId)}/sessions/${encodeURIComponent(
+        sessionId,
+      )}/trace?${query.toString()}`,
+    );
     if (!response.ok) {
       throw new Error(`History failed with status ${response.status}`);
     }
@@ -598,7 +608,9 @@ async function submitLensFeedback(feedback) {
     const traceId = appState.lastTraceIdByModule[moduleName];
     if (traceId) {
       const traceResponse = await fetch(
-        `/api/sessions/${DEMO_SESSIONS[moduleName]}/trace?trace_id=${encodeURIComponent(traceId)}`,
+        `/api/users/${encodeURIComponent(DEMO_USERS[moduleName])}/sessions/${encodeURIComponent(
+          DEMO_SESSIONS[moduleName],
+        )}/trace?trace_id=${encodeURIComponent(traceId)}&module=${encodeURIComponent(moduleName)}`,
       );
       if (traceResponse.ok) {
         const tracePayload = await traceResponse.json();

@@ -32,6 +32,14 @@ from new_era.application.use_cases.record_lens_feedback import (
     LensFeedbackValue,
     RecordLensFeedback,
 )
+from new_era.application.use_cases.user_sessions import (
+    GetUserSession,
+    ListUserSessions,
+    SessionOwnershipError,
+    StartUserSession,
+    UserSessionPageReadModel,
+    UserSessionReadModel,
+)
 
 __all__ = [
     "AlertProcessingOutcome",
@@ -44,14 +52,20 @@ __all__ = [
     "GetDocumentAnalysis",
     "GetJobStatus",
     "GetSessionTrace",
+    "GetUserSession",
     "LensFeedbackResult",
     "LensFeedbackValue",
+    "ListUserSessions",
     "ListDocumentAnalysesBySession",
     "ObservationProcessingResult",
     "ProcessObservation",
     "ProcessAlertCandidate",
     "RecordLensFeedback",
     "RunDocumentAnalysisJob",
+    "SessionOwnershipError",
     "SessionTraceEntry",
     "SessionTraceReadModel",
+    "StartUserSession",
+    "UserSessionPageReadModel",
+    "UserSessionReadModel",
 ]

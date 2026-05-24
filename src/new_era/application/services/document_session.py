@@ -65,6 +65,8 @@ class DocumentSessionService:
         recent_category_count: int,
         correlation_id: str,
         trace_id: str,
+        source_type: str | None = None,
+        observation_summary: str | None = None,
     ) -> DocumentContractReviewResult:
         ocr_extraction = None
         extracted_text = (document_text or "").strip()
@@ -81,7 +83,7 @@ class DocumentSessionService:
             document_text=extracted_text,
             source_confidence=source_confidence,
         )
-        source_type = "image_ocr" if document_image_base64 else "plain_text"
+        source_type = source_type or ("image_ocr" if document_image_base64 else "plain_text")
         analysis_record = DocumentAnalysisRecord(
             user_id=user_id,
             session_id=session_id,
@@ -97,7 +99,7 @@ class DocumentSessionService:
             session_id=session_id,
             module="documents",
             kind=ObservationKind.DOCUMENT_CONTRACT_REVIEW,
-            summary="Contract review requested from PWA simulation",
+            summary=observation_summary or "Contract review requested from PWA simulation",
             metadata={
                 "document_analysis": analysis.to_dict(),
                 "analysis_id": analysis_record.analysis_id,

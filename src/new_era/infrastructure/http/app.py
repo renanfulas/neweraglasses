@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
@@ -18,9 +19,18 @@ from new_era.application.services import (
 from new_era.application.use_cases import AdvanceDocumentAnalysisJob, GetJobStatus, GetSessionTrace
 from new_era.application.use_cases import GetDocumentAnalysis, ListDocumentAnalysesBySession
 from new_era.application.use_cases import LensFeedbackValue, RecordLensFeedback
+from new_era.application.use_cases import (
+    GetUserSession,
+    ListUserSessions,
+    SessionOwnershipError,
+    StartUserSession,
+)
+from new_era.application.ports import DeviceGateway
 from new_era.domain.documents import DocumentAnalysisRecord
 from new_era.domain.attention import AttentionMode
+from new_era.domain.events import EventType
 from new_era.domain.jobs import JobRecord, JobStatus
+from new_era.domain.sessions import UserSession
 
 
 class HealthResponse(BaseModel):
@@ -31,7 +41,7 @@ class GroceryMissingItemRequest(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
     user_id: str
-    session_id: str
+    session_id: str | None = None
     item_name: str = Field(min_length=1)
     confidence: float = Field(ge=0, le=1, default=0.9)
     mode: AttentionMode = AttentionMode.BALANCED
@@ -45,7 +55,7 @@ class DocumentContractReviewRequest(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
     user_id: str
-    session_id: str
+    session_id: str | None = None
     document_text: str | None = Field(default=None, min_length=20)
     document_image_base64: str | None = None
     confidence: float | None = Field(default=0.92, ge=0, le=1)
@@ -57,6 +67,7 @@ class DocumentContractReviewRequest(BaseModel):
 
 
 class SimulationResponse(BaseModel):
+    session_id: str
     outcome: str
     candidate_created: bool
     command: dict[str, object] | None
@@ -67,18 +78,73 @@ class SimulationResponse(BaseModel):
     analysis_id: str | None = None
 
 
+class DeviceCapabilitiesResponse(BaseModel):
+    adapter_name: str
+    supports_camera: bool
+    supports_display: bool
+    supports_voice: bool
+    supports_gesture: bool
+    unsupported_features: list[str]
+    metadata: dict[str, object]
+
+
+class CameraDocumentContractReviewRequest(BaseModel):
+    model_config = ConfigDict(use_enum_values=True)
+
+    user_id: str
+    session_id: str | None = None
+    image_base64: str = Field(min_length=1)
+    content_type: str = Field(default="image/jpeg", min_length=1)
+    source_adapter: str = Field(
+        default="phone_camera",
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9_:-]+$",
+    )
+    mode: AttentionMode = AttentionMode.BALANCED
+    recent_category_count: int = Field(ge=0, default=0)
+    observation_id: str | None = None
+    correlation_id: str | None = None
+    trace_id: str | None = None
+
+
 class SessionTraceResponse(BaseModel):
     session_id: str
     trace_id: str | None
     event_count: int
+    next_cursor: str | None = None
     session_trace: list[dict[str, object]]
+
+
+class CreateUserSessionRequest(BaseModel):
+    module: str = Field(min_length=1)
+    title: str | None = Field(default=None, min_length=1)
+    session_id: str | None = Field(default=None, min_length=1)
+    metadata: dict[str, object] = Field(default_factory=dict)
+
+
+class UserSessionResponse(BaseModel):
+    session_id: str
+    user_id: str
+    module: str
+    title: str
+    created_at: str
+    updated_at: str
+    metadata: dict[str, object]
+
+
+class UserSessionPageResponse(BaseModel):
+    user_id: str
+    session_count: int
+    next_cursor: str | None
+    sessions: list[UserSessionResponse]
 
 
 class DocumentAnalysisJobRequest(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
     user_id: str
-    session_id: str
+    session_id: str | None = None
     artifact_label: str = Field(min_length=1)
     source_type: str = Field(min_length=1, default="pwa_simulation")
     idempotency_key: str = Field(min_length=8)
@@ -156,6 +222,18 @@ def serialize_document_analysis(record: DocumentAnalysisRecord) -> DocumentAnaly
     return DocumentAnalysisResponse(**record.to_dict())
 
 
+def serialize_device_capabilities(capabilities) -> DeviceCapabilitiesResponse:
+    return DeviceCapabilitiesResponse(
+        adapter_name=capabilities.adapter_name,
+        supports_camera=capabilities.supports_camera,
+        supports_display=capabilities.supports_display,
+        supports_voice=capabilities.supports_voice,
+        supports_gesture=capabilities.supports_gesture,
+        unsupported_features=list(capabilities.unsupported_features),
+        metadata=dict(capabilities.metadata),
+    )
+
+
 def get_runtime(request: Request) -> SimulationRuntime:
     return request.app.state.runtime
 
@@ -220,6 +298,67 @@ def get_lens_feedback_recorder(
     return runtime.lens_feedback_recorder
 
 
+def get_user_session_starter(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> StartUserSession:
+    return runtime.user_session_starter
+
+
+def get_user_session_reader(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> GetUserSession:
+    return runtime.user_session_reader
+
+
+def get_user_sessions_lister(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> ListUserSessions:
+    return runtime.user_sessions_lister
+
+
+def get_device_gateway(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> DeviceGateway:
+    return runtime.device_gateway
+
+
+def serialize_user_session(session: UserSession) -> UserSessionResponse:
+    return UserSessionResponse(**session.to_dict())
+
+
+def resolve_user_session(
+    *,
+    starter: StartUserSession,
+    user_id: str,
+    module: str,
+    session_id: str | None,
+) -> UserSession:
+    try:
+        return starter.execute(
+            user_id=user_id,
+            module=module,
+            session_id=session_id,
+        )
+    except SessionOwnershipError as exc:
+        raise HTTPException(status_code=403, detail="session_does_not_belong_to_user") from exc
+
+
+def parse_datetime_query(value: str | None, *, field_name: str) -> datetime | None:
+    if value is None:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=f"invalid_{field_name}") from exc
+
+
+def validate_camera_content_type(content_type: str) -> None:
+    normalized = content_type.lower().split(";", 1)[0].strip()
+    supported_types = {"image/jpeg", "image/png", "image/webp"}
+    if normalized not in supported_types:
+        raise HTTPException(status_code=415, detail="unsupported_camera_content_type")
+
+
 def build_simulation_response(
     *,
     result,
@@ -231,22 +370,35 @@ def build_simulation_response(
     analysis_id: str | None = None,
 ) -> SimulationResponse:
     session_trace = session_trace_reader.execute(session_id=session_id, trace_id=trace_id)
+    delivered_commands_count = sum(
+        1
+        for entry in session_trace.session_trace
+        if entry.event_type == EventType.LENS_COMMAND_DELIVERED.value
+    )
     return SimulationResponse(
+        session_id=session_id,
         outcome=result.outcome.value,
         candidate_created=result.candidate_created,
         command=result.alert_result.command.to_dict()
         if result.alert_result and result.alert_result.command
-        else None,
+            else None,
         event_count=session_trace.event_count,
-        delivered_commands_count=len(delivered_commands),
+        delivered_commands_count=delivered_commands_count,
         session_trace=[entry.to_dict() for entry in session_trace.session_trace],
         analysis=analysis,
         analysis_id=analysis_id,
     )
 
 
-def create_app() -> FastAPI:
-    runtime = SimulationRuntime.build_default()
+def create_app(
+    *,
+    storage_path: str | Path | None = None,
+    device_gateway: DeviceGateway | None = None,
+) -> FastAPI:
+    runtime = SimulationRuntime.build_default(
+        storage_path=storage_path,
+        device_gateway=device_gateway,
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -262,6 +414,12 @@ def create_app() -> FastAPI:
     @app.get("/health", response_model=HealthResponse)
     def health() -> HealthResponse:
         return HealthResponse(status="ok")
+
+    @app.get("/api/device/capabilities", response_model=DeviceCapabilitiesResponse)
+    def get_device_capabilities(
+        gateway: Annotated[DeviceGateway, Depends(get_device_gateway)],
+    ) -> DeviceCapabilitiesResponse:
+        return serialize_device_capabilities(gateway.capabilities())
 
     @app.get("/")
     def index() -> FileResponse:
@@ -283,12 +441,19 @@ def create_app() -> FastAPI:
         request: GroceryMissingItemRequest,
         service: Annotated[GrocerySessionService, Depends(get_grocery_session_service)],
         session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
+        session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
     ) -> SimulationResponse:
+        session = resolve_user_session(
+            starter=session_starter,
+            user_id=request.user_id,
+            module="grocery",
+            session_id=request.session_id,
+        )
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
         result = service.process_missing_item(
             observation_id=request.observation_id or f"obs_{uuid4().hex}",
             user_id=request.user_id,
-            session_id=request.session_id,
+            session_id=session.session_id,
             item_name=request.item_name,
             confidence=request.confidence,
             mode=request.mode,
@@ -301,7 +466,7 @@ def create_app() -> FastAPI:
         return build_simulation_response(
             result=result,
             session_trace_reader=session_trace_reader,
-            session_id=request.session_id,
+            session_id=session.session_id,
             delivered_commands=delivered_commands,
             trace_id=trace_id,
         )
@@ -314,17 +479,24 @@ def create_app() -> FastAPI:
         request: DocumentContractReviewRequest,
         service: Annotated[DocumentSessionService, Depends(get_document_session_service)],
         session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
+        session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
     ) -> SimulationResponse:
         if not request.document_text and not request.document_image_base64:
             raise HTTPException(
                 status_code=422,
                 detail="document_text_or_document_image_base64_required",
             )
+        session = resolve_user_session(
+            starter=session_starter,
+            user_id=request.user_id,
+            module="documents",
+            session_id=request.session_id,
+        )
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
         result = service.process_contract_review(
             observation_id=request.observation_id or f"obs_{uuid4().hex}",
             user_id=request.user_id,
-            session_id=request.session_id,
+            session_id=session.session_id,
             document_text=request.document_text,
             document_image_base64=request.document_image_base64,
             confidence=request.confidence,
@@ -338,8 +510,54 @@ def create_app() -> FastAPI:
         return build_simulation_response(
             result=result,
             session_trace_reader=session_trace_reader,
-            session_id=request.session_id,
+            session_id=session.session_id,
             delivered_commands=delivered_commands,
+            trace_id=trace_id,
+            analysis=result.analysis.to_dict(),
+            analysis_id=result.analysis_record.analysis_id,
+        )
+
+    @app.post(
+        "/api/device-bridge/camera/document-contract-review",
+        response_model=SimulationResponse,
+    )
+    def process_camera_contract_review(
+        request: CameraDocumentContractReviewRequest,
+        service: Annotated[DocumentSessionService, Depends(get_document_session_service)],
+        session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
+        session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
+    ) -> SimulationResponse:
+        validate_camera_content_type(request.content_type)
+        session = resolve_user_session(
+            starter=session_starter,
+            user_id=request.user_id,
+            module="documents",
+            session_id=request.session_id,
+        )
+        trace_id = request.trace_id or f"trace_{uuid4().hex}"
+        result = service.process_contract_review(
+            observation_id=request.observation_id or f"obs_{uuid4().hex}",
+            user_id=request.user_id,
+            session_id=session.session_id,
+            document_text=None,
+            document_image_base64=request.image_base64,
+            confidence=None,
+            mode=request.mode,
+            recent_category_count=request.recent_category_count,
+            correlation_id=request.correlation_id or f"corr_{uuid4().hex}",
+            trace_id=trace_id,
+            source_type=f"camera:{request.source_adapter}",
+            observation_summary=(
+                "Contract review requested from camera bridge "
+                f"via {request.source_adapter}"
+            ),
+        )
+
+        return build_simulation_response(
+            result=result,
+            session_trace_reader=session_trace_reader,
+            session_id=session.session_id,
+            delivered_commands=[],
             trace_id=trace_id,
             analysis=result.analysis.to_dict(),
             analysis_id=result.analysis_record.analysis_id,
@@ -351,11 +569,125 @@ def create_app() -> FastAPI:
     )
     def get_session_trace(
         session_id: str,
+        user_id: str | None = None,
         trace_id: str | None = None,
+        module: str | None = None,
+        event_type: Annotated[list[EventType] | None, Query()] = None,
+        step: Annotated[list[str] | None, Query()] = None,
+        created_after: str | None = None,
+        created_before: str | None = None,
+        limit: int | None = Query(default=None, ge=1, le=100),
+        cursor: str | None = None,
         reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)] = None,
     ) -> SessionTraceResponse:
-        trace = reader.execute(session_id=session_id, trace_id=trace_id)
+        try:
+            trace = reader.execute(
+                session_id=session_id,
+                user_id=user_id,
+                trace_id=trace_id,
+                module=module,
+                event_types=set(event_type) if event_type else None,
+                steps=set(step) if step else None,
+                created_after=parse_datetime_query(
+                    created_after,
+                    field_name="created_after",
+                ),
+                created_before=parse_datetime_query(
+                    created_before,
+                    field_name="created_before",
+                ),
+                limit=limit,
+                cursor=cursor,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
         return SessionTraceResponse(**trace.to_dict())
+
+    @app.get(
+        "/api/users/{user_id}/sessions/{session_id}/trace",
+        response_model=SessionTraceResponse,
+    )
+    def get_user_session_trace(
+        user_id: str,
+        session_id: str,
+        trace_id: str | None = None,
+        module: str | None = None,
+        event_type: Annotated[list[EventType] | None, Query()] = None,
+        step: Annotated[list[str] | None, Query()] = None,
+        created_after: str | None = None,
+        created_before: str | None = None,
+        limit: int | None = Query(default=None, ge=1, le=100),
+        cursor: str | None = None,
+        session_reader: Annotated[GetUserSession, Depends(get_user_session_reader)] = None,
+        trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)] = None,
+    ) -> SessionTraceResponse:
+        if session_reader.execute(user_id=user_id, session_id=session_id) is None:
+            raise HTTPException(status_code=404, detail="session_not_found")
+        try:
+            trace = trace_reader.execute(
+                session_id=session_id,
+                user_id=user_id,
+                trace_id=trace_id,
+                module=module,
+                event_types=set(event_type) if event_type else None,
+                steps=set(step) if step else None,
+                created_after=parse_datetime_query(
+                    created_after,
+                    field_name="created_after",
+                ),
+                created_before=parse_datetime_query(
+                    created_before,
+                    field_name="created_before",
+                ),
+                limit=limit,
+                cursor=cursor,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return SessionTraceResponse(**trace.to_dict())
+
+    @app.post(
+        "/api/users/{user_id}/sessions",
+        response_model=UserSessionResponse,
+    )
+    def create_user_session(
+        user_id: str,
+        request: CreateUserSessionRequest,
+        starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
+    ) -> UserSessionResponse:
+        try:
+            session = starter.execute(
+                user_id=user_id,
+                module=request.module,
+                title=request.title,
+                session_id=request.session_id,
+                metadata=request.metadata,
+            )
+        except SessionOwnershipError as exc:
+            raise HTTPException(status_code=403, detail="session_does_not_belong_to_user") from exc
+        return serialize_user_session(session)
+
+    @app.get(
+        "/api/users/{user_id}/sessions",
+        response_model=UserSessionPageResponse,
+    )
+    def list_user_sessions(
+        user_id: str,
+        module: str | None = None,
+        limit: int | None = Query(default=None, ge=1, le=100),
+        cursor: str | None = None,
+        lister: Annotated[ListUserSessions, Depends(get_user_sessions_lister)] = None,
+    ) -> UserSessionPageResponse:
+        try:
+            page = lister.execute(
+                user_id=user_id,
+                module=module,
+                limit=limit,
+                cursor=cursor,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return UserSessionPageResponse(**page.to_dict())
 
     @app.get(
         "/api/sessions/{session_id}/document-analyses",
@@ -390,6 +722,7 @@ def create_app() -> FastAPI:
     )
     def enqueue_document_analysis_job(
         request: DocumentAnalysisJobRequest,
+        session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
         enqueuer=Depends(get_document_job_enqueuer),
         worker=Depends(get_document_job_worker),
     ) -> JobResponse:
@@ -398,10 +731,16 @@ def create_app() -> FastAPI:
                 status_code=422,
                 detail="document_text_or_document_image_base64_required",
             )
+        session = resolve_user_session(
+            starter=session_starter,
+            user_id=request.user_id,
+            module="documents",
+            session_id=request.session_id,
+        )
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
         job = enqueuer.execute(
             user_id=request.user_id,
-            session_id=request.session_id,
+            session_id=session.session_id,
             idempotency_key=request.idempotency_key,
             correlation_id=request.correlation_id or f"corr_{uuid4().hex}",
             trace_id=trace_id,

@@ -145,6 +145,7 @@ Main documents:
 - [docs/architecture/overview.md](docs/architecture/overview.md)
 - [docs/architecture/performance-latency.md](docs/architecture/performance-latency.md)
 - [docs/architecture/pwa-frontend.md](docs/architecture/pwa-frontend.md)
+- [docs/architecture/device-adapters.md](docs/architecture/device-adapters.md)
 - [docs/architecture/security-implementation.md](docs/architecture/security-implementation.md)
 - [docs/architecture/ai-prompt-contracts.md](docs/architecture/ai-prompt-contracts.md)
 
@@ -160,19 +161,23 @@ It includes:
 - an `AttentionPolicy` v1 with deterministic budget rules
 - a simple observation interpreter that turns simulated grocery observations into `AlertCandidate`
 - `GrocerySessionService` and `DocumentSessionService` as the first MVP-facing application entry points
-- a shared `SimulationRuntime` that keeps session state readable across requests in the same app process
+- a shared `SimulationRuntime` that keeps session state readable across requests, with optional SQLite persistence via `NEW_ERA_SQLITE_PATH`
 - a real OCR adapter for image-based contract extraction
 - deterministic contract parsing with excerpt extraction, structured findings, and refined alert language
 - an `EvaluateAlertCandidate` use case
 - a `DeviceGateway` port and `DeliverLensCommand` use case
 - a `ProcessAlertCandidate` orchestrator for the first end-to-end alert flow
 - a `ProcessObservation` orchestrator for the first observation-to-display flow
-- a `GetSessionTrace` read model use case for session history
+- a `GetSessionTrace` read model use case for session history with user/module/event/step filters and cursor pagination
+- user-owned session records with create/list/read flows for the companion app
 - an `EnqueueDocumentAnalysisJob` use case, `RunDocumentAnalysisJob` runner, and job status/result lookup for async document flows
 - a threaded in-memory document analysis worker with retries, timeout policy, and persisted analysis results
 - a FastAPI adapter that exposes the grocery simulation flow over HTTP
 - a `BrowserSimulationAdapter` for PWA/app simulation before hardware integration
+- an `HttpDeviceBridgeAdapter` for real native/hardware bridge delivery over HTTP
+- a camera bridge endpoint that runs real image input through the document OCR flow
 - in-memory event, job, job payload, and document analysis store adapters for tests and simulation
+- SQLite event and session store adapters for durable MVP session history
 - unit tests for policy, event redaction, observation mapping, lens command generation, device delivery, and alert processing
 
 Run the tests:
@@ -187,13 +192,24 @@ Run the HTTP adapter:
 $env:PYTHONPATH='src'; python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
 ```
 
+Run with persistent session/history storage:
+
+```powershell
+$env:PYTHONPATH='src'; $env:NEW_ERA_SQLITE_PATH='.new_era/runtime.sqlite3'; python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
+```
+
 Initial endpoints:
 
 - `GET /`
 - `GET /health`
+- `POST /api/users/{user_id}/sessions`
+- `GET /api/users/{user_id}/sessions`
 - `POST /api/simulations/grocery/missing-item`
 - `POST /api/simulations/documents/contract-review`
+- `GET /api/device/capabilities`
+- `POST /api/device-bridge/camera/document-contract-review`
 - `GET /api/sessions/{session_id}/trace`
+- `GET /api/users/{user_id}/sessions/{session_id}/trace`
 - `POST /api/jobs/documents/contract-analysis`
 - `GET /api/jobs/{job_id}`
 - `GET /api/jobs/{job_id}/result`
@@ -220,11 +236,13 @@ Recommended next documentation:
    - Phone camera acts as glasses input.
    - Backend processes selected observations.
    - PWA displays simulated lens output.
+   - `POST /api/device-bridge/camera/document-contract-review` supports real camera image input for the document flow.
 
 3. Device adapter prototype
    - Integrate one real smart-glasses platform when available.
    - Keep backend/domain contracts unchanged.
    - Replace only adapter and display delivery.
+   - Set `NEW_ERA_DEVICE_BRIDGE_URL` to route lens commands to a real HTTP bridge.
 
 ## Current Status
 

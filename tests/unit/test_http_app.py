@@ -26,6 +26,17 @@ class HttpAppTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "ok"})
 
+    def test_device_capabilities_endpoint_reports_runtime_gateway(self) -> None:
+        client = TestClient(create_app())
+
+        response = client.get("/api/device/capabilities")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["adapter_name"], "browser_simulation")
+        self.assertTrue(payload["supports_camera"])
+        self.assertTrue(payload["supports_display"])
+
     def test_manifest_endpoint_is_available(self) -> None:
         client = TestClient(create_app())
 
@@ -208,6 +219,76 @@ class HttpAppTest(TestCase):
         self.assertEqual(payload["analysis"]["summary_title"], "Contract clause needs attention")
         self.assertGreater(payload["analysis"]["source_confidence"], 0.5)
 
+    def test_camera_bridge_contract_review_processes_real_camera_image(self) -> None:
+        client = TestClient(create_app())
+        image = Image.new("RGB", (1200, 240), "white")
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.load_default(size=48)
+        draw.text(
+            (40, 80),
+            "AUTOMATIC RENEWAL CANCELLATION FEE",
+            fill="black",
+            font=font,
+        )
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        image_base64 = base64.b64encode(buffer.getvalue()).decode("ascii")
+
+        response = client.post(
+            "/api/device-bridge/camera/document-contract-review",
+            json={
+                "user_id": "user_camera",
+                "session_id": "session_camera",
+                "image_base64": image_base64,
+                "content_type": "image/png",
+                "source_adapter": "phone_camera",
+                "mode": "balanced",
+                "recent_category_count": 0,
+                "observation_id": "obs_camera_1",
+                "correlation_id": "corr_camera_1",
+                "trace_id": "trace_camera_1",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["outcome"], "delivered")
+        self.assertTrue(payload["candidate_created"])
+        self.assertEqual(payload["delivered_commands_count"], 1)
+        self.assertIsNotNone(payload["analysis_id"])
+        self.assertEqual(payload["analysis"]["summary_title"], "Contract clause needs attention")
+        self.assertEqual(
+            [entry["event_type"] for entry in payload["session_trace"]],
+            [
+                "observation_created",
+                "alert_candidate_created",
+                "alert_shown",
+                "lens_command_delivered",
+            ],
+        )
+        self.assertIn("camera bridge", payload["session_trace"][0]["detail"])
+
+        analysis_response = client.get(f"/api/document-analyses/{payload['analysis_id']}")
+
+        self.assertEqual(analysis_response.status_code, 200)
+        self.assertEqual(analysis_response.json()["source_type"], "camera:phone_camera")
+
+    def test_camera_bridge_contract_review_rejects_unsupported_content_type(self) -> None:
+        client = TestClient(create_app())
+
+        response = client.post(
+            "/api/device-bridge/camera/document-contract-review",
+            json={
+                "user_id": "user_camera",
+                "session_id": "session_camera",
+                "image_base64": "not-an-image",
+                "content_type": "application/octet-stream",
+            },
+        )
+
+        self.assertEqual(response.status_code, 415)
+        self.assertEqual(response.json()["detail"], "unsupported_camera_content_type")
+
     def test_document_analysis_read_model_endpoints_return_persisted_analysis(self) -> None:
         client = TestClient(create_app())
 
@@ -282,6 +363,67 @@ class HttpAppTest(TestCase):
                 "lens_command_delivered",
             ],
         )
+
+    def test_user_session_endpoints_create_list_and_filter_trace(self) -> None:
+        app = create_app()
+        client = TestClient(app)
+
+        create_response = client.post(
+            "/api/users/user_sessions/sessions",
+            json={
+                "module": "grocery",
+                "title": "Weekend groceries",
+            },
+        )
+        session_id = create_response.json()["session_id"]
+        client.post(
+            "/api/simulations/grocery/missing-item",
+            json={
+                "user_id": "user_sessions",
+                "session_id": session_id,
+                "item_name": "eggs",
+                "confidence": 0.88,
+                "mode": "balanced",
+                "recent_category_count": 0,
+                "observation_id": "obs_user_session_1",
+                "correlation_id": "corr_user_session_1",
+                "trace_id": "trace_user_session_1",
+            },
+        )
+
+        list_response = client.get("/api/users/user_sessions/sessions?module=grocery")
+        trace_response = client.get(
+            f"/api/users/user_sessions/sessions/{session_id}/trace"
+            "?module=grocery&step=decision"
+        )
+
+        self.assertEqual(create_response.status_code, 200)
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(list_response.json()["session_count"], 1)
+        self.assertEqual(list_response.json()["sessions"][0]["session_id"], session_id)
+        self.assertEqual(trace_response.status_code, 200)
+        self.assertEqual(trace_response.json()["event_count"], 1)
+        self.assertEqual(
+            trace_response.json()["session_trace"][0]["event_type"],
+            "alert_shown",
+        )
+
+    def test_user_scoped_trace_rejects_other_user_session(self) -> None:
+        app = create_app()
+        client = TestClient(app)
+
+        create_response = client.post(
+            "/api/users/user_owner/sessions",
+            json={"module": "grocery"},
+        )
+        session_id = create_response.json()["session_id"]
+
+        response = client.get(
+            f"/api/users/other_user/sessions/{session_id}/trace"
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["detail"], "session_not_found")
 
     def test_document_analysis_job_endpoints_support_idempotent_enqueue_and_status(self) -> None:
         app = create_app()
