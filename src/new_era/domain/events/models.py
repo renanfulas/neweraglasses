@@ -23,6 +23,7 @@ class EventType(StrEnum):
     DOCUMENT_ANALYZED = "document_analyzed"
     SHOPPING_ITEM_DETECTED = "shopping_item_detected"
     JOB_STARTED = "job_started"
+    JOB_STATUS_UPDATED = "job_status_updated"
     JOB_COMPLETED = "job_completed"
     JOB_FAILED = "job_failed"
     AI_CALL_COMPLETED = "ai_call_completed"
