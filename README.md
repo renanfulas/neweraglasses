@@ -186,6 +186,42 @@ Run the tests:
 $env:PYTHONPATH='src'; python -m unittest discover
 ```
 
+## Quality And Test Coverage
+
+The maintained source of truth is the code under `src/`, the tests under `tests/`, and the product/architecture specs under `docs/architecture` and `docs/specs`.
+
+The current suite has focused unit and HTTP smoke coverage across:
+
+- attention policy and event metadata
+- grocery and document session services
+- document analysis jobs, status transitions, and result lookup
+- SQLite-backed event/session/job/analysis storage
+- contract analysis parsing and excerpt extraction
+- FastAPI endpoints for simulations, sessions, jobs, analyses, uploads, and feedback
+- browser simulation and HTTP device bridge adapters
+
+Validation command:
+
+```powershell
+$env:PYTHONPATH='src'; python -m unittest discover
+```
+
+Local bootstrap smoke command:
+
+```powershell
+$env:PYTHONPATH='src'; python .\tools\validate_local.py
+```
+
+Known quality gaps before external users:
+
+- no browser-level PWA end-to-end tests yet
+- no production auth or authorization test matrix yet
+- no real smart-glasses hardware integration test yet
+- no OCR/LLM quality evaluation harness yet
+- no coverage threshold enforced in CI yet
+
+Historical bytecode recovery artifacts are intentionally not maintained in the repository. If recovery tooling is ever needed again, it should stay local-only unless it becomes an active, documented engineering workflow.
+
 Run the HTTP adapter:
 
 ```powershell
