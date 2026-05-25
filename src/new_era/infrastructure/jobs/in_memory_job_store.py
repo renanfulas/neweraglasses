@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from threading import RLock
 
 from new_era.application.ports import JobStore
-from new_era.domain.jobs import JobRecord, JobType
+from new_era.domain.jobs import JobRecord, JobStatus, JobType
 
 
 @dataclass(slots=True)
@@ -42,3 +42,24 @@ class InMemoryJobStore(JobStore):
                 ):
                     return job
         return None
+
+    def list_by_session(
+        self,
+        *,
+        user_id: str,
+        session_id: str,
+        module: str | None = None,
+        status: JobStatus | None = None,
+        limit: int | None = None,
+    ) -> list[JobRecord]:
+        with self._lock:
+            jobs = [
+                job
+                for job in self.jobs.values()
+                if job.user_id == user_id
+                and job.session_id == session_id
+                and (module is None or job.module == module)
+                and (status is None or job.status == status)
+            ]
+        jobs.sort(key=lambda job: (job.created_at, job.job_id), reverse=True)
+        return jobs[:limit] if limit is not None else jobs

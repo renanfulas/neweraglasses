@@ -65,6 +65,7 @@ class DocumentSessionService:
         recent_category_count: int,
         correlation_id: str,
         trace_id: str,
+        artifact_id: str | None = None,
         source_type: str | None = None,
         observation_summary: str | None = None,
     ) -> DocumentContractReviewResult:
@@ -90,6 +91,7 @@ class DocumentSessionService:
             observation_id=observation_id,
             trace_id=trace_id,
             source_type=source_type,
+            artifact_id=artifact_id,
             analysis=analysis,
         )
         self.analysis_store.save(analysis_record)
@@ -103,6 +105,7 @@ class DocumentSessionService:
             metadata={
                 "document_analysis": analysis.to_dict(),
                 "analysis_id": analysis_record.analysis_id,
+                "artifact_id": artifact_id,
                 "source_type": source_type,
                 "ocr_engine": ocr_extraction.engine_name if ocr_extraction else None,
             },

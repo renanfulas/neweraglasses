@@ -7,6 +7,7 @@ from new_era.application.use_cases import (
     AdvanceDocumentAnalysisJob,
     EnqueueDocumentAnalysisJob,
     GetJobStatus,
+    ListJobsBySession,
     RunDocumentAnalysisJob,
 )
 from new_era.domain.attention import AttentionMode
@@ -52,6 +53,7 @@ class FakeDocumentProcessor:
         recent_category_count: int,
         correlation_id: str,
         trace_id: str,
+        artifact_id: str | None = None,
     ) -> FakeDocumentReviewResult:
         self.calls += 1
         if self.sleep_seconds:
@@ -64,6 +66,7 @@ class FakeDocumentProcessor:
             observation_id=observation_id,
             trace_id=trace_id,
             source_type="plain_text" if document_text else "image_ocr",
+            artifact_id=artifact_id,
             analysis=ContractReviewAnalysis(
                 extracted_text=document_text or "OCR text",
                 source_confidence=confidence or 0.92,
@@ -342,6 +345,50 @@ class DocumentAnalysisJobsTest(TestCase):
         status = GetJobStatus(job_store=job_store).execute(job_id=job.job_id)
 
         self.assertEqual(status, job)
+
+    def test_lists_jobs_for_session_newest_first(self) -> None:
+        job_store = InMemoryJobStore()
+        event_store = InMemoryEventStore()
+        enqueue = EnqueueDocumentAnalysisJob(job_store=job_store, event_store=event_store)
+        older_job = enqueue.execute(
+            user_id="user_1",
+            session_id="session_1",
+            idempotency_key="idem_older_12345678",
+            correlation_id="corr_1",
+            trace_id="trace_1",
+            artifact_label="older-contract.pdf",
+            source_type="pwa_upload",
+            document_text="Contrato com renovacao automatica e multa de cancelamento.",
+        )
+        sleep(0.001)
+        newer_job = enqueue.execute(
+            user_id="user_1",
+            session_id="session_1",
+            idempotency_key="idem_newer_12345678",
+            correlation_id="corr_2",
+            trace_id="trace_2",
+            artifact_label="newer-contract.pdf",
+            source_type="pwa_upload",
+            document_text="Contrato com fidelidade de 12 meses e multa de cancelamento.",
+        )
+        enqueue.execute(
+            user_id="other_user",
+            session_id="session_1",
+            idempotency_key="idem_other_12345678",
+            correlation_id="corr_3",
+            trace_id="trace_3",
+            artifact_label="other-contract.pdf",
+            source_type="pwa_upload",
+            document_text="Contrato com renovacao automatica e multa de cancelamento.",
+        )
+
+        jobs = ListJobsBySession(job_store=job_store).execute(
+            user_id="user_1",
+            session_id="session_1",
+            module="documents",
+        )
+
+        self.assertEqual([job.job_id for job in jobs], [newer_job.job_id, older_job.job_id])
 
     def test_advances_job_through_running_and_succeeded(self) -> None:
         job_store = InMemoryJobStore()

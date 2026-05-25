@@ -38,6 +38,7 @@ class DocumentContractReviewProcessor(Protocol):
         recent_category_count: int,
         correlation_id: str,
         trace_id: str,
+        artifact_id: str | None = None,
     ) -> DocumentContractReviewResultLike:
         raise NotImplementedError
 
@@ -63,6 +64,7 @@ class EnqueueDocumentAnalysisJob:
         trace_id: str,
         artifact_label: str,
         source_type: str,
+        artifact_id: str | None = None,
         document_text: str | None = None,
         document_image_base64: str | None = None,
         confidence: float | None = 0.92,
@@ -83,6 +85,7 @@ class EnqueueDocumentAnalysisJob:
                 session_id=session_id,
                 artifact_label=artifact_label,
                 source_type=source_type,
+                artifact_id=artifact_id,
                 document_text=document_text,
                 document_image_base64=document_image_base64,
                 confidence=confidence,
@@ -106,6 +109,7 @@ class EnqueueDocumentAnalysisJob:
             metadata={
                 "artifact_label": artifact_label,
                 "source_type": source_type,
+                "artifact_id": artifact_id,
             },
         )
         self.job_store.save(job)
@@ -115,6 +119,7 @@ class EnqueueDocumentAnalysisJob:
             session_id=session_id,
             artifact_label=artifact_label,
             source_type=source_type,
+            artifact_id=artifact_id,
             document_text=document_text,
             document_image_base64=document_image_base64,
             confidence=confidence,
@@ -152,6 +157,7 @@ class EnqueueDocumentAnalysisJob:
         session_id: str,
         artifact_label: str,
         source_type: str,
+        artifact_id: str | None,
         document_text: str | None,
         document_image_base64: str | None,
         confidence: float | None,
@@ -172,6 +178,7 @@ class EnqueueDocumentAnalysisJob:
                 session_id=session_id,
                 artifact_label=artifact_label,
                 source_type=source_type,
+                artifact_id=artifact_id,
                 document_text=document_text,
                 document_image_base64=document_image_base64,
                 confidence=confidence,
@@ -190,6 +197,28 @@ class GetJobStatus:
 
     def execute(self, *, job_id: str) -> JobRecord | None:
         return self.job_store.get(job_id)
+
+
+@dataclass(frozen=True, slots=True)
+class ListJobsBySession:
+    job_store: JobStore
+
+    def execute(
+        self,
+        *,
+        user_id: str,
+        session_id: str,
+        module: str | None = None,
+        status: JobStatus | None = None,
+        limit: int | None = 25,
+    ) -> list[JobRecord]:
+        return self.job_store.list_by_session(
+            user_id=user_id,
+            session_id=session_id,
+            module=module,
+            status=status,
+            limit=limit,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -409,6 +438,7 @@ class RunDocumentAnalysisJob:
             recent_category_count=payload.recent_category_count,
             correlation_id=payload.correlation_id,
             trace_id=payload.trace_id,
+            artifact_id=payload.artifact_id,
         )
         try:
             return future.result(timeout=job.timeout_seconds)

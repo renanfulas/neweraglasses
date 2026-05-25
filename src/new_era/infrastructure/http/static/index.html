@@ -151,6 +151,18 @@
                   <button id="job-refresh-button" type="button" class="job-action-secondary">Refresh status</button>
                   <button id="open-linked-analysis-button" type="button" class="job-action-secondary">View result</button>
                 </div>
+                <div class="job-history-block">
+                  <div class="analysis-timeline-header">
+                    <p class="panel-kicker">Recent Jobs</p>
+                    <span>Latest persisted document jobs in this session.</span>
+                  </div>
+                  <ol class="analysis-list job-history-list" id="job-history-list" aria-live="polite">
+                    <li class="analysis-list-empty">
+                      <h4>No document jobs yet</h4>
+                      <p>Queued uploads and text jobs will appear here.</p>
+                    </li>
+                  </ol>
+                </div>
               </div>
 
               <section class="analysis-browser" aria-label="Persisted contract analyses">

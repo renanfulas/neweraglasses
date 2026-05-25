@@ -1,0 +1,15 @@
+{
+  "fixture_id": "plain_text_low_signal",
+  "name": "Plain text with no known contract signal",
+  "description": "Confirms the analyzer stays conservative when the text lacks known risky clauses.",
+  "input": {
+    "document_text": "Horario de atendimento de segunda a sexta.",
+    "source_confidence": 0.92
+  },
+  "expected": {
+    "has_findings": false,
+    "finding_count": 0,
+    "max_review_confidence": 0.44,
+    "summary_title": "No contract risk signal found"
+  }
+}

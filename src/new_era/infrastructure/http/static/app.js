@@ -41,6 +41,7 @@ const jobSuccessButton = document.getElementById("job-success-button");
 const jobFailedButton = document.getElementById("job-failed-button");
 const jobRefreshButton = document.getElementById("job-refresh-button");
 const openLinkedAnalysisButton = document.getElementById("open-linked-analysis-button");
+const jobHistoryList = document.getElementById("job-history-list");
 const refreshAnalysesButton = document.getElementById("refresh-analyses-button");
 const analysisSearchInput = document.getElementById("analysis-search");
 const analysisSortSelect = document.getElementById("analysis-sort");
@@ -107,6 +108,7 @@ const appState = {
   currentDocumentJob: null,
   currentDocumentJobId: null,
   currentDocumentJobTraceId: null,
+  documentJobs: [],
   lastDocumentAnalysisId: null,
   documentAnalyses: [],
   selectedDocumentAnalysisId: null,
@@ -596,6 +598,58 @@ function renderJobState(job) {
   setAsyncState("documents", job.status);
 }
 
+function renderJobHistory(jobs) {
+  if (!jobs.length) {
+    jobHistoryList.innerHTML = `
+      <li class="analysis-list-empty">
+        <h4>No document jobs yet</h4>
+        <p>Queued uploads and text jobs will appear here.</p>
+      </li>
+    `;
+    return;
+  }
+
+  jobHistoryList.innerHTML = jobs
+    .map((job) => {
+      const linkedAnalysisId = job.metadata?.analysis_id || job.result_id || null;
+      const source = job.metadata?.artifact_label || job.metadata?.source_type || "document job";
+      const activeClass =
+        job.job_id === appState.currentDocumentJobId
+          ? "analysis-list-item analysis-list-item-active"
+          : "analysis-list-item";
+      return `
+        <li>
+          <button type="button" class="${activeClass}" data-job-id="${escapeHtml(job.job_id)}">
+            <h4>${escapeHtml(job.status)} · ${escapeHtml(source)}</h4>
+            <p>${escapeHtml(job.job_id)}</p>
+            <div class="analysis-list-item-meta">
+              <span>Attempts ${escapeHtml(job.attempts)}/${escapeHtml(job.max_attempts)}</span>
+              <span>${linkedAnalysisId ? "Result ready" : "No result yet"}</span>
+            </div>
+          </button>
+        </li>
+      `;
+    })
+    .join("");
+
+  jobHistoryList.querySelectorAll("[data-job-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const job = appState.documentJobs.find((entry) => entry.job_id === button.dataset.jobId);
+      if (!job) {
+        return;
+      }
+      appState.currentDocumentJobId = job.job_id;
+      appState.currentDocumentJobTraceId = null;
+      if (job.result_id) {
+        appState.lastDocumentAnalysisId = job.result_id;
+        appState.selectedDocumentAnalysisId = job.result_id;
+      }
+      renderJobState(job);
+      renderJobHistory(appState.documentJobs);
+    });
+  });
+}
+
 function getVisibleDocumentAnalyses(records) {
   const searchTerm = analysisSearchInput.value.trim().toLowerCase();
   const ordered = [...records].sort((left, right) => {
@@ -941,6 +995,34 @@ async function refreshDocumentAnalyses() {
   }
 }
 
+async function refreshDocumentJobs() {
+  try {
+    const response = await fetch(
+      `/api/users/${encodeURIComponent(DEMO_USERS.documents)}/sessions/${encodeURIComponent(
+        DEMO_SESSIONS.documents,
+      )}/jobs?module=documents&limit=10`,
+      {
+        headers: buildAuthHeaders(DEMO_USERS.documents),
+      },
+    );
+    if (!response.ok) {
+      throw new Error(`Jobs failed with status ${response.status}`);
+    }
+
+    const payload = await response.json();
+    appState.documentJobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+    renderJobHistory(appState.documentJobs);
+  } catch (error) {
+    appState.documentJobs = [];
+    jobHistoryList.innerHTML = `
+      <li class="analysis-list-empty">
+        <h4>Job history unavailable</h4>
+        <p>${escapeHtml(error.message)}</p>
+      </li>
+    `;
+  }
+}
+
 async function refreshSessionHistory(moduleName) {
   const userId = DEMO_USERS[moduleName];
   const sessionId = DEMO_SESSIONS[moduleName];
@@ -1005,6 +1087,7 @@ function setActiveModule(moduleName) {
     } else {
       renderJobState(null);
     }
+    refreshDocumentJobs();
     refreshDocumentAnalyses();
   }
 
@@ -1200,6 +1283,7 @@ async function enqueueDocumentJob() {
     appState.currentDocumentJobId = payload.job_id;
     appState.currentDocumentJobTraceId = traceId;
     renderJobState(payload);
+    await refreshDocumentJobs();
     await refreshSessionHistory("documents");
     setStatus(inputPayload.selectedFile ? "Upload job queued" : "Text job queued");
   } catch (error) {
@@ -1231,6 +1315,7 @@ async function refreshCurrentJobStatus() {
       appState.selectedDocumentAnalysisId = payload.result_id;
       await refreshDocumentAnalyses();
     }
+    await refreshDocumentJobs();
     setStatus("API ready");
   } catch (error) {
     jobSummary.textContent = error.message;
@@ -1281,6 +1366,7 @@ async function transitionCurrentJob(targetStatus) {
       appState.selectedDocumentAnalysisId = payload.result_id;
       await refreshDocumentAnalyses();
     }
+    await refreshDocumentJobs();
     setStatus("API ready");
   } catch (error) {
     jobSummary.textContent = error.message;
@@ -1347,6 +1433,7 @@ window.addEventListener("popstate", () => {
 setActiveModule("grocery");
 setHistoryScope("latest");
 renderJobState(null);
+renderJobHistory([]);
 updateSessionRail();
 renderFeedbackControls();
 renderDocumentCapturePreview();

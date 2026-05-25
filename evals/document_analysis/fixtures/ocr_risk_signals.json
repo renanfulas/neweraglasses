@@ -1,0 +1,23 @@
+{
+  "fixture_id": "ocr_risk_signals",
+  "name": "OCR image with renewal and cancellation fee",
+  "description": "Runs the local OCR adapter first, then feeds the extracted text into the deterministic analyzer.",
+  "input": {
+    "document_image_path": "evals/document_analysis/fixtures/ocr_risk_signals.png"
+  },
+  "expected": {
+    "has_findings": true,
+    "finding_count": 2,
+    "finding_types": [
+      "automatic_renewal",
+      "cancellation_fee"
+    ],
+    "min_review_confidence": 0.55,
+    "min_source_confidence": 0.5,
+    "summary_title": "Contract clause needs attention",
+    "extracted_text_contains": [
+      "AUTOMATIC RENEWAL",
+      "CANCELLATION FEE"
+    ]
+  }
+}

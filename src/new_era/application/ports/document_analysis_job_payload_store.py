@@ -14,6 +14,7 @@ class DocumentAnalysisJobPayload:
     session_id: str
     artifact_label: str
     source_type: str
+    artifact_id: str | None
     document_text: str | None
     document_image_base64: str | None
     confidence: float | None

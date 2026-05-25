@@ -210,28 +210,39 @@ Before document flows are added:
 
 Current strategy:
 
-- cache app shell assets
-- allow GET fallback from cache
-- do not intercept or mutate POST behavior
+- cache only the read-only shell assets: `/`, `/static/styles.css`, `/static/app.js`, and `/manifest.webmanifest`
+- serve shell assets from cache when available
+- use network-first navigation with fallback to cached `/` only for non-sensitive app routes
+- bypass service worker caching for `/api/*`, uploads, result/detail routes, and every non-GET request
+- delete old cache versions during service worker activation
 
 Intentional limitations:
 
 - no offline mutation queue
 - no stale write replay
 - no background sync
-- no API caching beyond static assets
+- no API caching
+- no upload caching
+- no caching of analysis results, job results, or user-specific read models
 
 Why:
 
-- keeps behavior understandable
+- keeps offline behavior read-only and understandable
 - avoids dangerous offline assumptions early
-- avoids storing sensitive request data in cache
+- avoids storing sensitive request data or result payloads in cache
+- prevents old caches from surviving service worker upgrades
+
+Safe fallback rules:
+
+- navigations to regular shell routes can fall back to cached `/` if the network is unavailable
+- navigations to sensitive paths such as analysis detail and job/result routes stay network-only
+- background fetches for shell assets are same-origin only
 
 Future additions should be deliberate:
 
-- offline read-only session shell
+- richer offline read-only shell routes with explicit allowlists
 - controlled document draft storage
-- versioned cache invalidation
+- versioned cache invalidation for expanded shell assets
 
 ## 11. Performance Guidance
 

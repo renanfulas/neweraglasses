@@ -219,3 +219,9 @@ Default security stance:
 - store minimum necessary data.
 - encrypt data in transit and at rest.
 - keep sensitive raw content out of generic telemetry.
+
+## Current Implementation Specs
+
+- [0001-platform-foundation.md](0001-platform-foundation.md)
+- [0002-pwa-shell.md](0002-pwa-shell.md)
+- [0003-document-mvp-hardening.md](0003-document-mvp-hardening.md)

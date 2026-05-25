@@ -33,6 +33,7 @@ class SQLiteDocumentAnalysisJobPayloadStore(DocumentAnalysisJobPayloadStore):
                     session_id,
                     artifact_label,
                     source_type,
+                    artifact_id,
                     document_text,
                     document_image_base64,
                     confidence,
@@ -43,7 +44,7 @@ class SQLiteDocumentAnalysisJobPayloadStore(DocumentAnalysisJobPayloadStore):
                     trace_id,
                     created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     payload.job_id,
@@ -51,6 +52,7 @@ class SQLiteDocumentAnalysisJobPayloadStore(DocumentAnalysisJobPayloadStore):
                     payload.session_id,
                     payload.artifact_label,
                     payload.source_type,
+                    payload.artifact_id,
                     payload.document_text,
                     payload.document_image_base64,
                     payload.confidence,
@@ -74,6 +76,7 @@ class SQLiteDocumentAnalysisJobPayloadStore(DocumentAnalysisJobPayloadStore):
                     session_id,
                     artifact_label,
                     source_type,
+                    artifact_id,
                     document_text,
                     document_image_base64,
                     confidence,
@@ -114,6 +117,7 @@ class SQLiteDocumentAnalysisJobPayloadStore(DocumentAnalysisJobPayloadStore):
                     session_id TEXT NOT NULL,
                     artifact_label TEXT NOT NULL,
                     source_type TEXT NOT NULL,
+                    artifact_id TEXT NULL,
                     document_text TEXT,
                     document_image_base64 TEXT,
                     confidence REAL,
@@ -126,6 +130,16 @@ class SQLiteDocumentAnalysisJobPayloadStore(DocumentAnalysisJobPayloadStore):
                 )
                 """
             )
+            columns = connection.execute(
+                "PRAGMA table_info(document_analysis_job_payloads)"
+            ).fetchall()
+            if not any(column["name"] == "artifact_id" for column in columns):
+                connection.execute(
+                    """
+                    ALTER TABLE document_analysis_job_payloads
+                    ADD COLUMN artifact_id TEXT NULL
+                    """
+                )
             connection.commit()
 
     def _row_to_payload(self, row: sqlite3.Row) -> DocumentAnalysisJobPayload:
@@ -135,6 +149,7 @@ class SQLiteDocumentAnalysisJobPayloadStore(DocumentAnalysisJobPayloadStore):
             session_id=row["session_id"],
             artifact_label=row["artifact_label"],
             source_type=row["source_type"],
+            artifact_id=row["artifact_id"],
             document_text=row["document_text"],
             document_image_base64=row["document_image_base64"],
             confidence=row["confidence"],

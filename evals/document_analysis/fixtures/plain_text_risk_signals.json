@@ -1,0 +1,24 @@
+{
+  "fixture_id": "plain_text_risk_signals",
+  "name": "Plain text contract with multiple risk signals",
+  "description": "Exercises the deterministic analyzer directly from text without OCR.",
+  "input": {
+    "document_text": "Plano com fidelidade de 12 meses, renovacao automatica por igual periodo e multa de cancelamento antecipado.",
+    "source_confidence": 0.93
+  },
+  "expected": {
+    "has_findings": true,
+    "finding_count": 3,
+    "finding_types": [
+      "automatic_renewal",
+      "cancellation_fee",
+      "minimum_commitment"
+    ],
+    "min_review_confidence": 0.6,
+    "summary_title": "Contract clause needs attention",
+    "extracted_text_contains": [
+      "renovacao automatica",
+      "multa de cancelamento"
+    ]
+  }
+}

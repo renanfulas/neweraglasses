@@ -8,8 +8,10 @@ from new_era.application.ports import (
     DeviceGateway,
     DocumentAnalysisJobPayloadStore,
     DocumentAnalysisStore,
+    DocumentArtifactStore,
     EventStore,
     JobStore,
+    LocalDocumentArtifactStorage,
     ObservationInterpreter,
     SessionStore,
 )
@@ -17,28 +19,40 @@ from new_era.application.services.document_session import DocumentSessionService
 from new_era.application.services.grocery_session import GrocerySessionService
 from new_era.application.use_cases import (
     AdvanceDocumentAnalysisJob,
+    DeleteLocalDocumentArtifact,
     DeliverLensCommand,
+    EnforceSessionArtifactQuota,
     EnqueueDocumentAnalysisJob,
     EvaluateAlertCandidate,
     GetDocumentAnalysis,
+    GetDocumentFeedbackMetrics,
     GetDocumentAnalysisFeedback,
     GetJobStatus,
     GetSessionTrace,
     GetUserSession,
+    ListJobsBySession,
     ListDocumentAnalysesBySession,
     ListUserSessions,
     ProcessAlertCandidate,
     ProcessObservation,
     RecordDocumentAnalysisFeedback,
     RecordLensFeedback,
+    RegisterLocalDocumentArtifact,
     RunDocumentAnalysisJob,
+    SessionArtifactQuota,
     StartUserSession,
 )
 from new_era.domain.attention import AttentionPolicy
 from new_era.domain.documents import DeterministicContractAnalyzer
 from new_era.domain.jobs import JobExecutionPolicy
 from new_era.infrastructure.device import BrowserSimulationAdapter, HttpDeviceBridgeAdapter
-from new_era.infrastructure.documents import InMemoryDocumentAnalysisStore
+from new_era.infrastructure.documents import (
+    FilesystemDocumentArtifactStorage,
+    InMemoryDocumentAnalysisStore,
+    InMemoryDocumentArtifactStore,
+    SQLiteDocumentAnalysisStore,
+    SQLiteDocumentArtifactStore,
+)
 from new_era.infrastructure.events import InMemoryEventStore, SQLiteEventStore
 from new_era.infrastructure.jobs import (
     InMemoryDocumentAnalysisJobPayloadStore,
@@ -50,7 +64,6 @@ from new_era.infrastructure.jobs import (
 from new_era.infrastructure.observations import SimpleSimulationObservationAdapter
 from new_era.infrastructure.ocr import RapidOCRAdapter
 from new_era.infrastructure.sessions import InMemorySessionStore, SQLiteSessionStore
-from new_era.infrastructure.documents import SQLiteDocumentAnalysisStore
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,10 +74,14 @@ class SimulationRuntime:
     document_job_enqueuer: EnqueueDocumentAnalysisJob
     document_job_advancer: AdvanceDocumentAnalysisJob
     job_status_reader: GetJobStatus
+    job_session_lister: ListJobsBySession
     document_analysis_reader: GetDocumentAnalysis
     document_analyses_by_session_reader: ListDocumentAnalysesBySession
     document_analysis_feedback_reader: GetDocumentAnalysisFeedback
+    document_feedback_metrics_reader: GetDocumentFeedbackMetrics
     document_analysis_feedback_recorder: RecordDocumentAnalysisFeedback
+    document_artifact_registrar: RegisterLocalDocumentArtifact
+    document_artifact_deleter: DeleteLocalDocumentArtifact
     lens_feedback_recorder: RecordLensFeedback
     user_session_starter: StartUserSession
     user_session_reader: GetUserSession
@@ -75,6 +92,8 @@ class SimulationRuntime:
     job_store: JobStore
     document_job_payload_store: DocumentAnalysisJobPayloadStore
     document_analysis_store: DocumentAnalysisStore
+    document_artifact_store: DocumentArtifactStore
+    document_artifact_storage: LocalDocumentArtifactStorage
     device_gateway: DeviceGateway
 
     @classmethod
@@ -95,12 +114,32 @@ class SimulationRuntime:
             document_analysis_store: DocumentAnalysisStore = (
                 SQLiteDocumentAnalysisStore(configured_storage_path)
             )
+            document_artifact_store: DocumentArtifactStore = SQLiteDocumentArtifactStore(
+                configured_storage_path
+            )
         else:
             event_store = InMemoryEventStore()
             session_store = InMemorySessionStore()
             job_store = InMemoryJobStore()
             document_job_payload_store = InMemoryDocumentAnalysisJobPayloadStore()
             document_analysis_store = InMemoryDocumentAnalysisStore()
+            document_artifact_store = InMemoryDocumentArtifactStore()
+        runtime_root = (
+            Path(configured_storage_path).parent
+            if configured_storage_path
+            else Path(environ.get("NEW_ERA_RUNTIME_DIR", ".new_era"))
+        )
+        upload_dir = runtime_root / "uploads" / "documents"
+        document_artifact_storage: LocalDocumentArtifactStorage = (
+            FilesystemDocumentArtifactStorage(upload_dir)
+        )
+        artifact_quota_enforcer = EnforceSessionArtifactQuota(
+            artifact_store=document_artifact_store,
+            quota=SessionArtifactQuota(
+                max_active_artifacts=20,
+                max_total_bytes=25_000_000,
+            ),
+        )
         device_gateway = device_gateway or build_device_gateway_from_environment()
         observation_interpreter: ObservationInterpreter = SimpleSimulationObservationAdapter()
         attention_policy = AttentionPolicy()
@@ -154,6 +193,7 @@ class SimulationRuntime:
                 document_analysis_store=document_analysis_store,
             ),
             job_status_reader=GetJobStatus(job_store=job_store),
+            job_session_lister=ListJobsBySession(job_store=job_store),
             document_analysis_reader=GetDocumentAnalysis(
                 analysis_store=document_analysis_store,
             ),
@@ -163,9 +203,22 @@ class SimulationRuntime:
             document_analysis_feedback_reader=GetDocumentAnalysisFeedback(
                 event_store=event_store,
             ),
+            document_feedback_metrics_reader=GetDocumentFeedbackMetrics(
+                analysis_store=document_analysis_store,
+                event_store=event_store,
+            ),
             document_analysis_feedback_recorder=RecordDocumentAnalysisFeedback(
                 analysis_store=document_analysis_store,
                 event_store=event_store,
+            ),
+            document_artifact_registrar=RegisterLocalDocumentArtifact(
+                artifact_store=document_artifact_store,
+                storage=document_artifact_storage,
+                quota_enforcer=artifact_quota_enforcer,
+            ),
+            document_artifact_deleter=DeleteLocalDocumentArtifact(
+                artifact_store=document_artifact_store,
+                storage=document_artifact_storage,
             ),
             lens_feedback_recorder=RecordLensFeedback(event_store=event_store),
             user_session_starter=StartUserSession(session_store=session_store),
@@ -191,6 +244,8 @@ class SimulationRuntime:
             job_store=job_store,
             document_job_payload_store=document_job_payload_store,
             document_analysis_store=document_analysis_store,
+            document_artifact_store=document_artifact_store,
+            document_artifact_storage=document_artifact_storage,
             device_gateway=device_gateway,
         )
 

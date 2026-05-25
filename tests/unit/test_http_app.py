@@ -1,5 +1,6 @@
 import base64
 import io
+import time
 from unittest import TestCase
 
 from fastapi.testclient import TestClient
@@ -392,6 +393,104 @@ class HttpAppTest(TestCase):
             "document_analysis_feedback_given",
         )
 
+    def test_document_feedback_metrics_endpoint_returns_session_aggregates(self) -> None:
+        client = TestClient(create_app(), headers=self._auth_headers("user_metrics"))
+
+        first_response = client.post(
+            "/api/simulations/documents/contract-review",
+            json={
+                "user_id": "user_metrics",
+                "session_id": "session_metrics",
+                "document_text": (
+                    "Contrato com renovacao automatica, multa de cancelamento "
+                    "e fidelidade de 12 meses."
+                ),
+                "observation_id": "obs_metrics_1",
+                "correlation_id": "corr_metrics_1",
+                "trace_id": "trace_metrics_1",
+            },
+        )
+        second_response = client.post(
+            "/api/simulations/documents/contract-review",
+            json={
+                "user_id": "user_metrics",
+                "session_id": "session_metrics",
+                "document_text": "Horario de atendimento de segunda a sexta.",
+                "observation_id": "obs_metrics_2",
+                "correlation_id": "corr_metrics_2",
+                "trace_id": "trace_metrics_2",
+            },
+        )
+
+        first_analysis_id = first_response.json()["analysis_id"]
+        second_analysis_id = second_response.json()["analysis_id"]
+
+        client.post(
+            f"/api/document-analyses/{first_analysis_id}/feedback",
+            json={
+                "user_id": "user_metrics",
+                "session_id": "session_metrics",
+                "feedback": "not_useful",
+                "correlation_id": "corr_metrics_feedback_1",
+                "trace_id": "trace_metrics_1",
+            },
+        )
+        client.post(
+            f"/api/document-analyses/{second_analysis_id}/feedback",
+            json={
+                "user_id": "user_metrics",
+                "session_id": "session_metrics",
+                "feedback": "useful",
+                "correlation_id": "corr_metrics_feedback_2",
+                "trace_id": "trace_metrics_2",
+            },
+        )
+
+        response = client.get(
+            "/api/users/user_metrics/sessions/session_metrics/feedback-metrics"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["user_id"], "user_metrics")
+        self.assertEqual(payload["session_id"], "session_metrics")
+        self.assertEqual(payload["aggregate"]["analysis_count"], 2)
+        self.assertEqual(payload["aggregate"]["feedback_count"], 2)
+        self.assertEqual(payload["aggregate"]["useful_feedback_count"], 1)
+        self.assertEqual(payload["aggregate"]["not_useful_feedback_count"], 1)
+        finding_types = {
+            entry["finding_type"]: entry
+            for entry in payload["by_finding_type"]
+        }
+        self.assertEqual(
+            finding_types["automatic_renewal"]["not_useful_feedback_count"],
+            1,
+        )
+
+    def test_document_feedback_metrics_endpoint_hides_foreign_session(self) -> None:
+        app = create_app()
+        owner_client = TestClient(app, headers=self._auth_headers("owner_metrics"))
+        foreign_client = TestClient(app, headers=self._auth_headers("other_metrics"))
+
+        owner_client.post(
+            "/api/simulations/documents/contract-review",
+            json={
+                "user_id": "owner_metrics",
+                "session_id": "session_metrics_hidden",
+                "document_text": "Contrato com renovacao automatica.",
+                "observation_id": "obs_metrics_hidden_1",
+                "correlation_id": "corr_metrics_hidden_1",
+                "trace_id": "trace_metrics_hidden_1",
+            },
+        )
+
+        response = foreign_client.get(
+            "/api/users/other_metrics/sessions/session_metrics_hidden/feedback-metrics"
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["detail"], "session_not_found")
+
     def test_session_trace_endpoint_reads_persisted_trace_for_same_app_runtime(self) -> None:
         app = create_app()
         client = TestClient(app, headers=self._auth_headers("user_1"))
@@ -542,6 +641,61 @@ class HttpAppTest(TestCase):
         self.assertIsNotNone(status_payload["result_id"])
         self.assertEqual(status_payload["metadata"]["artifact_label"], "gym-contract.pdf")
 
+    def test_session_jobs_endpoint_lists_user_owned_jobs(self) -> None:
+        app = create_app()
+        client = TestClient(app, headers=self._auth_headers("user_jobs"))
+
+        client.post(
+            "/api/jobs/documents/contract-analysis",
+            json={
+                "user_id": "user_jobs",
+                "session_id": "session_jobs_list",
+                "artifact_label": "contract-a.pdf",
+                "source_type": "pwa_upload",
+                "idempotency_key": "idem_contract_list_a",
+                "document_text": (
+                    "Contrato com renovacao automatica, multa de cancelamento "
+                    "e fidelidade de 12 meses."
+                ),
+                "correlation_id": "corr_jobs_list_1",
+                "trace_id": "trace_jobs_list_1",
+            },
+        )
+        time.sleep(0.01)
+        client.post(
+            "/api/jobs/documents/contract-analysis",
+            json={
+                "user_id": "user_jobs",
+                "session_id": "session_jobs_list",
+                "artifact_label": "contract-b.pdf",
+                "source_type": "pwa_upload",
+                "idempotency_key": "idem_contract_list_b",
+                "document_text": (
+                    "Contrato com renovacao automatica, multa de cancelamento "
+                    "e fidelidade de 12 meses."
+                ),
+                "correlation_id": "corr_jobs_list_2",
+                "trace_id": "trace_jobs_list_2",
+            },
+        )
+        self.assertTrue(app.state.runtime.document_job_worker.wait_until_idle())
+
+        response = client.get(
+            "/api/users/user_jobs/sessions/session_jobs_list/jobs?module=documents&limit=10"
+        )
+        other_user_response = client.get(
+            "/api/users/other_user/sessions/session_jobs_list/jobs?module=documents",
+            headers=self._auth_headers("other_user"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["job_count"], 2)
+        self.assertEqual(payload["jobs"][0]["status"], "succeeded")
+        self.assertEqual(payload["jobs"][0]["metadata"]["artifact_label"], "contract-b.pdf")
+        self.assertEqual(other_user_response.status_code, 404)
+        self.assertEqual(other_user_response.json()["detail"], "session_not_found")
+
     def test_document_analysis_job_worker_completes_and_result_endpoint_returns_analysis(self) -> None:
         app = create_app()
         client = TestClient(app, headers=self._auth_headers("user_1"))
@@ -674,6 +828,7 @@ class HttpAppTest(TestCase):
         payload = response.json()
         self.assertEqual(payload["status"], "queued")
         self.assertEqual(payload["metadata"]["artifact_label"], "camera-capture.png")
+        self.assertTrue(payload["metadata"]["artifact_id"])
         self.assertEqual(payload["metadata"]["source_type"], "pwa_multipart_upload")
         self.assertTrue(any(app.state.upload_dir.iterdir()))
 
@@ -685,9 +840,43 @@ class HttpAppTest(TestCase):
         self.assertEqual(status_response.json()["status"], "succeeded")
         self.assertEqual(result_response.status_code, 200)
         self.assertEqual(
+            result_response.json()["artifact_id"],
+            payload["metadata"]["artifact_id"],
+        )
+        self.assertEqual(
             result_response.json()["analysis"]["summary_title"],
             "Contract clause needs attention",
         )
+
+    def test_document_artifact_delete_endpoint_deletes_owned_artifact(self) -> None:
+        app = create_app()
+        client = TestClient(app, headers=self._auth_headers("user_delete_artifact"))
+        image = Image.new("RGB", (640, 180), "white")
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.load_default(size=32)
+        draw.text((24, 60), "AUTOMATIC RENEWAL", fill="black", font=font)
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+
+        upload_response = client.post(
+            "/api/uploads/documents/contract-analysis",
+            data={
+                "user_id": "user_delete_artifact",
+                "session_id": "session_delete_artifact",
+                "idempotency_key": "idem_delete_artifact_001",
+            },
+            files={
+                "artifact": ("delete-me.png", buffer.getvalue(), "image/png"),
+            },
+        )
+        artifact_id = upload_response.json()["metadata"]["artifact_id"]
+
+        delete_response = client.delete(f"/api/document-artifacts/{artifact_id}")
+
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(delete_response.json()["artifact_id"], artifact_id)
+        self.assertEqual(delete_response.json()["status"], "deleted")
+        self.assertFalse(any(app.state.upload_dir.rglob(f"{artifact_id}_*")))
 
     def test_multipart_document_upload_rejects_unsupported_content_type(self) -> None:
         client = TestClient(create_app(), headers=self._auth_headers("user_upload_job"))

@@ -37,10 +37,11 @@ class SQLiteDocumentAnalysisStore(DocumentAnalysisStore):
                     observation_id,
                     trace_id,
                     source_type,
+                    artifact_id,
                     created_at,
                     analysis_json
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     record.analysis_id,
@@ -49,6 +50,7 @@ class SQLiteDocumentAnalysisStore(DocumentAnalysisStore):
                     record.observation_id,
                     record.trace_id,
                     record.source_type,
+                    record.artifact_id,
                     record.created_at.isoformat(),
                     json.dumps(record.to_dict()["analysis"], sort_keys=True),
                 ),
@@ -66,6 +68,7 @@ class SQLiteDocumentAnalysisStore(DocumentAnalysisStore):
                     observation_id,
                     trace_id,
                     source_type,
+                    artifact_id,
                     created_at,
                     analysis_json
                 FROM document_analyses
@@ -86,6 +89,7 @@ class SQLiteDocumentAnalysisStore(DocumentAnalysisStore):
                     observation_id,
                     trace_id,
                     source_type,
+                    artifact_id,
                     created_at,
                     analysis_json
                 FROM document_analyses
@@ -113,11 +117,19 @@ class SQLiteDocumentAnalysisStore(DocumentAnalysisStore):
                     observation_id TEXT NOT NULL,
                     trace_id TEXT NOT NULL,
                     source_type TEXT NOT NULL,
+                    artifact_id TEXT NULL,
                     created_at TEXT NOT NULL,
                     analysis_json TEXT NOT NULL
                 )
                 """
             )
+            if not self._has_column(connection, "document_analyses", "artifact_id"):
+                connection.execute(
+                    """
+                    ALTER TABLE document_analyses
+                    ADD COLUMN artifact_id TEXT NULL
+                    """
+                )
             connection.commit()
             connection.execute(
                 """
@@ -142,9 +154,19 @@ class SQLiteDocumentAnalysisStore(DocumentAnalysisStore):
             observation_id=row["observation_id"],
             trace_id=row["trace_id"],
             source_type=row["source_type"],
+            artifact_id=row["artifact_id"],
             created_at=datetime.fromisoformat(row["created_at"]),
             analysis=self._analysis_from_dict(analysis_data),
         )
+
+    def _has_column(
+        self,
+        connection: sqlite3.Connection,
+        table_name: str,
+        column_name: str,
+    ) -> bool:
+        rows = connection.execute(f"PRAGMA table_info({table_name})").fetchall()
+        return any(row["name"] == column_name for row in rows)
 
     def _analysis_from_dict(self, data: dict[str, object]) -> ContractReviewAnalysis:
         findings = tuple(

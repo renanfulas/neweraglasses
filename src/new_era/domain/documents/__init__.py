@@ -6,6 +6,8 @@ from new_era.domain.documents.models import (
     ContractFindingType,
     ContractReviewAnalysis,
     DocumentAnalysisRecord,
+    DocumentArtifactRecord,
+    DocumentArtifactStatus,
     OCRExtraction,
 )
 
@@ -15,5 +17,7 @@ __all__ = [
     "ContractReviewAnalysis",
     "DeterministicContractAnalyzer",
     "DocumentAnalysisRecord",
+    "DocumentArtifactRecord",
+    "DocumentArtifactStatus",
     "OCRExtraction",
 ]

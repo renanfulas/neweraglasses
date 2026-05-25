@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from new_era.domain.jobs import JobRecord, JobType
+from new_era.domain.jobs import JobRecord, JobStatus, JobType
 
 
 class JobStore(Protocol):
@@ -23,4 +23,15 @@ class JobStore(Protocol):
         session_id: str,
         idempotency_key: str,
     ) -> JobRecord | None:
+        raise NotImplementedError
+
+    def list_by_session(
+        self,
+        *,
+        user_id: str,
+        session_id: str,
+        module: str | None = None,
+        status: JobStatus | None = None,
+        limit: int | None = None,
+    ) -> list[JobRecord]:
         raise NotImplementedError

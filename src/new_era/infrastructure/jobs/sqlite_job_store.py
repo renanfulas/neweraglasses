@@ -153,6 +153,57 @@ class SQLiteJobStore(JobStore):
             ).fetchone()
         return self._row_to_job(row) if row is not None else None
 
+    def list_by_session(
+        self,
+        *,
+        user_id: str,
+        session_id: str,
+        module: str | None = None,
+        status: JobStatus | None = None,
+        limit: int | None = None,
+    ) -> list[JobRecord]:
+        clauses = ["user_id = ?", "session_id = ?"]
+        values: list[object] = [user_id, session_id]
+        if module is not None:
+            clauses.append("module = ?")
+            values.append(module)
+        if status is not None:
+            clauses.append("status = ?")
+            values.append(status.value)
+
+        query = f"""
+            SELECT
+                job_id,
+                job_type,
+                status,
+                user_id,
+                session_id,
+                module,
+                idempotency_key,
+                attempts,
+                max_attempts,
+                timeout_seconds,
+                retry_backoff_seconds,
+                result_id,
+                error_code,
+                error_message,
+                created_at,
+                updated_at,
+                started_at,
+                completed_at,
+                metadata_json
+            FROM jobs
+            WHERE {" AND ".join(clauses)}
+            ORDER BY created_at DESC, job_id DESC
+        """
+        if limit is not None:
+            query += " LIMIT ?"
+            values.append(limit)
+
+        with closing(self._connect()) as connection:
+            rows = connection.execute(query, tuple(values)).fetchall()
+        return [self._row_to_job(row) for row in rows]
+
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.database_path, timeout=30)
         connection.row_factory = sqlite3.Row
@@ -197,6 +248,12 @@ class SQLiteJobStore(JobStore):
                 """
                 CREATE INDEX IF NOT EXISTS idx_jobs_session_created
                 ON jobs (session_id, created_at, job_id)
+                """
+            )
+            connection.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_jobs_user_session_created
+                ON jobs (user_id, session_id, created_at, job_id)
                 """
             )
             connection.commit()
