@@ -38,6 +38,19 @@ The current implementation is close to a usable MVP, but several gaps remain:
 
 This spec evolves the current system instead of replacing it.
 
+### Architecture Mental Model
+
+Document hardening follows the Contextual Attention Pyramid:
+
+```text
+raw signal rises through the stack
+each layer removes risk and noise
+policy decides at the top
+only a safe minimal response returns to the PWA or glasses
+```
+
+For this spec, the "circle" around the glasses is the session protection boundary. It owns privacy, quotas, idempotency, retention, and user-visible blocking reasons. The device/PWA must not guess these rules client-side; it only renders backend decisions.
+
 ## 3. User Story or System Story
 
 ```text
@@ -92,6 +105,10 @@ REQ-DOC-012: The PWA must treat the backend as the authority for document job st
 REQ-DOC-013: The PWA document flow must support upload or text input, enqueue, polling, success, failure, automatic result opening, and refresh-safe history.
 REQ-DOC-014: The service worker must not cache document uploads, API mutations, analysis results, or any other sensitive document content.
 REQ-DOC-015: The offline PWA shell must remain read-only and must not pretend that document operations can complete offline.
+REQ-DOC-016: All upload and job policy blocks must use the `PolicyRejection` contract.
+REQ-DOC-017: Reusing an idempotency key with a different payload fingerprint must be rejected with `idempotency_payload_mismatch`.
+REQ-DOC-018: Persisted document history must not retain full OCR text or full user-submitted document text after processing.
+REQ-DOC-019: Artifact retention must run for every terminal job path, including worker-driven completion and manual job status transitions.
 ```
 
 ## 7. Non-Functional Requirements
@@ -141,10 +158,35 @@ Invariants:
 - event metadata may carry references and structured counters, not raw sensitive payloads
 - a job may reference at most one primary uploaded artifact in this MVP
 - artifact deletion must not delete a persisted `DocumentAnalysisRecord`
+- persisted `DocumentAnalysisRecord` may keep summary, findings, excerpts, confidence, and parsing notes, but must not keep full OCR text or full raw submitted document text
+- idempotent retries must compare payload fingerprints before reusing an existing job
 
 ## 9. API / Port / Contract
 
 Primary endpoint contracts:
+
+### `PolicyRejection`
+
+All quota, upload-policy, idempotency, and retention blocks return a stable rejection detail:
+
+```json
+{
+  "detail": {
+    "code": "session_active_job_limit_exceeded",
+    "message": "This session already has document analyses in progress. Wait for one to finish before sending another document.",
+    "reason": "quota_exceeded",
+    "scope": "session",
+    "limit": 5,
+    "current": 5,
+    "retryable": true,
+    "metadata": {
+      "source_type": "pwa_multipart_upload"
+    }
+  }
+}
+```
+
+The application contract lives in `new_era.application.use_cases.policy_rejection.PolicyRejection`. HTTP adapters may wrap it in `HTTPException`, but must not invent another response shape.
 
 ### `POST /api/uploads/documents/contract-analysis`
 
@@ -157,7 +199,8 @@ Returns the existing `JobResponse` shape with additional metadata fields:
   "metadata": {
     "artifact_id": "artifact_123",
     "artifact_label": "contract-photo.jpg",
-    "source_type": "pwa_multipart_upload"
+    "source_type": "pwa_multipart_upload",
+    "payload_fingerprint": "sha256:abcd..."
   }
 }
 ```
@@ -256,9 +299,12 @@ Metadata allowlist guidance:
 - `content_type`
 - `byte_size`
 - `sha256_prefix`
+- `payload_fingerprint`
 - `error_code`
 - `limit_scope`
 - `limit_value`
+- `current_value`
+- `reason`
 - `status`
 
 Metadata forbidden in generic events:
@@ -267,6 +313,7 @@ Metadata forbidden in generic events:
 - base64 image bodies
 - full OCR text
 - raw document text
+- nested `extracted_text` values containing full document text
 - absolute file system paths
 - secrets or tokens
 
@@ -295,10 +342,17 @@ Classification:
 
 Retention defaults:
 
-- uploaded artifact blobs: keep until analysis reaches a terminal state, then keep locally until explicit delete or manual reset
+- uploaded artifact blobs: keep until analysis reaches a terminal state, then remove the blob and mark the artifact `expired`
 - document artifact lifecycle records: keep until manual reset
-- persisted analysis records: keep for local session history until manual reset
+- persisted analysis records: keep for local session history until manual reset, but keep only summaries, findings, excerpts, confidence, and parsing notes
 - job payload raw content: delete when the analysis job reaches a terminal state
+
+Raw text persistence decision:
+
+```text
+Do not persist full OCR text or full user-submitted document text as durable history.
+The MVP may persist short finding excerpts because they are the product evidence users need.
+```
 
 Consent stance:
 
@@ -323,6 +377,22 @@ active document jobs per session: 5
 ```
 
 These limits are local defaults and may later move to configuration.
+
+Idempotency:
+
+```text
+same idempotency_key + same payload_fingerprint -> return the existing job
+same idempotency_key + different payload_fingerprint -> reject with 409 idempotency_payload_mismatch
+```
+
+The fingerprint must be derived from stable safe inputs. For file uploads, use content type, byte size, and SHA-256 of the uploaded bytes. For text jobs, use source type and SHA-256 of the submitted text. Events may include only the fingerprint or a prefix, never the raw payload.
+
+Local concurrency:
+
+```text
+Quota checks should use a per-session lock in the local runtime.
+SQLite may use a short transaction or be documented as localhost best effort until production storage exists.
+```
 
 ## 13. Performance Budget
 
@@ -350,11 +420,24 @@ Frontend polling guidance:
 | Upload too large | Reject request with safe error | `upload_rejected` |
 | Session exceeds upload quota | Reject request | `rate_limit_exceeded` |
 | Session exceeds active job quota | Reject request | `rate_limit_exceeded` |
+| Same idempotency key with different payload | Reject request with conflict | `upload_rejected` |
 | Missing job payload | Fail job cleanly | existing job failure events |
 | OCR or analysis timeout | Fail job with safe error state | existing job failure events |
 | Artifact already deleted | Delete endpoint remains idempotent | `document_deleted` optional |
+| Job reaches terminal state | Expire linked raw artifact blob | `document_retention_expired` |
 | Offline PWA mutation attempt | UI blocks the action and shows offline read-only state | frontend state only |
 | Eval fixture mismatch | Eval runner reports false positive or false negative clearly | local eval output |
+
+Error matrix:
+
+| Case | HTTP | Code | Event | PWA message | Event metadata |
+| --- | ---: | --- | --- | --- | --- |
+| Unsupported MIME type | 415 | `unsupported_upload_content_type` | `upload_rejected` | Use PNG, JPEG, or WebP. | `content_type`, `source_type`, `error_code` |
+| Empty upload | 422 | `upload_file_empty` | `upload_rejected` | The selected file is empty. | `source_type`, `error_code` |
+| Payload above policy | 413 | `upload_payload_too_large` | `upload_rejected` | The file is above the local upload limit. | `byte_size`, `limit_value`, `source_type`, `error_code` |
+| Session upload quota full | 429 | `session_upload_quota_exceeded` | `rate_limit_exceeded` | This session reached the upload limit. | `current_value`, `limit_value`, `limit_scope`, `error_code` |
+| Session active jobs full | 429 | `session_active_job_limit_exceeded` | `rate_limit_exceeded` | Wait for an analysis to finish before sending another document. | `current_value`, `limit_value`, `limit_scope`, `error_code` |
+| Idempotency payload mismatch | 409 | `idempotency_payload_mismatch` | `upload_rejected` | This retry does not match the original upload. Start a new upload. | `job_id`, `source_type`, `error_code` |
 
 ## 15. AI/Prompt Contract
 
@@ -413,6 +496,11 @@ Phase 0:
 
 - freeze `SPEC-0003`
 - freeze ownership and integration rules
+- freeze Contextual Attention Pyramid boundaries
+- freeze `PolicyRejection`
+- freeze fingerprint/idempotency semantics
+- freeze raw text persistence rule
+- freeze terminal retention paths
 
 Phase 1:
 
@@ -440,3 +528,4 @@ Phase 3:
 1. Should delete be allowed while a job is still running if the runner has already loaded the blob into memory?
 2. Should artifact lifecycle records persist after delete for auditability in localhost mode, or should local reset be the only durable cleanup story?
 3. Should session quotas become environment-configurable in this batch or stay hard-coded until after the MVP hardening lands?
+4. Should SQLite enforce active-job quota atomically in this batch, or should production-grade atomic quota enforcement wait for the next persistence hardening spec?

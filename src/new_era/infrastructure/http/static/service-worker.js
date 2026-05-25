@@ -1,4 +1,4 @@
-const SHELL_CACHE_NAME = "new-era-shell-v2";
+const SHELL_CACHE_NAME = "new-era-shell-v3";
 const OFFLINE_SHELL_URL = "/";
 const SHELL_ASSETS = [
   OFFLINE_SHELL_URL,
@@ -7,11 +7,16 @@ const SHELL_ASSETS = [
   "/manifest.webmanifest",
 ];
 const SHELL_ASSET_SET = new Set(SHELL_ASSETS);
-const NO_FALLBACK_PREFIXES = [
+const SENSITIVE_PATH_PREFIXES = [
   "/api/",
   "/uploads/",
   "/document-analyses/",
   "/jobs/",
+];
+const SENSITIVE_RESPONSE_HEADERS = [
+  "authorization",
+  "cookie",
+  "x-new-era-sensitive",
 ];
 
 function isSameOrigin(url) {
@@ -19,11 +24,37 @@ function isSameOrigin(url) {
 }
 
 function isSensitivePath(pathname) {
-  return NO_FALLBACK_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  return SENSITIVE_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
 function isShellAsset(url) {
   return isSameOrigin(url) && SHELL_ASSET_SET.has(url.pathname);
+}
+
+function variesOnSensitiveHeaders(response) {
+  const varyHeader = response.headers.get("Vary");
+  if (!varyHeader) {
+    return false;
+  }
+
+  const varyValues = varyHeader
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+  return SENSITIVE_RESPONSE_HEADERS.some((header) => varyValues.includes(header));
+}
+
+function isSensitiveResponse(response) {
+  const cacheControl = (response.headers.get("Cache-Control") || "").toLowerCase();
+  if (cacheControl.includes("no-store") || cacheControl.includes("private")) {
+    return true;
+  }
+
+  if ((response.headers.get("X-New-Era-Sensitive") || "").toLowerCase() === "true") {
+    return true;
+  }
+
+  return variesOnSensitiveHeaders(response);
 }
 
 async function populateShellCache() {
@@ -90,6 +121,10 @@ self.addEventListener("fetch", (event) => {
 
       return fetch(request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200) {
+          return networkResponse;
+        }
+
+        if (isSensitiveResponse(networkResponse)) {
           return networkResponse;
         }
 

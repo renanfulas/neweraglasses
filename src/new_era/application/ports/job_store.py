@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Collection
 from typing import Protocol
 
 from new_era.domain.jobs import JobRecord, JobStatus, JobType
@@ -34,4 +35,14 @@ class JobStore(Protocol):
         status: JobStatus | None = None,
         limit: int | None = None,
     ) -> list[JobRecord]:
+        raise NotImplementedError
+
+    def count_by_session_statuses(
+        self,
+        *,
+        user_id: str,
+        session_id: str,
+        statuses: Collection[JobStatus],
+        module: str | None = None,
+    ) -> int:
         raise NotImplementedError

@@ -9,7 +9,7 @@
   "orientation": "portrait",
   "background_color": "#f4efe4",
   "theme_color": "#143126",
-  "description": "PWA simulation for New Era contextual smart glasses.",
+  "description": "Read-only offline shell for the New Era contextual smart glasses companion.",
   "prefer_related_applications": false,
   "icons": []
 }

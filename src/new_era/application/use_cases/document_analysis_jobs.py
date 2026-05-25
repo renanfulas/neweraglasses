@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
+from threading import Lock, RLock
 from time import sleep
 from typing import Protocol
 from uuid import uuid4
@@ -14,6 +17,8 @@ from new_era.application.ports import (
     EventStore,
     JobStore,
 )
+from new_era.application.use_cases.document_artifact_lifecycle import ExpireDocumentArtifact
+from new_era.application.use_cases.policy_rejection import PolicyRejectedError, PolicyRejection
 from new_era.domain.attention import AttentionMode
 from new_era.domain.documents import DocumentAnalysisRecord
 from new_era.domain.events import Event, EventType
@@ -48,11 +53,35 @@ class DocumentAnalysisJobTimedOut(TimeoutError):
 
 
 @dataclass(frozen=True, slots=True)
+class SessionActiveJobQuota:
+    max_active_jobs: int = 5
+
+    def __post_init__(self) -> None:
+        if self.max_active_jobs < 1:
+            raise ValueError("max_active_jobs must be at least 1")
+
+
+_session_enqueue_locks: dict[tuple[str, str, str], RLock] = {}
+_session_enqueue_locks_guard = Lock()
+
+
+def _session_enqueue_lock(*, user_id: str, session_id: str, module: str) -> RLock:
+    key = (user_id, session_id, module)
+    with _session_enqueue_locks_guard:
+        existing_lock = _session_enqueue_locks.get(key)
+        if existing_lock is None:
+            existing_lock = RLock()
+            _session_enqueue_locks[key] = existing_lock
+        return existing_lock
+
+
+@dataclass(frozen=True, slots=True)
 class EnqueueDocumentAnalysisJob:
     job_store: JobStore
     event_store: EventStore
     payload_store: DocumentAnalysisJobPayloadStore | None = None
     execution_policy: JobExecutionPolicy = JobExecutionPolicy()
+    active_job_quota: SessionActiveJobQuota = SessionActiveJobQuota()
 
     def execute(
         self,
@@ -72,47 +101,113 @@ class EnqueueDocumentAnalysisJob:
         recent_category_count: int = 0,
         observation_id: str | None = None,
     ) -> JobRecord:
-        existing_job = self.job_store.find_by_idempotency_key(
-            job_type=JobType.DOCUMENT_CONTRACT_ANALYSIS,
-            user_id=user_id,
-            session_id=session_id,
-            idempotency_key=idempotency_key,
+        payload_fingerprint = _build_payload_fingerprint(
+            artifact_label=artifact_label,
+            source_type=source_type,
+            artifact_id=artifact_id,
+            document_text=document_text,
+            document_image_base64=document_image_base64,
         )
-        if existing_job is not None:
-            self._save_payload_if_needed(
-                job=existing_job,
+        with _session_enqueue_lock(user_id=user_id, session_id=session_id, module="documents"):
+            existing_job = self.job_store.find_by_idempotency_key(
+                job_type=JobType.DOCUMENT_CONTRACT_ANALYSIS,
                 user_id=user_id,
                 session_id=session_id,
-                artifact_label=artifact_label,
-                source_type=source_type,
-                artifact_id=artifact_id,
-                document_text=document_text,
-                document_image_base64=document_image_base64,
-                confidence=confidence,
-                mode=mode,
-                recent_category_count=recent_category_count,
-                observation_id=observation_id,
-                correlation_id=correlation_id,
-                trace_id=trace_id,
+                idempotency_key=idempotency_key,
             )
-            return existing_job
+            if existing_job is not None:
+                existing_fingerprint = existing_job.metadata.get("payload_fingerprint")
+                if existing_fingerprint != payload_fingerprint:
+                    raise PolicyRejectedError(
+                        PolicyRejection(
+                            code="idempotency_payload_mismatch",
+                            message=(
+                                "Esta chave de idempotencia ja foi usada com um documento diferente."
+                            ),
+                            reason="idempotency_mismatch",
+                            scope="request",
+                            retryable=False,
+                            metadata={
+                                "job_id": existing_job.job_id,
+                                "source_type": source_type,
+                            },
+                        )
+                    )
+                self._save_payload_if_needed(
+                    job=existing_job,
+                    user_id=user_id,
+                    session_id=session_id,
+                    artifact_label=artifact_label,
+                    source_type=source_type,
+                    artifact_id=artifact_id,
+                    document_text=document_text,
+                    document_image_base64=document_image_base64,
+                    confidence=confidence,
+                    mode=mode,
+                    recent_category_count=recent_category_count,
+                    observation_id=observation_id,
+                    correlation_id=correlation_id,
+                    trace_id=trace_id,
+                )
+                return existing_job
 
-        job = JobRecord(
-            job_type=JobType.DOCUMENT_CONTRACT_ANALYSIS,
-            user_id=user_id,
-            session_id=session_id,
-            module="documents",
-            idempotency_key=idempotency_key,
-            max_attempts=self.execution_policy.max_attempts,
-            timeout_seconds=self.execution_policy.timeout_seconds,
-            retry_backoff_seconds=self.execution_policy.retry_backoff_seconds,
-            metadata={
-                "artifact_label": artifact_label,
-                "source_type": source_type,
-                "artifact_id": artifact_id,
-            },
-        )
-        self.job_store.save(job)
+            active_jobs = self.job_store.count_by_session_statuses(
+                user_id=user_id,
+                session_id=session_id,
+                module="documents",
+                statuses=(JobStatus.QUEUED, JobStatus.RUNNING),
+            )
+            if active_jobs >= self.active_job_quota.max_active_jobs:
+                self.event_store.append(
+                    Event(
+                        event_type=EventType.RATE_LIMIT_EXCEEDED,
+                        user_id=user_id,
+                        session_id=session_id,
+                        module="documents",
+                        correlation_id=correlation_id,
+                        trace_id=trace_id,
+                        metadata={
+                            "reason": "active_job_quota_exceeded",
+                            "job_type": JobType.DOCUMENT_CONTRACT_ANALYSIS.value,
+                            "current_value": active_jobs,
+                            "limit_value": self.active_job_quota.max_active_jobs,
+                        },
+                    )
+                )
+                raise PolicyRejectedError(
+                    PolicyRejection(
+                        code="session_active_job_limit_exceeded",
+                        message=(
+                            "Esta sessao ja tem analises em andamento. Aguarde uma finalizar antes de enviar outro documento."
+                        ),
+                        reason="quota_exceeded",
+                        scope="session",
+                        limit=self.active_job_quota.max_active_jobs,
+                        current=active_jobs,
+                        retryable=True,
+                        metadata={
+                            "job_type": JobType.DOCUMENT_CONTRACT_ANALYSIS.value,
+                            "module": "documents",
+                        },
+                    )
+                )
+            job = JobRecord(
+                job_type=JobType.DOCUMENT_CONTRACT_ANALYSIS,
+                user_id=user_id,
+                session_id=session_id,
+                module="documents",
+                idempotency_key=idempotency_key,
+                max_attempts=self.execution_policy.max_attempts,
+                timeout_seconds=self.execution_policy.timeout_seconds,
+                retry_backoff_seconds=self.execution_policy.retry_backoff_seconds,
+                metadata={
+                    "artifact_label": artifact_label,
+                    "source_type": source_type,
+                    "artifact_id": artifact_id,
+                    "payload_fingerprint": payload_fingerprint,
+                },
+            )
+            self.job_store.save(job)
         self._save_payload_if_needed(
             job=job,
             user_id=user_id,
@@ -221,11 +316,37 @@ class ListJobsBySession:
         )
 
 
+def _build_payload_fingerprint(
+    *,
+    artifact_label: str,
+    source_type: str,
+    artifact_id: str | None,
+    document_text: str | None,
+    document_image_base64: str | None,
+) -> str:
+    canonical_payload = {
+        "artifact_id": artifact_id,
+        "artifact_label": artifact_label,
+        "document_image_base64_sha256": _hash_optional_value(document_image_base64),
+        "document_text_sha256": _hash_optional_value(document_text),
+        "source_type": source_type,
+    }
+    serialized = json.dumps(canonical_payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def _hash_optional_value(value: str | None) -> str | None:
+    if value is None:
+        return None
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
 @dataclass(frozen=True, slots=True)
 class AdvanceDocumentAnalysisJob:
     job_store: JobStore
     event_store: EventStore
     document_analysis_store: DocumentAnalysisStore
+    artifact_expirer: ExpireDocumentArtifact | None = None
 
     def execute(
         self,
@@ -290,6 +411,12 @@ class AdvanceDocumentAnalysisJob:
                 metadata=event_metadata,
             )
         )
+        if target_status in (JobStatus.SUCCEEDED, JobStatus.FAILED):
+            self._expire_artifact_after_terminal_state(
+                job=updated_job,
+                correlation_id=correlation_id,
+                trace_id=trace_id,
+            )
         return updated_job
 
     def _require_persisted_analysis(
@@ -330,6 +457,27 @@ class AdvanceDocumentAnalysisJob:
             return EventType.JOB_FAILED
         return EventType.JOB_STATUS_UPDATED
 
+    def _expire_artifact_after_terminal_state(
+        self,
+        *,
+        job: JobRecord,
+        correlation_id: str,
+        trace_id: str,
+    ) -> None:
+        artifact_id = job.metadata.get("artifact_id")
+        if self.artifact_expirer is None or not artifact_id:
+            return
+        try:
+            self.artifact_expirer.execute(
+                artifact_id=str(artifact_id),
+                user_id=job.user_id,
+                session_id=job.session_id,
+                correlation_id=correlation_id,
+                trace_id=trace_id,
+            )
+        except Exception:
+            return
+
 
 @dataclass(frozen=True, slots=True)
 class RunDocumentAnalysisJob:
@@ -337,6 +485,7 @@ class RunDocumentAnalysisJob:
     event_store: EventStore
     payload_store: DocumentAnalysisJobPayloadStore
     document_processor: DocumentContractReviewProcessor
+    artifact_expirer: ExpireDocumentArtifact | None = None
 
     def execute(self, *, job_id: str) -> JobRecord | None:
         job = self.job_store.get(job_id)
@@ -403,6 +552,7 @@ class RunDocumentAnalysisJob:
                     correlation_id=payload.correlation_id,
                     trace_id=payload.trace_id,
                     analysis_id=result.analysis_record.analysis_id,
+                    artifact_id=payload.artifact_id,
                 )
 
             if failed_attempt_job.attempts >= failed_attempt_job.max_attempts:
@@ -413,6 +563,7 @@ class RunDocumentAnalysisJob:
                     trace_id=payload.trace_id,
                     error_code=failed_attempt_job.error_code or "execution_error",
                     error_message=failed_attempt_job.error_message or "job failed",
+                    artifact_id=payload.artifact_id,
                 )
             if failed_attempt_job.retry_backoff_seconds:
                 sleep(failed_attempt_job.retry_backoff_seconds)
@@ -542,6 +693,7 @@ class RunDocumentAnalysisJob:
         correlation_id: str,
         trace_id: str,
         analysis_id: str,
+        artifact_id: str | None = None,
     ) -> JobRecord:
         metadata = dict(job.metadata)
         metadata["analysis_id"] = analysis_id
@@ -568,6 +720,12 @@ class RunDocumentAnalysisJob:
                 "analysis_id": analysis_id,
             },
         )
+        self._expire_artifact_after_terminal_state(
+            job=updated_job,
+            artifact_id=artifact_id,
+            correlation_id=correlation_id,
+            trace_id=trace_id,
+        )
         return updated_job
 
     def _fail_job(
@@ -578,6 +736,7 @@ class RunDocumentAnalysisJob:
         trace_id: str,
         error_code: str,
         error_message: str,
+        artifact_id: str | None = None,
     ) -> JobRecord:
         metadata = dict(job.metadata)
         metadata.update(
@@ -609,7 +768,36 @@ class RunDocumentAnalysisJob:
                 "error_code": error_code,
             },
         )
+        self._expire_artifact_after_terminal_state(
+            job=updated_job,
+            artifact_id=artifact_id,
+            correlation_id=correlation_id,
+            trace_id=trace_id,
+        )
         return updated_job
+
+    def _expire_artifact_after_terminal_state(
+        self,
+        *,
+        job: JobRecord,
+        artifact_id: str | None,
+        correlation_id: str,
+        trace_id: str,
+    ) -> None:
+        effective_artifact_id = artifact_id or job.metadata.get("artifact_id")
+        if self.artifact_expirer is None or not effective_artifact_id:
+            return
+        try:
+            self.artifact_expirer.execute(
+                artifact_id=str(effective_artifact_id),
+                user_id=job.user_id,
+                session_id=job.session_id,
+                correlation_id=correlation_id,
+                trace_id=trace_id,
+            )
+        except Exception:
+            # Retention cleanup is best-effort after terminal state.
+            return
 
     def _append_job_event(
         self,

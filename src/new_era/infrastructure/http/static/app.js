@@ -32,6 +32,9 @@ const documentCaptureCopy = document.getElementById("document-capture-copy");
 
 const jobStatusBadge = document.getElementById("job-status-badge");
 const jobSummary = document.getElementById("job-summary");
+const jobPolicyCard = document.getElementById("job-policy-card");
+const jobPolicyTitle = document.getElementById("job-policy-title");
+const jobPolicyMessage = document.getElementById("job-policy-message");
 const jobIdNode = document.getElementById("job-id");
 const jobSourceNode = document.getElementById("job-source");
 const jobAnalysisIdNode = document.getElementById("job-analysis-id");
@@ -109,6 +112,7 @@ const appState = {
   currentDocumentJobId: null,
   currentDocumentJobTraceId: null,
   documentJobs: [],
+  lastDocumentPolicyRejection: null,
   lastDocumentAnalysisId: null,
   documentAnalyses: [],
   selectedDocumentAnalysisId: null,
@@ -344,6 +348,7 @@ const STATE_LABELS = {
   unavailable: "Unavailable",
   queueing: "Queueing",
   queued: "Queued",
+  blocked: "Blocked",
   running: "Running",
   succeeded: "Succeeded",
   failed: "Failed",
@@ -572,18 +577,95 @@ function setHistoryScope(scope) {
   scopeSessionButton.classList.toggle("scope-tab-active", scope === "session");
 }
 
+function isPolicyRejection(detail) {
+  return Boolean(
+    detail &&
+      typeof detail === "object" &&
+      typeof detail.code === "string" &&
+      typeof detail.message === "string",
+  );
+}
+
+function getApiErrorMessage(detail, fallbackMessage) {
+  if (isPolicyRejection(detail)) {
+    return detail.message;
+  }
+  if (typeof detail === "string" && detail.trim()) {
+    return detail;
+  }
+  if (detail && typeof detail === "object" && typeof detail.message === "string") {
+    return detail.message;
+  }
+  return fallbackMessage;
+}
+
+async function buildApiError(response, fallbackMessage) {
+  const errorPayload = await response.json().catch(() => null);
+  const detail = errorPayload?.detail;
+  const error = new Error(getApiErrorMessage(detail, fallbackMessage));
+  error.status = response.status;
+  error.detail = detail;
+  error.payload = errorPayload;
+  return error;
+}
+
+function clearDocumentPolicyRejection() {
+  appState.lastDocumentPolicyRejection = null;
+}
+
+function setDocumentPolicyRejection(detail) {
+  appState.lastDocumentPolicyRejection = isPolicyRejection(detail) ? detail : null;
+}
+
+function getJobsEndpointPolicyRejection(payload) {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+  if (isPolicyRejection(payload.blocked_reason)) {
+    return payload.blocked_reason;
+  }
+  if (isPolicyRejection(payload.policy_rejection)) {
+    return payload.policy_rejection;
+  }
+  return null;
+}
+
+function renderJobPolicyNotice() {
+  const detail = appState.lastDocumentPolicyRejection;
+  if (!detail) {
+    jobPolicyCard.hidden = true;
+    jobPolicyCard.dataset.state = "idle";
+    jobPolicyTitle.textContent = "Session ready";
+    jobPolicyMessage.textContent =
+      "The backend will explain when a document upload or job is blocked.";
+    return;
+  }
+
+  const isQuotaBlock = detail.reason === "quota_exceeded";
+  const limitText =
+    typeof detail.current === "number" && typeof detail.limit === "number"
+      ? ` (${detail.current}/${detail.limit})`
+      : "";
+  jobPolicyCard.hidden = false;
+  jobPolicyCard.dataset.state = isQuotaBlock ? "blocked" : "error";
+  jobPolicyTitle.textContent = `${detail.code}${limitText}`;
+  jobPolicyMessage.textContent = detail.message;
+}
+
 function renderJobState(job) {
   appState.currentDocumentJob = job;
   if (!job) {
-    jobStatusBadge.textContent = "idle";
-    jobStatusBadge.dataset.state = "idle";
-    jobSummary.textContent =
-      "Queue a simulated analysis job, then move it through running, succeeded, or failed.";
+    jobStatusBadge.textContent = appState.lastDocumentPolicyRejection ? "blocked" : "idle";
+    jobStatusBadge.dataset.state = appState.lastDocumentPolicyRejection ? "blocked" : "idle";
+    jobSummary.textContent = appState.lastDocumentPolicyRejection
+      ? appState.lastDocumentPolicyRejection.message
+      : "Queue a simulated analysis job, then move it through running, succeeded, or failed.";
     jobIdNode.textContent = "none";
     jobSourceNode.textContent = "pwa_simulation";
     jobAnalysisIdNode.textContent = appState.lastDocumentAnalysisId || "none";
     openLinkedAnalysisButton.disabled = !appState.lastDocumentAnalysisId;
-    setAsyncState("documents", "idle");
+    setAsyncState("documents", appState.lastDocumentPolicyRejection ? "blocked" : "idle");
+    renderJobPolicyNotice();
     return;
   }
 
@@ -596,6 +678,7 @@ function renderJobState(job) {
   jobAnalysisIdNode.textContent = linkedAnalysisId || "none";
   openLinkedAnalysisButton.disabled = !linkedAnalysisId;
   setAsyncState("documents", job.status);
+  renderJobPolicyNotice();
 }
 
 function renderJobHistory(jobs) {
@@ -622,6 +705,11 @@ function renderJobHistory(jobs) {
           <button type="button" class="${activeClass}" data-job-id="${escapeHtml(job.job_id)}">
             <h4>${escapeHtml(job.status)} · ${escapeHtml(source)}</h4>
             <p>${escapeHtml(job.job_id)}</p>
+            ${
+              isPolicyRejection(job.metadata?.blocked_reason)
+                ? `<p>${escapeHtml(job.metadata.blocked_reason.message)}</p>`
+                : ""
+            }
             <div class="analysis-list-item-meta">
               <span>Attempts ${escapeHtml(job.attempts)}/${escapeHtml(job.max_attempts)}</span>
               <span>${linkedAnalysisId ? "Result ready" : "No result yet"}</span>
@@ -834,8 +922,7 @@ async function submitDocumentAnalysisFeedback(feedback) {
       },
     );
     if (!response.ok) {
-      const errorPayload = await response.json().catch(() => null);
-      throw new Error(errorPayload?.detail || `Analysis feedback failed with status ${response.status}`);
+      throw await buildApiError(response, `Analysis feedback failed with status ${response.status}`);
     }
 
     appState.documentAnalyses = appState.documentAnalyses.map((entry) =>
@@ -1006,13 +1093,19 @@ async function refreshDocumentJobs() {
       },
     );
     if (!response.ok) {
-      throw new Error(`Jobs failed with status ${response.status}`);
+      throw await buildApiError(response, `Jobs failed with status ${response.status}`);
     }
 
     const payload = await response.json();
+    const jobsPolicyRejection = getJobsEndpointPolicyRejection(payload);
+    if (jobsPolicyRejection) {
+      setDocumentPolicyRejection(jobsPolicyRejection);
+    }
     appState.documentJobs = Array.isArray(payload.jobs) ? payload.jobs : [];
     renderJobHistory(appState.documentJobs);
+    renderJobPolicyNotice();
   } catch (error) {
+    setDocumentPolicyRejection(error.detail);
     appState.documentJobs = [];
     jobHistoryList.innerHTML = `
       <li class="analysis-list-empty">
@@ -1020,6 +1113,7 @@ async function refreshDocumentJobs() {
         <p>${escapeHtml(error.message)}</p>
       </li>
     `;
+    renderJobPolicyNotice();
   }
 }
 
@@ -1132,7 +1226,7 @@ async function submitSimulation(moduleName, event) {
     });
 
     if (!response.ok) {
-      throw new Error(`Simulation failed with status ${response.status}`);
+      throw await buildApiError(response, `Simulation failed with status ${response.status}`);
     }
 
     const payload = await response.json();
@@ -1195,8 +1289,7 @@ async function submitLensFeedback(feedback) {
     });
 
     if (!response.ok) {
-      const errorPayload = await response.json().catch(() => null);
-      throw new Error(errorPayload?.detail || `Feedback failed with status ${response.status}`);
+      throw await buildApiError(response, `Feedback failed with status ${response.status}`);
     }
 
     appState.feedbackByCommandId[command.command_id] = feedback;
@@ -1276,10 +1369,11 @@ async function enqueueDocumentJob() {
       });
     }
     if (!response.ok) {
-      throw new Error(`Job enqueue failed with status ${response.status}`);
+      throw await buildApiError(response, `Job enqueue failed with status ${response.status}`);
     }
 
     const payload = await response.json();
+    clearDocumentPolicyRejection();
     appState.currentDocumentJobId = payload.job_id;
     appState.currentDocumentJobTraceId = traceId;
     renderJobState(payload);
@@ -1287,8 +1381,11 @@ async function enqueueDocumentJob() {
     await refreshSessionHistory("documents");
     setStatus(inputPayload.selectedFile ? "Upload job queued" : "Text job queued");
   } catch (error) {
+    setDocumentPolicyRejection(error.detail);
     jobSummary.textContent = error.message;
-    setAsyncState("documents", "error");
+    renderJobPolicyNotice();
+    renderJobHistory(appState.documentJobs);
+    setAsyncState("documents", isPolicyRejection(error.detail) ? "blocked" : "error");
     setStatus("API error", true);
   } finally {
     jobEnqueueButton.disabled = false;
@@ -1306,7 +1403,7 @@ async function refreshCurrentJobStatus() {
       headers: buildAuthHeaders(DEMO_USERS.documents),
     });
     if (!response.ok) {
-      throw new Error(`Job status failed with status ${response.status}`);
+      throw await buildApiError(response, `Job status failed with status ${response.status}`);
     }
     const payload = await response.json();
     renderJobState(payload);
@@ -1318,7 +1415,9 @@ async function refreshCurrentJobStatus() {
     await refreshDocumentJobs();
     setStatus("API ready");
   } catch (error) {
+    setDocumentPolicyRejection(error.detail);
     jobSummary.textContent = error.message;
+    renderJobPolicyNotice();
     setAsyncState("documents", "error");
     setStatus("API error", true);
   }
@@ -1353,9 +1452,7 @@ async function transitionCurrentJob(targetStatus) {
       body: JSON.stringify(requestBody),
     });
     if (!response.ok) {
-      const errorPayload = await response.json().catch(() => null);
-      const detail = errorPayload?.detail || `Job transition failed with status ${response.status}`;
-      throw new Error(detail);
+      throw await buildApiError(response, `Job transition failed with status ${response.status}`);
     }
 
     const payload = await response.json();
@@ -1369,8 +1466,10 @@ async function transitionCurrentJob(targetStatus) {
     await refreshDocumentJobs();
     setStatus("API ready");
   } catch (error) {
+    setDocumentPolicyRejection(error.detail);
     jobSummary.textContent = error.message;
-    setAsyncState("documents", "error");
+    renderJobPolicyNotice();
+    setAsyncState("documents", isPolicyRejection(error.detail) ? "blocked" : "error");
     setStatus("API error", true);
   }
 }

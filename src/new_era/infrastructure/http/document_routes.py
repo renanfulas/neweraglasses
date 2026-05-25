@@ -19,6 +19,9 @@ from new_era.application.use_cases import (
     GetDocumentAnalysisFeedback,
     GetDocumentFeedbackMetrics,
     GetJobStatus,
+    GetRecentPolicyRejectionForSession,
+    PolicyRejectedError,
+    PolicyRejection,
     GetSessionTrace,
     GetUserSession,
     ListDocumentAnalysesBySession,
@@ -43,6 +46,7 @@ from new_era.infrastructure.http.dependencies import (
     get_document_analyses_by_session_reader,
     get_job_session_lister,
     get_job_status_reader,
+    get_recent_policy_rejection_reader,
     get_session_trace_reader,
     get_user_session_reader,
     get_user_session_starter,
@@ -63,6 +67,7 @@ from new_era.infrastructure.http.schemas import (
     serialize_document_analysis,
     serialize_document_feedback_metrics,
     serialize_job,
+    serialize_policy_rejection,
 )
 from new_era.infrastructure.http.support import (
     build_simulation_response,
@@ -71,7 +76,10 @@ from new_era.infrastructure.http.support import (
     ensure_session_owned_by_current_user,
     enforce_authenticated_user,
     enforce_path_user,
+    policy_status_code_for,
     read_upload_bytes,
+    raise_rejected_http_error,
+    raise_policy_http_error,
     resolve_document_analysis_feedback,
     resolve_user_session,
     safe_upload_filename,
@@ -100,9 +108,17 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> SimulationResponse:
         if not request.document_text and not request.document_image_base64:
-            raise HTTPException(
-                status_code=422,
-                detail="document_text_or_document_image_base64_required",
+            raise_policy_http_error(
+                422,
+                PolicyRejection(
+                    code="document_text_or_document_image_base64_required",
+                    message="Add contract text or an image before starting document review.",
+                    reason="validation_failed",
+                    scope="job",
+                    metadata={
+                        "error_code": "document_text_or_document_image_base64_required",
+                    },
+                ),
             )
         user_id = enforce_authenticated_user(request.user_id, current_user_id)
         session = resolve_user_session(
@@ -218,6 +234,10 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         user_id: str,
         session_id: str,
         lister: Annotated[ListJobsBySession, Depends(get_job_session_lister)],
+        policy_rejection_reader: Annotated[
+            GetRecentPolicyRejectionForSession,
+            Depends(get_recent_policy_rejection_reader),
+        ],
         session_reader: Annotated[GetUserSession, Depends(get_user_session_reader)],
         current_user_id: Annotated[str, Depends(get_current_user_id)],
         module: str | None = None,
@@ -243,6 +263,13 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
             session_id=session_id,
             job_count=len(jobs),
             jobs=[serialize_job(job) for job in jobs],
+            blocked_reason=serialize_policy_rejection(
+                policy_rejection_reader.execute(
+                    user_id=authenticated_user_id,
+                    session_id=session_id,
+                    module=module or "documents",
+                )
+            ),
         )
 
     @router.get(
@@ -307,9 +334,17 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         current_user_id: Annotated[str, Depends(get_current_user_id)] = "",
     ) -> JobResponse:
         if not request.document_text and not request.document_image_base64:
-            raise HTTPException(
-                status_code=422,
-                detail="document_text_or_document_image_base64_required",
+            raise_policy_http_error(
+                422,
+                PolicyRejection(
+                    code="document_text_or_document_image_base64_required",
+                    message="Add contract text or an image before queueing analysis.",
+                    reason="validation_failed",
+                    scope="job",
+                    metadata={
+                        "error_code": "document_text_or_document_image_base64_required",
+                    },
+                ),
             )
         user_id = enforce_authenticated_user(request.user_id, current_user_id)
         session = resolve_user_session(
@@ -319,21 +354,24 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
             session_id=request.session_id,
         )
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
-        job = enqueuer.execute(
-            user_id=user_id,
-            session_id=session.session_id,
-            idempotency_key=request.idempotency_key,
-            correlation_id=request.correlation_id or f"corr_{uuid4().hex}",
-            trace_id=trace_id,
-            artifact_label=request.artifact_label,
-            source_type=request.source_type,
-            document_text=request.document_text,
-            document_image_base64=request.document_image_base64,
-            confidence=request.confidence,
-            mode=request.mode,
-            recent_category_count=request.recent_category_count,
-            observation_id=request.observation_id,
-        )
+        try:
+            job = enqueuer.execute(
+                user_id=user_id,
+                session_id=session.session_id,
+                idempotency_key=request.idempotency_key,
+                correlation_id=request.correlation_id or f"corr_{uuid4().hex}",
+                trace_id=trace_id,
+                artifact_label=request.artifact_label,
+                source_type=request.source_type,
+                document_text=request.document_text,
+                document_image_base64=request.document_image_base64,
+                confidence=request.confidence,
+                mode=request.mode,
+                recent_category_count=request.recent_category_count,
+                observation_id=request.observation_id,
+            )
+        except PolicyRejectedError as exc:
+            raise_rejected_http_error(policy_status_code_for(exc.rejection), exc)
         if job.status == JobStatus.QUEUED:
             worker.enqueue(job.job_id)
         return serialize_job(job)
@@ -362,14 +400,14 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         current_user_id: Annotated[str, Depends(get_current_user_id)] = "",
     ) -> JobResponse:
         authenticated_user_id = enforce_authenticated_user(user_id, current_user_id)
-        content_type = validate_upload_content_type(artifact.content_type or "")
-        payload = await read_upload_bytes(artifact)
         session = resolve_user_session(
             starter=session_starter,
             user_id=authenticated_user_id,
             module="documents",
             session_id=session_id,
         )
+        content_type = validate_upload_content_type(artifact.content_type or "")
+        payload = await read_upload_bytes(artifact)
         resolved_trace_id = trace_id or f"trace_{uuid4().hex}"
         upload_id = f"upload_{uuid4().hex}"
         original_name = safe_upload_filename(
@@ -388,9 +426,15 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
                     "content_type": content_type,
                     "original_filename": original_name,
                 },
+                correlation_id=correlation_id,
+                trace_id=resolved_trace_id,
             )
         except DocumentArtifactQuotaExceededError as exc:
-            raise HTTPException(status_code=429, detail=str(exc)) from exc
+            rejection = _policy_rejection_for_artifact_quota_error(exc)
+            raise_policy_http_error(
+                429,
+                rejection,
+            )
 
         try:
             job = enqueuer.execute(
@@ -409,11 +453,22 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
                 recent_category_count=recent_category_count,
                 observation_id=observation_id or f"obs_{upload_id}",
             )
+        except PolicyRejectedError as exc:
+            artifact_deleter.execute(
+                artifact_id=artifact_record.artifact_id,
+                user_id=authenticated_user_id,
+                session_id=session.session_id,
+                correlation_id=correlation_id,
+                trace_id=resolved_trace_id,
+            )
+            raise_rejected_http_error(policy_status_code_for(exc.rejection), exc)
         except Exception:
             artifact_deleter.execute(
                 artifact_id=artifact_record.artifact_id,
                 user_id=authenticated_user_id,
                 session_id=session.session_id,
+                correlation_id=correlation_id,
+                trace_id=resolved_trace_id,
             )
             raise
         if job.metadata.get("artifact_id") != artifact_record.artifact_id:
@@ -421,6 +476,8 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
                 artifact_id=artifact_record.artifact_id,
                 user_id=authenticated_user_id,
                 session_id=session.session_id,
+                correlation_id=correlation_id,
+                trace_id=resolved_trace_id,
             )
         if job.status == JobStatus.QUEUED:
             worker.enqueue(job.job_id)
@@ -442,6 +499,7 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
             record = deleter.execute(
                 artifact_id=artifact_id,
                 user_id=current_user_id,
+                trace_id=f"trace_{uuid4().hex}",
             )
         except DocumentArtifactNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -553,3 +611,27 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         )
 
     return router
+
+
+def _policy_rejection_for_artifact_quota_error(
+    error: DocumentArtifactQuotaExceededError,
+) -> PolicyRejection:
+    if error.code == "session_artifact_storage_limit_exceeded":
+        message = "This session reached the local document storage limit."
+    else:
+        message = "This session reached the upload limit."
+    return PolicyRejection(
+        code=error.code,
+        message=message,
+        reason="quota_exceeded",
+        scope="session",
+        limit=error.limit,
+        current=error.current,
+        retryable=True,
+        metadata={
+            "limit_scope": "session",
+            "limit_value": error.limit,
+            "current_value": error.current,
+            "error_code": error.code,
+        },
+    )

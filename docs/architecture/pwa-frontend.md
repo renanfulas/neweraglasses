@@ -214,6 +214,7 @@ Current strategy:
 - serve shell assets from cache when available
 - use network-first navigation with fallback to cached `/` only for non-sensitive app routes
 - bypass service worker caching for `/api/*`, uploads, result/detail routes, and every non-GET request
+- never cache responses marked as `Cache-Control: no-store`, `Cache-Control: private`, `X-New-Era-Sensitive: true`, or responses that vary on sensitive headers such as `Authorization` or `Cookie`
 - delete old cache versions during service worker activation
 
 Intentional limitations:
@@ -224,6 +225,7 @@ Intentional limitations:
 - no API caching
 - no upload caching
 - no caching of analysis results, job results, or user-specific read models
+- no caching of document detail views or any document-sensitive response payloads
 
 Why:
 
@@ -236,7 +238,14 @@ Safe fallback rules:
 
 - navigations to regular shell routes can fall back to cached `/` if the network is unavailable
 - navigations to sensitive paths such as analysis detail and job/result routes stay network-only
+- shell asset refreshes are cached only when the response is public and non-sensitive
 - background fetches for shell assets are same-origin only
+
+Document-sensitive routes and payloads:
+
+- `/document-analyses/{analysis_id}/view` stays network-only even though it renders the shell
+- `/api/document-analyses/*`, `/api/document-artifacts/*`, `/api/jobs/*`, and `/api/uploads/*` stay network-only
+- future document responses should emit `X-New-Era-Sensitive: true` or `Cache-Control: no-store` when they must not be cached anywhere in the browser stack
 
 Future additions should be deliberate:
 

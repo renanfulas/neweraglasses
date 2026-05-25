@@ -181,7 +181,8 @@ label span,
 
 .session-pill[data-state="suppressed"],
 .session-pill[data-state="unavailable"],
-.session-pill[data-state="queued"] {
+.session-pill[data-state="queued"],
+.session-pill[data-state="blocked"] {
   border-left-color: var(--warning);
   background: linear-gradient(90deg, var(--warning-soft), rgba(255, 255, 255, 0.76));
 }
@@ -329,6 +330,11 @@ label span,
   color: var(--warning);
 }
 
+.job-badge[data-state="blocked"] {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
 .job-badge[data-state="running"] {
   background: var(--cool-soft);
   color: var(--cool);
@@ -347,6 +353,34 @@ label span,
 .job-card-copy {
   margin: 0;
   color: var(--muted);
+}
+
+.job-policy-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.job-policy-card strong {
+  font-size: 0.94rem;
+}
+
+.job-policy-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.job-policy-card[data-state="blocked"] {
+  border-color: rgba(187, 118, 33, 0.28);
+  background: var(--warning-soft);
+}
+
+.job-policy-card[data-state="error"] {
+  border-color: rgba(182, 83, 56, 0.28);
+  background: var(--alert-soft);
 }
 
 .job-meta {

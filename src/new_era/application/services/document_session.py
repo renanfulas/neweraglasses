@@ -103,7 +103,7 @@ class DocumentSessionService:
             kind=ObservationKind.DOCUMENT_CONTRACT_REVIEW,
             summary=observation_summary or "Contract review requested from PWA simulation",
             metadata={
-                "document_analysis": analysis.to_dict(),
+                "document_analysis": analysis.to_history_dict(),
                 "analysis_id": analysis_record.analysis_id,
                 "artifact_id": artifact_id,
                 "source_type": source_type,

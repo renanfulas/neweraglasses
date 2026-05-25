@@ -28,6 +28,7 @@ class SQLiteDocumentAnalysisStore(DocumentAnalysisStore):
 
     def save(self, record: DocumentAnalysisRecord) -> None:
         with closing(self._connect()) as connection:
+            analysis_json = json.dumps(record.analysis.to_history_dict(), sort_keys=True)
             connection.execute(
                 """
                 INSERT OR REPLACE INTO document_analyses (
@@ -52,7 +53,7 @@ class SQLiteDocumentAnalysisStore(DocumentAnalysisStore):
                     record.source_type,
                     record.artifact_id,
                     record.created_at.isoformat(),
-                    json.dumps(record.to_dict()["analysis"], sort_keys=True),
+                    analysis_json,
                 ),
             )
             connection.commit()
@@ -179,7 +180,7 @@ class SQLiteDocumentAnalysisStore(DocumentAnalysisStore):
             for item in data.get("findings", [])
         )
         return ContractReviewAnalysis(
-            extracted_text=data["extracted_text"],
+            extracted_text=str(data.get("extracted_text", "")),
             source_confidence=data["source_confidence"],
             review_confidence=data["review_confidence"],
             summary_title=data["summary_title"],
