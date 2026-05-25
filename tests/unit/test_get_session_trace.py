@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from unittest import TestCase
 
 from new_era.application.use_cases import GetSessionTrace
@@ -73,10 +71,7 @@ class GetSessionTraceTest(TestCase):
         read_model = GetSessionTrace(event_store=event_store).execute(session_id="session_1")
 
         self.assertEqual(read_model.event_count, 1)
-        self.assertEqual(
-            read_model.session_trace[0].detail,
-            "Missing eggs in grocery session",
-        )
+        self.assertEqual(read_model.session_trace[0].detail, "Missing eggs in grocery session")
 
     def test_paginates_trace_with_cursor(self) -> None:
         event_store = InMemoryEventStore()

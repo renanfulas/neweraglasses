@@ -1,5 +1,7 @@
-"""Document analysis storage adapters."""
+"""Document analysis read-model adapters."""
 
-from .in_memory_document_analysis_store import InMemoryDocumentAnalysisStore
+from new_era.infrastructure.documents.in_memory_document_analysis_store import (
+    InMemoryDocumentAnalysisStore,
+)
 
 __all__ = ["InMemoryDocumentAnalysisStore"]

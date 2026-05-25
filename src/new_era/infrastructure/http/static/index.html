@@ -1,55 +1,236 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0f172a" />
-    <title>New Era Glasses</title>
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/static/styles.css" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#143126">
+    <title>New Era Simulator</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="stylesheet" href="/static/styles.css">
   </head>
   <body>
     <main class="app-shell">
-      <section class="hero">
-        <p class="eyebrow">Localhost runtime</p>
-        <h1>New Era Glasses</h1>
-        <p class="lede">
-          The backend runtime is alive again. This local shell is here to keep the
-          project bootable while we rebuild the rest of the app surface with care.
-        </p>
+      <section class="hero-band">
+        <div class="hero-copy">
+          <p class="eyebrow">New Era PWA Simulation</p>
+          <h1>Context, attention, and display in one loop.</h1>
+          <p class="hero-text">
+            Companion control surface for observation, decision, delivery, and feedback.
+          </p>
+        </div>
+        <div class="status-strip" id="network-status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span>API ready</span>
+        </div>
       </section>
 
-      <section class="panel">
-        <div class="panel-header">
-          <h2>Runtime status</h2>
-          <button id="refresh-health" type="button">Refresh</button>
+      <section class="session-rail" aria-label="Companion session state">
+        <div class="session-pill">
+          <span>Module</span>
+          <strong id="session-module-label">Grocery</strong>
         </div>
-        <dl class="status-grid">
-          <div>
-            <dt>API</dt>
-            <dd id="api-status">Checking…</dd>
-          </div>
-          <div>
-            <dt>Device gateway</dt>
-            <dd id="device-status">Checking…</dd>
-          </div>
-          <div>
-            <dt>Version</dt>
-            <dd id="version-status">Checking…</dd>
-          </div>
-        </dl>
+        <div class="session-pill" id="sync-state-card" data-state="idle">
+          <span>Sync</span>
+          <strong id="sync-state-label">Idle</strong>
+        </div>
+        <div class="session-pill" id="async-state-card" data-state="idle">
+          <span>Async</span>
+          <strong id="async-state-label">Standby</strong>
+        </div>
+        <div class="session-pill" id="feedback-state-card" data-state="idle">
+          <span>Feedback</span>
+          <strong id="feedback-state-label">Waiting</strong>
+        </div>
       </section>
 
-      <section class="panel">
-        <div class="panel-header">
-          <h2>What this shell covers</h2>
+      <section class="workspace">
+        <div class="workspace-grid">
+          <section class="panel control-panel">
+            <div class="panel-header">
+              <p class="panel-kicker">Observation Input</p>
+              <h2>MVP Simulation Modules</h2>
+            </div>
+            <div class="module-switcher" role="tablist" aria-label="Simulation modules">
+              <button class="module-tab module-tab-active" type="button" id="tab-grocery" data-module="grocery">Grocery</button>
+              <button class="module-tab" type="button" id="tab-document" data-module="documents">Contracts</button>
+            </div>
+
+            <form id="grocery-form" class="control-form">
+              <label>
+                <span>Item name</span>
+                <input id="item-name" name="item_name" type="text" value="eggs" required>
+              </label>
+              <label>
+                <span>Confidence</span>
+                <input id="grocery-confidence" name="confidence" type="range" min="0" max="1" step="0.01" value="0.88">
+                <output id="grocery-confidence-output" for="grocery-confidence">0.88</output>
+              </label>
+              <label>
+                <span>Attention mode</span>
+                <select id="grocery-mode" name="mode">
+                  <option value="essential">Essential</option>
+                  <option value="balanced" selected>Balanced</option>
+                  <option value="proactive">Proactive</option>
+                </select>
+              </label>
+              <label>
+                <span>Recent category count</span>
+                <input id="grocery-recent-count" name="recent_category_count" type="number" min="0" step="1" value="0">
+              </label>
+              <button id="grocery-simulate-button" type="submit">Run grocery simulation</button>
+            </form>
+
+            <form id="document-form" class="control-form module-form-hidden">
+              <label>
+                <span>Contract excerpt</span>
+                <textarea id="document-text" name="document_text" rows="8">Plano com fidelidade de 12 meses, renovacao automatica por igual periodo e multa de cancelamento antecipado.</textarea>
+              </label>
+              <label>
+                <span>Contract image (optional OCR)</span>
+                <input id="document-image" name="document_image" type="file" accept="image/png,image/jpeg,image/webp">
+              </label>
+              <label>
+                <span>Confidence</span>
+                <input id="document-confidence" name="confidence" type="range" min="0" max="1" step="0.01" value="0.92">
+                <output id="document-confidence-output" for="document-confidence">0.92</output>
+              </label>
+              <label>
+                <span>Attention mode</span>
+                <select id="document-mode" name="mode">
+                  <option value="essential">Essential</option>
+                  <option value="balanced" selected>Balanced</option>
+                  <option value="proactive">Proactive</option>
+                </select>
+              </label>
+              <label>
+                <span>Recent document alerts</span>
+                <input id="document-recent-count" name="recent_category_count" type="number" min="0" step="1" value="0">
+              </label>
+              <button id="document-simulate-button" type="submit">Run contract simulation</button>
+
+              <div class="job-card" id="document-job-card">
+                <div class="job-card-header">
+                  <div>
+                    <p class="panel-kicker">Async Shape</p>
+                    <h3>Document Analysis Job</h3>
+                  </div>
+                  <span class="job-badge" id="job-status-badge">idle</span>
+                </div>
+                <p class="job-card-copy" id="job-summary">
+                  Queue a simulated analysis job, then move it through running, succeeded, or failed.
+                </p>
+                <dl class="job-meta">
+                  <div>
+                    <dt>Job ID</dt>
+                    <dd id="job-id">none</dd>
+                  </div>
+                  <div>
+                    <dt>Source</dt>
+                    <dd id="job-source">pwa_simulation</dd>
+                  </div>
+                  <div>
+                    <dt>Linked analysis</dt>
+                    <dd id="job-analysis-id">none</dd>
+                  </div>
+                </dl>
+                <div class="job-actions">
+                  <button id="job-enqueue-button" type="button">Queue job</button>
+                  <button id="job-running-button" type="button" class="job-action-secondary">Set running</button>
+                  <button id="job-success-button" type="button" class="job-action-secondary">Set succeeded</button>
+                  <button id="job-failed-button" type="button" class="job-action-secondary">Set failed</button>
+                  <button id="job-refresh-button" type="button" class="job-action-secondary">Refresh status</button>
+                </div>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel lens-panel">
+            <div class="panel-header">
+              <p class="panel-kicker">Lens Output</p>
+              <h2>Display Preview</h2>
+            </div>
+            <div class="lens-stage" id="lens-stage">
+              <div class="lens-overlay lens-overlay-idle" id="lens-overlay">
+                <p class="lens-label">Waiting for observation</p>
+              </div>
+            </div>
+            <div class="feedback-card" id="feedback-card" data-state="idle">
+              <div class="feedback-card-header">
+                <div>
+                  <p class="panel-kicker">Feedback</p>
+                  <h3 id="feedback-target-title">No delivered alert</h3>
+                </div>
+                <span class="feedback-badge" id="feedback-badge">waiting</span>
+              </div>
+              <p id="feedback-copy" class="feedback-copy">Run a simulation that reaches the lens.</p>
+              <div class="feedback-actions" aria-label="Lens alert feedback">
+                <button id="feedback-useful-button" type="button" disabled>Useful</button>
+                <button id="feedback-not-useful-button" type="button" disabled>Not useful</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel telemetry-panel">
+            <div class="panel-header">
+              <p class="panel-kicker">Session Trace</p>
+              <h2>Decision Story</h2>
+            </div>
+            <dl class="telemetry-grid">
+              <div>
+                <dt>Outcome</dt>
+                <dd id="outcome">idle</dd>
+              </div>
+              <div>
+                <dt>Candidate</dt>
+                <dd id="candidate-created">no</dd>
+              </div>
+              <div>
+                <dt>Events</dt>
+                <dd id="event-count">0</dd>
+              </div>
+              <div>
+                <dt>Delivered</dt>
+                <dd id="delivered-count">0</dd>
+              </div>
+            </dl>
+            <div class="insight-log" id="insight-log">
+              <p>Simulated observations will appear here.</p>
+            </div>
+            <ol class="trace-list" id="trace-list" aria-live="polite">
+              <li class="trace-item trace-item-idle">
+                <div class="trace-step">idle</div>
+                <div class="trace-content">
+                  <h3>Waiting for session events</h3>
+                  <p>The observation, candidate, decision, and delivery flow will appear here.</p>
+                </div>
+              </li>
+            </ol>
+            <div class="history-block">
+              <div class="history-header">
+                <div>
+                  <p class="panel-kicker">Session History</p>
+                  <h3>Accumulated Runtime Events</h3>
+                </div>
+                <div class="history-controls">
+                  <div class="scope-switcher" role="tablist" aria-label="History scope">
+                    <button id="scope-latest-button" type="button" class="scope-tab scope-tab-active">Latest execution</button>
+                    <button id="scope-session-button" type="button" class="scope-tab">Full session</button>
+                  </div>
+                  <button id="refresh-history-button" type="button" class="job-action-secondary">Refresh history</button>
+                </div>
+              </div>
+              <ol class="history-list" id="history-list" aria-live="polite">
+                <li class="trace-item trace-item-idle">
+                  <div class="trace-step">idle</div>
+                  <div class="trace-content">
+                    <h3>Waiting for stored session history</h3>
+                    <p>The full session timeline for the active module will appear here.</p>
+                  </div>
+                </li>
+              </ol>
+            </div>
+          </section>
         </div>
-        <ul class="checklist">
-          <li>FastAPI app boot and static mounting</li>
-          <li>Manifest and service worker routes</li>
-          <li>Health probe against the rebuilt runtime</li>
-          <li>A predictable local entry point while we keep restoring source</li>
-        </ul>
       </section>
     </main>
 

@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from threading import RLock
 
-from new_era.application.ports.job_store import JobStore
-from new_era.domain.jobs.models import JobRecord, JobType
+from new_era.application.ports import JobStore
+from new_era.domain.jobs import JobRecord, JobType
 
 
 @dataclass(slots=True)
@@ -16,16 +16,17 @@ class InMemoryJobStore(JobStore):
         with self._lock:
             self.jobs[job.job_id] = job
 
-    def update(self, job: JobRecord) -> None:
-        with self._lock:
-            self.jobs[job.job_id] = job
-
     def get(self, job_id: str) -> JobRecord | None:
         with self._lock:
             return self.jobs.get(job_id)
 
+    def update(self, job: JobRecord) -> None:
+        with self._lock:
+            self.jobs[job.job_id] = job
+
     def find_by_idempotency_key(
         self,
+        *,
         job_type: JobType,
         user_id: str,
         session_id: str,

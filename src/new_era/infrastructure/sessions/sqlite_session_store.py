@@ -48,9 +48,7 @@ class SQLiteSessionStore(SessionStore):
             )
             connection.commit()
 
-    def get(self, session_id: str | None) -> UserSession | None:
-        if session_id is None:
-            return None
+    def get(self, session_id: str) -> UserSession | None:
         with closing(self._connect()) as connection:
             row = connection.execute(
                 """
@@ -97,6 +95,7 @@ class SQLiteSessionStore(SessionStore):
 
     def list_by_user(
         self,
+        *,
         user_id: str,
         module: str | None = None,
         after: SessionCursor | None = None,
@@ -108,7 +107,6 @@ class SQLiteSessionStore(SessionStore):
         if module is not None:
             clauses.append("module = ?")
             params.append(module)
-
         if after is not None:
             clauses.append("(updated_at < ? OR (updated_at = ? AND session_id < ?))")
             params.extend([after[0].isoformat(), after[0].isoformat(), after[1]])

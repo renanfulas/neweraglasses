@@ -1,19 +1,21 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TypeAlias
+from typing import Protocol
 
 from new_era.domain.events.models import Event, EventType
 
-EventCursor: TypeAlias = tuple[datetime, str]
+
+EventCursor = tuple[datetime, str]
 
 
-class EventStore:
+class EventStore(Protocol):
     def append(self, event: Event) -> None:
         raise NotImplementedError
 
     def list_events(
         self,
+        *,
         user_id: str | None = None,
         session_id: str | None = None,
         trace_id: str | None = None,

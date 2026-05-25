@@ -46,7 +46,7 @@ class UserSessionReadModel:
             "title": self.title,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
-            "metadata": dict(self.metadata),
+            "metadata": self.metadata,
         }
 
 
@@ -86,7 +86,7 @@ def decode_session_cursor(cursor: str | None) -> tuple[datetime, str] | None:
         decoded = urlsafe_b64decode(cursor.encode("ascii")).decode("utf-8")
         updated_at_text, session_id = decoded.split("|", 1)
         return datetime.fromisoformat(updated_at_text), session_id
-    except Exception as exc:  # pragma: no cover - parity with recovered runtime
+    except Exception as exc:
         raise ValueError("invalid session cursor") from exc
 
 
@@ -96,6 +96,7 @@ class StartUserSession:
 
     def execute(
         self,
+        *,
         user_id: str,
         module: str,
         title: str | None = None,
@@ -108,7 +109,6 @@ class StartUserSession:
         if existing_session is not None:
             if existing_session.user_id != user_id:
                 raise SessionOwnershipError("session does not belong to user")
-
             touched_session = replace(
                 existing_session,
                 module=module or existing_session.module,
@@ -134,9 +134,9 @@ class StartUserSession:
 class GetUserSession:
     session_store: SessionStore
 
-    def execute(self, user_id: str, session_id: str) -> UserSession | None:
+    def execute(self, *, user_id: str, session_id: str) -> UserSession | None:
         session = self.session_store.get(session_id)
-        if session is not None and session.user_id != user_id:
+        if session is None or session.user_id != user_id:
             return None
         return session
 
@@ -147,6 +147,7 @@ class ListUserSessions:
 
     def execute(
         self,
+        *,
         user_id: str,
         module: str | None = None,
         limit: int | None = None,
@@ -167,9 +168,7 @@ class ListUserSessions:
             next_cursor=encode_session_cursor(page_sessions[-1])
             if has_more and page_sessions
             else None,
-            sessions=tuple(
-                UserSessionReadModel.from_session(session) for session in page_sessions
-            ),
+            sessions=tuple(UserSessionReadModel.from_session(session) for session in page_sessions),
         )
 
 

@@ -11,34 +11,26 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
-from new_era.application.ports.device_gateway import DeviceGateway
-from new_era.application.services.document_session import DocumentSessionService
-from new_era.application.services.grocery_session import GrocerySessionService
-from new_era.application.services.simulation_runtime import SimulationRuntime
-from new_era.application.use_cases.document_analysis_jobs import (
-    AdvanceDocumentAnalysisJob,
-    GetJobStatus,
+from new_era.application.services import (
+    DocumentSessionService,
+    GrocerySessionService,
+    SimulationRuntime,
 )
-from new_era.application.use_cases.get_document_analysis import (
-    GetDocumentAnalysis,
-    ListDocumentAnalysesBySession,
-)
-from new_era.application.use_cases.get_session_trace import GetSessionTrace
-from new_era.application.use_cases.record_lens_feedback import (
-    LensFeedbackValue,
-    RecordLensFeedback,
-)
-from new_era.application.use_cases.user_sessions import (
+from new_era.application.use_cases import AdvanceDocumentAnalysisJob, GetJobStatus, GetSessionTrace
+from new_era.application.use_cases import GetDocumentAnalysis, ListDocumentAnalysesBySession
+from new_era.application.use_cases import LensFeedbackValue, RecordLensFeedback
+from new_era.application.use_cases import (
     GetUserSession,
     ListUserSessions,
     SessionOwnershipError,
     StartUserSession,
 )
-from new_era.domain.attention.models import AttentionMode
-from new_era.domain.documents.models import DocumentAnalysisRecord
-from new_era.domain.events.models import EventType
-from new_era.domain.jobs.models import JobRecord, JobStatus
-from new_era.domain.sessions.models import UserSession
+from new_era.application.ports import DeviceGateway
+from new_era.domain.documents import DocumentAnalysisRecord
+from new_era.domain.attention import AttentionMode
+from new_era.domain.events import EventType
+from new_era.domain.jobs import JobRecord, JobStatus
+from new_era.domain.sessions import UserSession
 
 
 class HealthResponse(BaseModel):
@@ -135,13 +127,14 @@ class UserSessionResponse(BaseModel):
     session_id: str
     user_id: str
     module: str
-    title: str | None = None
+    title: str
     created_at: str
     updated_at: str
     metadata: dict[str, object]
 
 
 class UserSessionPageResponse(BaseModel):
+    user_id: str
     session_count: int
     next_cursor: str | None
     sessions: list[UserSessionResponse]
@@ -229,7 +222,7 @@ def serialize_document_analysis(record: DocumentAnalysisRecord) -> DocumentAnaly
     return DocumentAnalysisResponse(**record.to_dict())
 
 
-def serialize_device_capabilities(capabilities: object) -> DeviceCapabilitiesResponse:
+def serialize_device_capabilities(capabilities) -> DeviceCapabilitiesResponse:
     return DeviceCapabilitiesResponse(
         adapter_name=capabilities.adapter_name,
         supports_camera=capabilities.supports_camera,
@@ -281,7 +274,9 @@ def get_document_job_advancer(
     return runtime.document_job_advancer
 
 
-def get_document_job_worker(runtime: Annotated[SimulationRuntime, Depends(get_runtime)]):
+def get_document_job_worker(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+):
     return runtime.document_job_worker
 
 
@@ -332,21 +327,23 @@ def serialize_user_session(session: UserSession) -> UserSessionResponse:
 
 
 def resolve_user_session(
+    *,
     starter: StartUserSession,
     user_id: str,
     module: str,
     session_id: str | None,
 ) -> UserSession:
     try:
-        return starter.execute(user_id=user_id, module=module, session_id=session_id)
+        return starter.execute(
+            user_id=user_id,
+            module=module,
+            session_id=session_id,
+        )
     except SessionOwnershipError as exc:
-        raise HTTPException(
-            status_code=403,
-            detail="session_does_not_belong_to_user",
-        ) from exc
+        raise HTTPException(status_code=403, detail="session_does_not_belong_to_user") from exc
 
 
-def parse_datetime_query(value: str | None, field_name: str) -> datetime | None:
+def parse_datetime_query(value: str | None, *, field_name: str) -> datetime | None:
     if value is None:
         return None
     try:
@@ -359,15 +356,12 @@ def validate_camera_content_type(content_type: str) -> None:
     normalized = content_type.lower().split(";", 1)[0].strip()
     supported_types = {"image/jpeg", "image/png", "image/webp"}
     if normalized not in supported_types:
-        raise HTTPException(
-            status_code=415,
-            detail="unsupported_camera_content_type",
-        )
+        raise HTTPException(status_code=415, detail="unsupported_camera_content_type")
 
 
 def build_simulation_response(
     *,
-    result: object,
+    result,
     session_trace_reader: GetSessionTrace,
     session_id: str,
     delivered_commands: list[object],
@@ -385,11 +379,9 @@ def build_simulation_response(
         session_id=session_id,
         outcome=result.outcome.value,
         candidate_created=result.candidate_created,
-        command=(
-            result.alert_result.command.to_dict()
-            if result.alert_result and result.alert_result.command
-            else None
-        ),
+        command=result.alert_result.command.to_dict()
+        if result.alert_result and result.alert_result.command
+            else None,
         event_count=session_trace.event_count,
         delivered_commands_count=delivered_commands_count,
         session_trace=[entry.to_dict() for entry in session_trace.session_trace],
@@ -399,6 +391,7 @@ def build_simulation_response(
 
 
 def create_app(
+    *,
     storage_path: str | Path | None = None,
     device_gateway: DeviceGateway | None = None,
 ) -> FastAPI:
@@ -415,32 +408,36 @@ def create_app(
     app = FastAPI(title="New Era Glasses API", version="0.1.0", lifespan=lifespan)
     static_dir = Path(__file__).with_name("static")
     app.state.runtime = runtime
+
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
     @app.get("/health", response_model=HealthResponse)
-    async def health() -> HealthResponse:
+    def health() -> HealthResponse:
         return HealthResponse(status="ok")
 
     @app.get("/api/device/capabilities", response_model=DeviceCapabilitiesResponse)
-    async def get_device_capabilities(
+    def get_device_capabilities(
         gateway: Annotated[DeviceGateway, Depends(get_device_gateway)],
     ) -> DeviceCapabilitiesResponse:
         return serialize_device_capabilities(gateway.capabilities())
 
     @app.get("/")
-    async def index() -> FileResponse:
+    def index() -> FileResponse:
         return FileResponse(static_dir / "index.html")
 
     @app.get("/manifest.webmanifest")
-    async def manifest() -> FileResponse:
+    def manifest() -> FileResponse:
         return FileResponse(static_dir / "manifest.webmanifest")
 
     @app.get("/service-worker.js")
-    async def service_worker() -> FileResponse:
+    def service_worker() -> FileResponse:
         return FileResponse(static_dir / "service-worker.js")
 
-    @app.post("/api/simulations/grocery/missing-item", response_model=SimulationResponse)
-    async def simulate_grocery_missing_item(
+    @app.post(
+        "/api/simulations/grocery/missing-item",
+        response_model=SimulationResponse,
+    )
+    def simulate_grocery_missing_item(
         request: GroceryMissingItemRequest,
         service: Annotated[GrocerySessionService, Depends(get_grocery_session_service)],
         session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
@@ -465,6 +462,7 @@ def create_app(
             trace_id=trace_id,
         )
         delivered_commands = getattr(service.device_gateway, "delivered_commands", [])
+
         return build_simulation_response(
             result=result,
             session_trace_reader=session_trace_reader,
@@ -473,8 +471,11 @@ def create_app(
             trace_id=trace_id,
         )
 
-    @app.post("/api/simulations/documents/contract-review", response_model=SimulationResponse)
-    async def simulate_contract_review(
+    @app.post(
+        "/api/simulations/documents/contract-review",
+        response_model=SimulationResponse,
+    )
+    def simulate_contract_review(
         request: DocumentContractReviewRequest,
         service: Annotated[DocumentSessionService, Depends(get_document_session_service)],
         session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
@@ -505,6 +506,7 @@ def create_app(
             trace_id=trace_id,
         )
         delivered_commands = getattr(service.device_gateway, "delivered_commands", [])
+
         return build_simulation_response(
             result=result,
             session_trace_reader=session_trace_reader,
@@ -515,8 +517,11 @@ def create_app(
             analysis_id=result.analysis_record.analysis_id,
         )
 
-    @app.post("/api/device-bridge/camera/document-contract-review", response_model=SimulationResponse)
-    async def process_camera_contract_review(
+    @app.post(
+        "/api/device-bridge/camera/document-contract-review",
+        response_model=SimulationResponse,
+    )
+    def process_camera_contract_review(
         request: CameraDocumentContractReviewRequest,
         service: Annotated[DocumentSessionService, Depends(get_document_session_service)],
         session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
@@ -542,8 +547,12 @@ def create_app(
             correlation_id=request.correlation_id or f"corr_{uuid4().hex}",
             trace_id=trace_id,
             source_type=f"camera:{request.source_adapter}",
-            observation_summary=f"Contract review requested from camera bridge via {request.source_adapter}",
+            observation_summary=(
+                "Contract review requested from camera bridge "
+                f"via {request.source_adapter}"
+            ),
         )
+
         return build_simulation_response(
             result=result,
             session_trace_reader=session_trace_reader,
@@ -554,8 +563,11 @@ def create_app(
             analysis_id=result.analysis_record.analysis_id,
         )
 
-    @app.get("/api/sessions/{session_id}/trace", response_model=SessionTraceResponse)
-    async def get_session_trace(
+    @app.get(
+        "/api/sessions/{session_id}/trace",
+        response_model=SessionTraceResponse,
+    )
+    def get_session_trace(
         session_id: str,
         user_id: str | None = None,
         trace_id: str | None = None,
@@ -576,17 +588,26 @@ def create_app(
                 module=module,
                 event_types=set(event_type) if event_type else None,
                 steps=set(step) if step else None,
-                created_after=parse_datetime_query(created_after, field_name="created_after"),
-                created_before=parse_datetime_query(created_before, field_name="created_before"),
+                created_after=parse_datetime_query(
+                    created_after,
+                    field_name="created_after",
+                ),
+                created_before=parse_datetime_query(
+                    created_before,
+                    field_name="created_before",
+                ),
                 limit=limit,
                 cursor=cursor,
             )
-            return SessionTraceResponse(**trace.to_dict())
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return SessionTraceResponse(**trace.to_dict())
 
-    @app.get("/api/users/{user_id}/sessions/{session_id}/trace", response_model=SessionTraceResponse)
-    async def get_user_session_trace(
+    @app.get(
+        "/api/users/{user_id}/sessions/{session_id}/trace",
+        response_model=SessionTraceResponse,
+    )
+    def get_user_session_trace(
         user_id: str,
         session_id: str,
         trace_id: str | None = None,
@@ -600,10 +621,9 @@ def create_app(
         session_reader: Annotated[GetUserSession, Depends(get_user_session_reader)] = None,
         trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)] = None,
     ) -> SessionTraceResponse:
+        if session_reader.execute(user_id=user_id, session_id=session_id) is None:
+            raise HTTPException(status_code=404, detail="session_not_found")
         try:
-            session = session_reader.execute(user_id=user_id, session_id=session_id)
-            if session is None:
-                raise HTTPException(status_code=404, detail="user_session_not_found")
             trace = trace_reader.execute(
                 session_id=session_id,
                 user_id=user_id,
@@ -611,17 +631,26 @@ def create_app(
                 module=module,
                 event_types=set(event_type) if event_type else None,
                 steps=set(step) if step else None,
-                created_after=parse_datetime_query(created_after, field_name="created_after"),
-                created_before=parse_datetime_query(created_before, field_name="created_before"),
+                created_after=parse_datetime_query(
+                    created_after,
+                    field_name="created_after",
+                ),
+                created_before=parse_datetime_query(
+                    created_before,
+                    field_name="created_before",
+                ),
                 limit=limit,
                 cursor=cursor,
             )
-            return SessionTraceResponse(**trace.to_dict())
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return SessionTraceResponse(**trace.to_dict())
 
-    @app.post("/api/users/{user_id}/sessions", response_model=UserSessionResponse)
-    async def create_user_session(
+    @app.post(
+        "/api/users/{user_id}/sessions",
+        response_model=UserSessionResponse,
+    )
+    def create_user_session(
         user_id: str,
         request: CreateUserSessionRequest,
         starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
@@ -634,15 +663,15 @@ def create_app(
                 session_id=request.session_id,
                 metadata=request.metadata,
             )
-            return serialize_user_session(session)
         except SessionOwnershipError as exc:
-            raise HTTPException(
-                status_code=403,
-                detail="session_does_not_belong_to_user",
-            ) from exc
+            raise HTTPException(status_code=403, detail="session_does_not_belong_to_user") from exc
+        return serialize_user_session(session)
 
-    @app.get("/api/users/{user_id}/sessions", response_model=UserSessionPageResponse)
-    async def list_user_sessions(
+    @app.get(
+        "/api/users/{user_id}/sessions",
+        response_model=UserSessionPageResponse,
+    )
+    def list_user_sessions(
         user_id: str,
         module: str | None = None,
         limit: int | None = Query(default=None, ge=1, le=100),
@@ -656,25 +685,29 @@ def create_app(
                 limit=limit,
                 cursor=cursor,
             )
-            return UserSessionPageResponse(**page.to_dict())
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return UserSessionPageResponse(**page.to_dict())
 
     @app.get(
         "/api/sessions/{session_id}/document-analyses",
         response_model=list[DocumentAnalysisResponse],
     )
-    async def list_document_analyses_by_session(
+    def list_document_analyses_by_session(
         session_id: str,
         reader: Annotated[
             ListDocumentAnalysesBySession,
             Depends(get_document_analyses_by_session_reader),
         ],
     ) -> list[DocumentAnalysisResponse]:
-        return [serialize_document_analysis(record) for record in reader.execute(session_id=session_id)]
+        records = reader.execute(session_id=session_id)
+        return [serialize_document_analysis(record) for record in records]
 
-    @app.get("/api/document-analyses/{analysis_id}", response_model=DocumentAnalysisResponse)
-    async def get_document_analysis(
+    @app.get(
+        "/api/document-analyses/{analysis_id}",
+        response_model=DocumentAnalysisResponse,
+    )
+    def get_document_analysis(
         analysis_id: str,
         reader: Annotated[GetDocumentAnalysis, Depends(get_document_analysis_reader)],
     ) -> DocumentAnalysisResponse:
@@ -683,8 +716,11 @@ def create_app(
             raise HTTPException(status_code=404, detail="document_analysis_not_found")
         return serialize_document_analysis(record)
 
-    @app.post("/api/jobs/documents/contract-analysis", response_model=JobResponse)
-    async def enqueue_document_analysis_job(
+    @app.post(
+        "/api/jobs/documents/contract-analysis",
+        response_model=JobResponse,
+    )
+    def enqueue_document_analysis_job(
         request: DocumentAnalysisJobRequest,
         session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
         enqueuer=Depends(get_document_job_enqueuer),
@@ -722,7 +758,7 @@ def create_app(
         return serialize_job(job)
 
     @app.get("/api/jobs/{job_id}", response_model=JobResponse)
-    async def get_job_status(
+    def get_job_status(
         job_id: str,
         reader: Annotated[GetJobStatus, Depends(get_job_status_reader)],
     ) -> JobResponse:
@@ -732,7 +768,7 @@ def create_app(
         return serialize_job(job)
 
     @app.post("/api/jobs/{job_id}/status", response_model=JobResponse)
-    async def advance_job_status(
+    def advance_job_status(
         job_id: str,
         request: JobTransitionRequest,
         advancer: Annotated[AdvanceDocumentAnalysisJob, Depends(get_document_job_advancer)],
@@ -754,8 +790,11 @@ def create_app(
             raise HTTPException(status_code=404, detail="job_not_found")
         return serialize_job(job)
 
-    @app.get("/api/jobs/{job_id}/result", response_model=DocumentAnalysisResponse)
-    async def get_document_job_result(
+    @app.get(
+        "/api/jobs/{job_id}/result",
+        response_model=DocumentAnalysisResponse,
+    )
+    def get_document_job_result(
         job_id: str,
         job_reader: Annotated[GetJobStatus, Depends(get_job_status_reader)],
         analysis_reader: Annotated[GetDocumentAnalysis, Depends(get_document_analysis_reader)],
@@ -770,8 +809,11 @@ def create_app(
             raise HTTPException(status_code=404, detail="job_result_not_found")
         return serialize_document_analysis(record)
 
-    @app.post("/api/lens/commands/{command_id}/feedback", response_model=LensFeedbackResponse)
-    async def record_lens_feedback(
+    @app.post(
+        "/api/lens-commands/{command_id}/feedback",
+        response_model=LensFeedbackResponse,
+    )
+    def record_lens_feedback(
         command_id: str,
         request: LensFeedbackRequest,
         recorder: Annotated[RecordLensFeedback, Depends(get_lens_feedback_recorder)],

@@ -1,10 +1,12 @@
-"""Background job adapters for local simulation."""
+"""Job infrastructure adapters."""
 
-from .in_memory_document_analysis_job_payload_store import (
+from new_era.infrastructure.jobs.in_memory_document_analysis_job_payload_store import (
     InMemoryDocumentAnalysisJobPayloadStore,
 )
-from .in_memory_job_store import InMemoryJobStore
-from .threaded_document_analysis_job_worker import ThreadedDocumentAnalysisJobWorker
+from new_era.infrastructure.jobs.in_memory_job_store import InMemoryJobStore
+from new_era.infrastructure.jobs.threaded_document_analysis_worker import (
+    ThreadedDocumentAnalysisJobWorker,
+)
 
 __all__ = [
     "InMemoryDocumentAnalysisJobPayloadStore",

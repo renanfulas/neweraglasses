@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from unittest import TestCase
 
 from new_era.domain.attention import (
@@ -12,6 +10,7 @@ from new_era.domain.attention import (
 
 
 def make_candidate(
+    *,
     priority: AlertPriority = AlertPriority.MEDIUM,
     confidence: float = 0.9,
     category: str = "grocery",
@@ -33,6 +32,7 @@ def make_candidate(
 class AttentionPolicyTest(TestCase):
     def test_shows_candidate_inside_balanced_budget(self) -> None:
         policy = AttentionPolicy()
+
         decision = policy.evaluate(
             candidate=make_candidate(),
             mode=AttentionMode.BALANCED,
@@ -45,6 +45,7 @@ class AttentionPolicyTest(TestCase):
 
     def test_groups_candidate_when_budget_is_exceeded(self) -> None:
         policy = AttentionPolicy()
+
         decision = policy.evaluate(
             candidate=make_candidate(),
             mode=AttentionMode.BALANCED,
@@ -57,6 +58,7 @@ class AttentionPolicyTest(TestCase):
 
     def test_low_confidence_requires_confirmation(self) -> None:
         policy = AttentionPolicy()
+
         decision = policy.evaluate(
             candidate=make_candidate(confidence=0.2),
             mode=AttentionMode.BALANCED,
@@ -68,6 +70,7 @@ class AttentionPolicyTest(TestCase):
 
     def test_critical_priority_bypasses_regular_budget(self) -> None:
         policy = AttentionPolicy()
+
         decision = policy.evaluate(
             candidate=make_candidate(
                 priority=AlertPriority.CRITICAL,

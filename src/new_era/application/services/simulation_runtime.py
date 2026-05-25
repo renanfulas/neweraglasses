@@ -4,61 +4,48 @@ from dataclasses import dataclass
 from os import environ
 from pathlib import Path
 
-from new_era.application.ports.device_gateway import DeviceGateway
-from new_era.application.ports.document_analysis_job_payload_store import (
+from new_era.application.ports import (
+    DeviceGateway,
     DocumentAnalysisJobPayloadStore,
+    DocumentAnalysisStore,
+    EventStore,
+    JobStore,
+    ObservationInterpreter,
+    SessionStore,
 )
-from new_era.application.ports.document_analysis_store import DocumentAnalysisStore
-from new_era.application.ports.event_store import EventStore
-from new_era.application.ports.job_store import JobStore
-from new_era.application.ports.observation_interpreter import ObservationInterpreter
-from new_era.application.ports.session_store import SessionStore
 from new_era.application.services.document_session import DocumentSessionService
 from new_era.application.services.grocery_session import GrocerySessionService
-from new_era.application.use_cases.deliver_lens_command import DeliverLensCommand
-from new_era.application.use_cases.document_analysis_jobs import (
+from new_era.application.use_cases import (
     AdvanceDocumentAnalysisJob,
+    DeliverLensCommand,
     EnqueueDocumentAnalysisJob,
-    GetJobStatus,
-    RunDocumentAnalysisJob,
-)
-from new_era.application.use_cases.evaluate_alert_candidate import EvaluateAlertCandidate
-from new_era.application.use_cases.get_document_analysis import (
+    EvaluateAlertCandidate,
     GetDocumentAnalysis,
-    ListDocumentAnalysesBySession,
-)
-from new_era.application.use_cases.get_session_trace import GetSessionTrace
-from new_era.application.use_cases.process_alert_candidate import ProcessAlertCandidate
-from new_era.application.use_cases.process_observation import ProcessObservation
-from new_era.application.use_cases.record_lens_feedback import RecordLensFeedback
-from new_era.application.use_cases.user_sessions import (
+    GetJobStatus,
+    GetSessionTrace,
     GetUserSession,
+    ListDocumentAnalysesBySession,
     ListUserSessions,
+    ProcessAlertCandidate,
+    ProcessObservation,
+    RecordLensFeedback,
+    RunDocumentAnalysisJob,
     StartUserSession,
 )
-from new_era.domain.attention.policy import AttentionPolicy
-from new_era.domain.documents.analysis import DeterministicContractAnalyzer
-from new_era.domain.jobs.models import JobExecutionPolicy
-from new_era.infrastructure.device.browser_simulation_adapter import BrowserSimulationAdapter
-from new_era.infrastructure.device.http_device_bridge_adapter import HttpDeviceBridgeAdapter
-from new_era.infrastructure.documents.in_memory_document_analysis_store import (
-    InMemoryDocumentAnalysisStore,
-)
-from new_era.infrastructure.events.in_memory_event_store import InMemoryEventStore
-from new_era.infrastructure.events.sqlite_event_store import SQLiteEventStore
-from new_era.infrastructure.jobs.in_memory_document_analysis_job_payload_store import (
+from new_era.domain.attention import AttentionPolicy
+from new_era.domain.documents import DeterministicContractAnalyzer
+from new_era.domain.jobs import JobExecutionPolicy
+from new_era.infrastructure.device import BrowserSimulationAdapter, HttpDeviceBridgeAdapter
+from new_era.infrastructure.documents import InMemoryDocumentAnalysisStore
+from new_era.infrastructure.events import InMemoryEventStore, SQLiteEventStore
+from new_era.infrastructure.jobs import (
     InMemoryDocumentAnalysisJobPayloadStore,
-)
-from new_era.infrastructure.jobs.in_memory_job_store import InMemoryJobStore
-from new_era.infrastructure.jobs.threaded_document_analysis_job_worker import (
+    InMemoryJobStore,
     ThreadedDocumentAnalysisJobWorker,
 )
-from new_era.infrastructure.observations.simple_simulation_adapter import (
-    SimpleSimulationObservationAdapter,
-)
-from new_era.infrastructure.ocr.rapidocr_engine import RapidOCRAdapter
-from new_era.infrastructure.sessions.in_memory_session_store import InMemorySessionStore
-from new_era.infrastructure.sessions.sqlite_session_store import SQLiteSessionStore
+from new_era.infrastructure.observations import SimpleSimulationObservationAdapter
+from new_era.infrastructure.ocr import RapidOCRAdapter
+from new_era.infrastructure.sessions import InMemorySessionStore, SQLiteSessionStore
 
 
 @dataclass(frozen=True, slots=True)
@@ -86,22 +73,21 @@ class SimulationRuntime:
     @classmethod
     def build_default(
         cls,
+        *,
         storage_path: str | Path | None = None,
         device_gateway: DeviceGateway | None = None,
     ) -> "SimulationRuntime":
         configured_storage_path = storage_path or environ.get("NEW_ERA_SQLITE_PATH")
         if configured_storage_path:
-            event_store = SQLiteEventStore(configured_storage_path)
-            session_store = SQLiteSessionStore(configured_storage_path)
+            event_store: EventStore = SQLiteEventStore(configured_storage_path)
+            session_store: SessionStore = SQLiteSessionStore(configured_storage_path)
         else:
             event_store = InMemoryEventStore()
             session_store = InMemorySessionStore()
-
         job_store = InMemoryJobStore()
         document_job_payload_store = InMemoryDocumentAnalysisJobPayloadStore()
         document_analysis_store = InMemoryDocumentAnalysisStore()
         device_gateway = device_gateway or build_device_gateway_from_environment()
-
         observation_interpreter: ObservationInterpreter = SimpleSimulationObservationAdapter()
         attention_policy = AttentionPolicy()
         contract_analyzer = DeterministicContractAnalyzer()
@@ -127,70 +113,58 @@ class SimulationRuntime:
             event_store=event_store,
         )
 
-        grocery_service = GrocerySessionService.build_simulation(
-            observation_processor=observation_processor,
-            event_store=event_store,
-            device_gateway=device_gateway,
-        )
-        document_service = DocumentSessionService.build_simulation(
-            observation_processor=observation_processor,
-            event_store=event_store,
-            device_gateway=device_gateway,
-            contract_analyzer=contract_analyzer,
-            ocr_engine=ocr_engine,
-            analysis_store=document_analysis_store,
-        )
-        session_trace_reader = GetSessionTrace(event_store=event_store)
-        document_job_enqueuer = EnqueueDocumentAnalysisJob(
-            job_store=job_store,
-            event_store=event_store,
-            payload_store=document_job_payload_store,
-            execution_policy=job_execution_policy,
-        )
-        document_job_advancer = AdvanceDocumentAnalysisJob(
-            job_store=job_store,
-            event_store=event_store,
-            document_analysis_store=document_analysis_store,
-        )
-        job_status_reader = GetJobStatus(job_store=job_store)
-        document_analysis_reader = GetDocumentAnalysis(analysis_store=document_analysis_store)
-        document_analyses_by_session_reader = ListDocumentAnalysesBySession(
-            analysis_store=document_analysis_store,
-        )
-        lens_feedback_recorder = RecordLensFeedback(event_store=event_store)
-        user_session_starter = StartUserSession(session_store=session_store)
-        user_session_reader = GetUserSession(session_store=session_store)
-        user_sessions_lister = ListUserSessions(session_store=session_store)
-        document_job_worker = ThreadedDocumentAnalysisJobWorker(
-            runner=RunDocumentAnalysisJob(
+        return cls(
+            grocery_service=GrocerySessionService.build_simulation(
+                observation_processor=observation_processor,
+                event_store=event_store,
+                device_gateway=device_gateway,
+            ),
+            document_service=DocumentSessionService.build_simulation(
+                observation_processor=observation_processor,
+                event_store=event_store,
+                device_gateway=device_gateway,
+                contract_analyzer=contract_analyzer,
+                ocr_engine=ocr_engine,
+                analysis_store=document_analysis_store,
+            ),
+            session_trace_reader=GetSessionTrace(event_store=event_store),
+            document_job_enqueuer=EnqueueDocumentAnalysisJob(
                 job_store=job_store,
                 event_store=event_store,
                 payload_store=document_job_payload_store,
-                document_processor=DocumentSessionService.build_simulation(
-                    observation_processor=observation_processor,
-                    event_store=event_store,
-                    device_gateway=device_gateway,
-                    contract_analyzer=contract_analyzer,
-                    ocr_engine=ocr_engine,
-                    analysis_store=document_analysis_store,
-                ),
+                execution_policy=job_execution_policy,
             ),
-        )
-
-        return cls(
-            grocery_service=grocery_service,
-            document_service=document_service,
-            session_trace_reader=session_trace_reader,
-            document_job_enqueuer=document_job_enqueuer,
-            document_job_advancer=document_job_advancer,
-            job_status_reader=job_status_reader,
-            document_analysis_reader=document_analysis_reader,
-            document_analyses_by_session_reader=document_analyses_by_session_reader,
-            lens_feedback_recorder=lens_feedback_recorder,
-            user_session_starter=user_session_starter,
-            user_session_reader=user_session_reader,
-            user_sessions_lister=user_sessions_lister,
-            document_job_worker=document_job_worker,
+            document_job_advancer=AdvanceDocumentAnalysisJob(
+                job_store=job_store,
+                event_store=event_store,
+                document_analysis_store=document_analysis_store,
+            ),
+            job_status_reader=GetJobStatus(job_store=job_store),
+            document_analysis_reader=GetDocumentAnalysis(
+                analysis_store=document_analysis_store,
+            ),
+            document_analyses_by_session_reader=ListDocumentAnalysesBySession(
+                analysis_store=document_analysis_store,
+            ),
+            lens_feedback_recorder=RecordLensFeedback(event_store=event_store),
+            user_session_starter=StartUserSession(session_store=session_store),
+            user_session_reader=GetUserSession(session_store=session_store),
+            user_sessions_lister=ListUserSessions(session_store=session_store),
+            document_job_worker=ThreadedDocumentAnalysisJobWorker(
+                runner=RunDocumentAnalysisJob(
+                    job_store=job_store,
+                    event_store=event_store,
+                    payload_store=document_job_payload_store,
+                    document_processor=DocumentSessionService.build_simulation(
+                        observation_processor=observation_processor,
+                        event_store=event_store,
+                        device_gateway=device_gateway,
+                        contract_analyzer=contract_analyzer,
+                        ocr_engine=ocr_engine,
+                        analysis_store=document_analysis_store,
+                    ),
+                )
+            ),
             event_store=event_store,
             session_store=session_store,
             job_store=job_store,

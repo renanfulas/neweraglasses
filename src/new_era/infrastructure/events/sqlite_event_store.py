@@ -60,6 +60,7 @@ class SQLiteEventStore(EventStore):
 
     def list_events(
         self,
+        *,
         user_id: str | None = None,
         session_id: str | None = None,
         trace_id: str | None = None,
@@ -110,7 +111,7 @@ class SQLiteEventStore(EventStore):
                         )
                     )
                 )
-                """.strip()
+                """
             )
             params.extend([after[0].isoformat(), after[0].isoformat(), after[1]])
 
@@ -138,7 +139,6 @@ class SQLiteEventStore(EventStore):
             ORDER BY created_at ASC, rowid ASC
             {limit_clause}
         """
-
         with closing(self._connect()) as connection:
             rows = connection.execute(query, params).fetchall()
         return [self._row_to_event(row) for row in rows]

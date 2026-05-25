@@ -7,7 +7,9 @@ from new_era.application.ports import (
     DocumentAnalysisStore,
     EventStore,
     OCREngine,
+    ObservationInterpreter,
 )
+from new_era.application.use_cases import ObservationProcessingResult, ProcessObservation
 from new_era.domain.attention import AttentionMode
 from new_era.domain.documents import (
     ContractReviewAnalysis,
@@ -15,11 +17,16 @@ from new_era.domain.documents import (
     DocumentAnalysisRecord,
 )
 from new_era.domain.observations import Observation, ObservationKind
+from new_era.infrastructure.device import BrowserSimulationAdapter
+from new_era.infrastructure.documents import InMemoryDocumentAnalysisStore
+from new_era.infrastructure.events import InMemoryEventStore
+from new_era.infrastructure.observations import SimpleSimulationObservationAdapter
+from new_era.infrastructure.ocr import RapidOCRAdapter
 
 
 @dataclass(frozen=True, slots=True)
 class DocumentContractReviewResult:
-    processing_result: object
+    processing_result: ObservationProcessingResult
     analysis: ContractReviewAnalysis
     analysis_record: DocumentAnalysisRecord
 
@@ -38,7 +45,7 @@ class DocumentContractReviewResult:
 
 @dataclass(frozen=True, slots=True)
 class DocumentSessionService:
-    observation_processor: object
+    observation_processor: ProcessObservation
     event_store: EventStore
     device_gateway: DeviceGateway
     contract_analyzer: DeterministicContractAnalyzer
@@ -47,6 +54,7 @@ class DocumentSessionService:
 
     def process_contract_review(
         self,
+        *,
         observation_id: str,
         user_id: str,
         session_id: str,
@@ -82,10 +90,9 @@ class DocumentSessionService:
             observation_id=observation_id,
             trace_id=trace_id,
             source_type=source_type,
-            analysis=analysis.to_dict(),
+            analysis=analysis,
         )
         self.analysis_store.save(analysis_record)
-
         observation = Observation(
             observation_id=observation_id,
             user_id=user_id,
@@ -116,7 +123,8 @@ class DocumentSessionService:
     @classmethod
     def build_simulation(
         cls,
-        observation_processor,
+        *,
+        observation_processor: ProcessObservation,
         event_store: EventStore,
         device_gateway: DeviceGateway,
         contract_analyzer: DeterministicContractAnalyzer,
@@ -138,21 +146,15 @@ class DocumentSessionService:
             DeliverLensCommand,
             EvaluateAlertCandidate,
             ProcessAlertCandidate,
-            ProcessObservation,
         )
         from new_era.domain.attention import AttentionPolicy
-        from new_era.infrastructure.device import BrowserSimulationAdapter
-        from new_era.infrastructure.documents import InMemoryDocumentAnalysisStore
-        from new_era.infrastructure.events import InMemoryEventStore
-        from new_era.infrastructure.observations import SimpleSimulationObservationAdapter
-        from new_era.infrastructure.ocr import RapidOCRAdapter
 
         event_store = InMemoryEventStore()
         device_gateway = BrowserSimulationAdapter()
-        observation_interpreter = SimpleSimulationObservationAdapter()
+        observation_interpreter: ObservationInterpreter = SimpleSimulationObservationAdapter()
         contract_analyzer = DeterministicContractAnalyzer()
-        ocr_engine = RapidOCRAdapter()
-        analysis_store = InMemoryDocumentAnalysisStore()
+        ocr_engine: OCREngine = RapidOCRAdapter()
+        analysis_store: DocumentAnalysisStore = InMemoryDocumentAnalysisStore()
         observation_processor = ProcessObservation(
             observation_interpreter=observation_interpreter,
             alert_processor=ProcessAlertCandidate(

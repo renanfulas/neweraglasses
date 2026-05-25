@@ -25,6 +25,7 @@ class RecordLensFeedback:
 
     def execute(
         self,
+        *,
         command_id: str,
         user_id: str,
         session_id: str,
@@ -62,6 +63,7 @@ class RecordLensFeedback:
 
     def _find_delivered_command(
         self,
+        *,
         command_id: str,
         user_id: str,
         session_id: str,

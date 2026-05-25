@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from typing import Protocol
 
-from new_era.domain.attention.models import AttentionMode
+from new_era.domain.attention import AttentionMode
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,9 +22,14 @@ class DocumentAnalysisJobPayload:
     observation_id: str | None
     correlation_id: str
     trace_id: str
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+
+    @property
+    def has_document_input(self) -> bool:
+        return bool(self.document_text or self.document_image_base64)
 
 
-class DocumentAnalysisJobPayloadStore:
+class DocumentAnalysisJobPayloadStore(Protocol):
     def save(self, payload: DocumentAnalysisJobPayload) -> None:
         raise NotImplementedError
 

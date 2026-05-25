@@ -43,22 +43,6 @@ class DeliverLensCommand:
 
         try:
             self.device_gateway.deliver(command)
-            self.event_store.append(
-                Event(
-                    event_type=EventType.LENS_COMMAND_DELIVERED,
-                    user_id=user_id,
-                    session_id=session_id,
-                    module=module,
-                    correlation_id=correlation_id,
-                    trace_id=trace_id,
-                    metadata={
-                        "adapter_name": capabilities.adapter_name,
-                        "command_id": command.command_id,
-                        "command_type": command.command_type.value,
-                    },
-                )
-            )
-            return True
         except DeviceGatewayError as exc:
             self.event_store.append(
                 Event(
@@ -76,3 +60,20 @@ class DeliverLensCommand:
                 )
             )
             return False
+
+        self.event_store.append(
+            Event(
+                event_type=EventType.LENS_COMMAND_DELIVERED,
+                user_id=user_id,
+                session_id=session_id,
+                module=module,
+                correlation_id=correlation_id,
+                trace_id=trace_id,
+                metadata={
+                    "adapter_name": capabilities.adapter_name,
+                    "command_id": command.command_id,
+                    "command_type": command.command_type.value,
+                },
+            )
+        )
+        return True

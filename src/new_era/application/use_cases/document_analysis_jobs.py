@@ -7,17 +7,17 @@ from time import sleep
 from typing import Protocol
 from uuid import uuid4
 
-from new_era.application.ports.document_analysis_job_payload_store import (
+from new_era.application.ports import (
     DocumentAnalysisJobPayload,
     DocumentAnalysisJobPayloadStore,
+    DocumentAnalysisStore,
+    EventStore,
+    JobStore,
 )
-from new_era.application.ports.document_analysis_store import DocumentAnalysisStore
-from new_era.application.ports.event_store import EventStore
-from new_era.application.ports.job_store import JobStore
-from new_era.domain.attention.models import AttentionMode
-from new_era.domain.documents.models import DocumentAnalysisRecord
-from new_era.domain.events.models import Event, EventType
-from new_era.domain.jobs.models import JobExecutionPolicy, JobRecord, JobStatus, JobType
+from new_era.domain.attention import AttentionMode
+from new_era.domain.documents import DocumentAnalysisRecord
+from new_era.domain.events import Event, EventType
+from new_era.domain.jobs import JobExecutionPolicy, JobRecord, JobStatus, JobType
 
 
 class DocumentContractReviewResultLike(Protocol):
@@ -27,6 +27,7 @@ class DocumentContractReviewResultLike(Protocol):
 class DocumentContractReviewProcessor(Protocol):
     def process_contract_review(
         self,
+        *,
         observation_id: str,
         user_id: str,
         session_id: str,
@@ -54,6 +55,7 @@ class EnqueueDocumentAnalysisJob:
 
     def execute(
         self,
+        *,
         user_id: str,
         session_id: str,
         idempotency_key: str,
@@ -144,6 +146,7 @@ class EnqueueDocumentAnalysisJob:
 
     def _save_payload_if_needed(
         self,
+        *,
         job: JobRecord,
         user_id: str,
         session_id: str,
@@ -158,7 +161,7 @@ class EnqueueDocumentAnalysisJob:
         correlation_id: str,
         trace_id: str,
     ) -> None:
-        if self.payload_store is None or (not document_text and not document_image_base64):
+        if self.payload_store is None or not (document_text or document_image_base64):
             return
         if self.payload_store.get(job.job_id) is not None:
             return
@@ -185,7 +188,7 @@ class EnqueueDocumentAnalysisJob:
 class GetJobStatus:
     job_store: JobStore
 
-    def execute(self, job_id: str) -> JobRecord | None:
+    def execute(self, *, job_id: str) -> JobRecord | None:
         return self.job_store.get(job_id)
 
 
@@ -197,6 +200,7 @@ class AdvanceDocumentAnalysisJob:
 
     def execute(
         self,
+        *,
         job_id: str,
         target_status: JobStatus,
         correlation_id: str,
@@ -208,12 +212,12 @@ class AdvanceDocumentAnalysisJob:
         existing_job = self.job_store.get(job_id)
         if existing_job is None:
             return None
+
         if target_status == existing_job.status:
             return existing_job
 
         self._validate_transition(existing_job.status, target_status)
         metadata = dict(existing_job.metadata)
-
         if target_status == JobStatus.SUCCEEDED:
             persisted_analysis = self._require_persisted_analysis(
                 analysis_id=analysis_id,
@@ -231,14 +235,11 @@ class AdvanceDocumentAnalysisJob:
             error_code=error_code if target_status == JobStatus.FAILED else None,
             error_message=error_message if target_status == JobStatus.FAILED else None,
             updated_at=datetime.now(UTC),
-            completed_at=(
-                datetime.now(UTC)
-                if target_status in (JobStatus.SUCCEEDED, JobStatus.FAILED)
-                else existing_job.completed_at
-            ),
+            completed_at=datetime.now(UTC)
+            if target_status in (JobStatus.SUCCEEDED, JobStatus.FAILED)
+            else existing_job.completed_at,
         )
         self.job_store.update(updated_job)
-
         event_metadata = {
             "job_id": updated_job.job_id,
             "job_type": updated_job.job_type.value,
@@ -249,7 +250,6 @@ class AdvanceDocumentAnalysisJob:
             event_metadata["analysis_id"] = metadata["analysis_id"]
         if target_status == JobStatus.FAILED:
             event_metadata["error_code"] = updated_job.error_code or "manual_failure"
-
         self.event_store.append(
             Event(
                 event_type=self._event_type_for(target_status),
@@ -265,9 +265,10 @@ class AdvanceDocumentAnalysisJob:
 
     def _require_persisted_analysis(
         self,
+        *,
         analysis_id: str | None,
         existing_job: JobRecord,
-    ) -> DocumentAnalysisRecord:
+    ):
         if not analysis_id:
             raise ValueError("analysis_id is required when completing document analysis jobs")
         persisted_analysis = self.document_analysis_store.get(analysis_id)
@@ -308,7 +309,7 @@ class RunDocumentAnalysisJob:
     payload_store: DocumentAnalysisJobPayloadStore
     document_processor: DocumentContractReviewProcessor
 
-    def execute(self, job_id: str) -> JobRecord | None:
+    def execute(self, *, job_id: str) -> JobRecord | None:
         job = self.job_store.get(job_id)
         if job is None:
             return None
@@ -316,39 +317,41 @@ class RunDocumentAnalysisJob:
             return job
 
         payload = self.payload_store.get(job_id)
-        if payload is None:
+        if payload is None or not payload.has_document_input:
             return self._fail_job(
                 job=job,
                 correlation_id=f"corr_{uuid4().hex}",
                 trace_id=f"trace_{uuid4().hex}",
-                error_code="missing_payload",
-                error_message="document analysis payload was not found",
+                error_code="missing_document_payload",
+                error_message="document_text_or_document_image_base64_required",
             )
 
-        current_job = job
-        last_error: Exception | None = None
-        for attempt in range(current_job.attempts + 1, current_job.max_attempts + 1):
+        while True:
+            current_job = self.job_store.get(job_id)
+            if current_job is None:
+                return None
+            if current_job.status in (JobStatus.SUCCEEDED, JobStatus.FAILED):
+                return current_job
+            if current_job.attempts >= current_job.max_attempts:
+                return self._fail_job(
+                    job=current_job,
+                    correlation_id=payload.correlation_id,
+                    trace_id=payload.trace_id,
+                    error_code=current_job.error_code or "max_attempts_exhausted",
+                    error_message=current_job.error_message or "job attempts exhausted",
+                )
+
+            attempt = current_job.attempts + 1
             running_job = self._start_attempt(
                 job=current_job,
                 attempt=attempt,
                 correlation_id=payload.correlation_id,
                 trace_id=payload.trace_id,
             )
+
             try:
-                result = self._process_with_timeout(
-                    payload=payload,
-                    attempt=attempt,
-                    job=running_job,
-                )
-                self.payload_store.delete(job_id)
-                return self._complete_job(
-                    job=running_job,
-                    correlation_id=payload.correlation_id,
-                    trace_id=payload.trace_id,
-                    analysis_id=result.analysis_record.analysis_id,
-                )
+                result = self._process_with_timeout(payload=payload, attempt=attempt, job=running_job)
             except DocumentAnalysisJobTimedOut as exc:
-                last_error = exc
                 failed_attempt_job = self._record_attempt_failure(
                     job=running_job,
                     correlation_id=payload.correlation_id,
@@ -356,62 +359,70 @@ class RunDocumentAnalysisJob:
                     error_code="timeout",
                     error_message=str(exc),
                 )
-            except Exception as exc:  # recovered behavior: broad catch with retry/backoff
-                last_error = exc
+            except Exception as exc:
                 failed_attempt_job = self._record_attempt_failure(
                     job=running_job,
                     correlation_id=payload.correlation_id,
                     trace_id=payload.trace_id,
-                    error_code=exc.__class__.__name__,
-                    error_message=str(exc),
+                    error_code="execution_error",
+                    error_message=str(exc) or exc.__class__.__name__,
+                )
+            else:
+                self.payload_store.delete(job_id)
+                return self._complete_job(
+                    job=running_job,
+                    correlation_id=payload.correlation_id,
+                    trace_id=payload.trace_id,
+                    analysis_id=result.analysis_record.analysis_id,
                 )
 
-            current_job = failed_attempt_job
-            if attempt < current_job.max_attempts and current_job.retry_backoff_seconds > 0:
-                sleep(current_job.retry_backoff_seconds)
-
-        return self._fail_job(
-            job=current_job,
-            correlation_id=payload.correlation_id,
-            trace_id=payload.trace_id,
-            error_code=current_job.error_code or "analysis_failed",
-            error_message=current_job.error_message or str(last_error or "analysis failed"),
-        )
+            if failed_attempt_job.attempts >= failed_attempt_job.max_attempts:
+                self.payload_store.delete(job_id)
+                return self._fail_job(
+                    job=failed_attempt_job,
+                    correlation_id=payload.correlation_id,
+                    trace_id=payload.trace_id,
+                    error_code=failed_attempt_job.error_code or "execution_error",
+                    error_message=failed_attempt_job.error_message or "job failed",
+                )
+            if failed_attempt_job.retry_backoff_seconds:
+                sleep(failed_attempt_job.retry_backoff_seconds)
 
     def _process_with_timeout(
         self,
+        *,
         payload: DocumentAnalysisJobPayload,
         attempt: int,
         job: JobRecord,
     ) -> DocumentContractReviewResultLike:
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            observation_id = payload.observation_id or f"obs_{job.job_id}_{attempt}"
-            future = executor.submit(
-                self.document_processor.process_contract_review,
-                observation_id=observation_id,
-                user_id=payload.user_id,
-                session_id=payload.session_id,
-                document_text=payload.document_text,
-                document_image_base64=payload.document_image_base64,
-                confidence=payload.confidence,
-                mode=payload.mode,
-                recent_category_count=payload.recent_category_count,
-                correlation_id=payload.correlation_id,
-                trace_id=payload.trace_id,
-            )
-            try:
-                result = future.result(timeout=job.timeout_seconds)
-            except FutureTimeoutError as exc:
-                future.cancel()
-                raise DocumentAnalysisJobTimedOut(
-                    f"document analysis job timed out after {job.timeout_seconds} seconds"
-                ) from exc
-            finally:
-                executor.shutdown(wait=False)
-        return result
+        executor = ThreadPoolExecutor(max_workers=1)
+        observation_id = payload.observation_id or f"obs_{job.job_id}_{attempt}"
+        future = executor.submit(
+            self.document_processor.process_contract_review,
+            observation_id=observation_id,
+            user_id=payload.user_id,
+            session_id=payload.session_id,
+            document_text=payload.document_text,
+            document_image_base64=payload.document_image_base64,
+            confidence=payload.confidence,
+            mode=payload.mode,
+            recent_category_count=payload.recent_category_count,
+            correlation_id=payload.correlation_id,
+            trace_id=payload.trace_id,
+        )
+        try:
+            return future.result(timeout=job.timeout_seconds)
+        except FutureTimeoutError as exc:
+            future.cancel()
+            raise DocumentAnalysisJobTimedOut(
+                f"document analysis exceeded {job.timeout_seconds:g}s timeout"
+            ) from exc
+        finally:
+            executor.shutdown(wait=False, cancel_futures=True)
 
     def _start_attempt(
         self,
+        *,
         job: JobRecord,
         attempt: int,
         correlation_id: str,
@@ -422,8 +433,10 @@ class RunDocumentAnalysisJob:
             job,
             status=JobStatus.RUNNING,
             attempts=attempt,
-            started_at=now,
+            error_code=None,
+            error_message=None,
             updated_at=now,
+            started_at=job.started_at or now,
         )
         self.job_store.update(updated_job)
         self._append_job_event(
@@ -432,8 +445,9 @@ class RunDocumentAnalysisJob:
             correlation_id=correlation_id,
             trace_id=trace_id,
             metadata={
-                "status": JobStatus.RUNNING.value,
-                "attempts": updated_job.attempts,
+                "from_status": job.status.value,
+                "to_status": JobStatus.RUNNING.value,
+                "attempt": attempt,
                 "max_attempts": updated_job.max_attempts,
             },
         )
@@ -441,6 +455,7 @@ class RunDocumentAnalysisJob:
 
     def _record_attempt_failure(
         self,
+        *,
         job: JobRecord,
         correlation_id: str,
         trace_id: str,
@@ -451,9 +466,7 @@ class RunDocumentAnalysisJob:
         metadata.update(
             {
                 "last_error_code": error_code,
-                "last_error_message": error_message,
-                "attempts": job.attempts,
-                "max_attempts": job.max_attempts,
+                "retry_scheduled": job.attempts < job.max_attempts,
             }
         )
         updated_job = replace(
@@ -470,17 +483,31 @@ class RunDocumentAnalysisJob:
             correlation_id=correlation_id,
             trace_id=trace_id,
             metadata={
-                "status": JobStatus.RUNNING.value,
-                "error_code": error_code,
-                "error_message": error_message,
-                "attempts": updated_job.attempts,
+                "attempt": updated_job.attempts,
                 "max_attempts": updated_job.max_attempts,
+                "error_code": error_code,
+                "retry_scheduled": updated_job.attempts < updated_job.max_attempts,
             },
         )
+        if updated_job.attempts < updated_job.max_attempts:
+            self._append_job_event(
+                job=updated_job,
+                event_type=EventType.JOB_STATUS_UPDATED,
+                correlation_id=correlation_id,
+                trace_id=trace_id,
+                metadata={
+                    "from_status": JobStatus.RUNNING.value,
+                    "to_status": JobStatus.RUNNING.value,
+                    "attempt": updated_job.attempts,
+                    "retry_scheduled": True,
+                    "error_code": error_code,
+                },
+            )
         return updated_job
 
     def _complete_job(
         self,
+        *,
         job: JobRecord,
         correlation_id: str,
         trace_id: str,
@@ -493,6 +520,8 @@ class RunDocumentAnalysisJob:
             status=JobStatus.SUCCEEDED,
             metadata=metadata,
             result_id=analysis_id,
+            error_code=None,
+            error_message=None,
             updated_at=datetime.now(UTC),
             completed_at=datetime.now(UTC),
         )
@@ -503,15 +532,17 @@ class RunDocumentAnalysisJob:
             correlation_id=correlation_id,
             trace_id=trace_id,
             metadata={
-                "status": JobStatus.RUNNING.value,
+                "from_status": JobStatus.RUNNING.value,
+                "to_status": JobStatus.SUCCEEDED.value,
+                "attempt": updated_job.attempts,
                 "analysis_id": analysis_id,
-                "attempts": updated_job.attempts,
             },
         )
         return updated_job
 
     def _fail_job(
         self,
+        *,
         job: JobRecord,
         correlation_id: str,
         trace_id: str,
@@ -522,9 +553,7 @@ class RunDocumentAnalysisJob:
         metadata.update(
             {
                 "error_code": error_code,
-                "error_message": error_message,
-                "attempts": job.attempts,
-                "max_attempts": job.max_attempts,
+                "retry_scheduled": False,
             }
         )
         updated_job = replace(
@@ -543,17 +572,18 @@ class RunDocumentAnalysisJob:
             correlation_id=correlation_id,
             trace_id=trace_id,
             metadata={
-                "status": updated_job.status.value,
-                "error_code": error_code,
-                "error_message": error_message,
-                "attempts": updated_job.attempts,
+                "from_status": job.status.value,
+                "to_status": JobStatus.FAILED.value,
+                "attempt": updated_job.attempts,
                 "max_attempts": updated_job.max_attempts,
+                "error_code": error_code,
             },
         )
         return updated_job
 
     def _append_job_event(
         self,
+        *,
         job: JobRecord,
         event_type: EventType,
         correlation_id: str,

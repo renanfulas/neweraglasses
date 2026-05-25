@@ -1,11 +1,7 @@
 """Application services for feature-oriented entry points."""
 
-from .document_session import DocumentSessionService
-from .grocery_session import GrocerySessionService
-from .simulation_runtime import SimulationRuntime
+from new_era.application.services.document_session import DocumentSessionService
+from new_era.application.services.grocery_session import GrocerySessionService
+from new_era.application.services.simulation_runtime import SimulationRuntime
 
-__all__ = [
-    "DocumentSessionService",
-    "GrocerySessionService",
-    "SimulationRuntime",
-]
+__all__ = ["DocumentSessionService", "GrocerySessionService", "SimulationRuntime"]

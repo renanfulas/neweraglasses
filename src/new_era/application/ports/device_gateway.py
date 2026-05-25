@@ -1,34 +1,22 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Protocol
 
-
-@dataclass(frozen=True, slots=True)
-class DeviceCapabilities:
-    adapter_name: str
-    supports_camera: bool = False
-    supports_display: bool = True
-    supports_voice: bool = False
-    supports_gesture: bool = False
-    unsupported_features: tuple[str, ...] = ()
-    metadata: dict[str, object] = field(default_factory=dict)
+from new_era.domain.device import DeviceCapabilities
+from new_era.domain.lens import LensCommand
 
 
 class DeviceGatewayError(RuntimeError):
-    """Raised when a device adapter cannot deliver a lens command."""
+    pass
 
 
 class DeviceDeliveryError(DeviceGatewayError):
-    """Raised when delivery to a device bridge fails."""
+    pass
 
 
 class DeviceGateway(Protocol):
     def capabilities(self) -> DeviceCapabilities:
         raise NotImplementedError
 
-    def get_capabilities(self) -> DeviceCapabilities:
-        raise NotImplementedError
-
-    def deliver(self, command: object) -> bool:
+    def deliver(self, command: LensCommand) -> None:
         raise NotImplementedError

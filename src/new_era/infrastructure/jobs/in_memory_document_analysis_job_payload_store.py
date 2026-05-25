@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from threading import RLock
 
-from new_era.application.ports.document_analysis_job_payload_store import (
+from new_era.application.ports import (
     DocumentAnalysisJobPayload,
     DocumentAnalysisJobPayloadStore,
 )

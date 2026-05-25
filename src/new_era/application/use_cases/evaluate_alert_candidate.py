@@ -100,4 +100,5 @@ class EvaluateAlertCandidate:
                 },
             )
         )
+
         return command

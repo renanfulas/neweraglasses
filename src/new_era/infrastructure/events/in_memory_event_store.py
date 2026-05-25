@@ -16,6 +16,7 @@ class InMemoryEventStore(EventStore):
 
     def list_events(
         self,
+        *,
         user_id: str | None = None,
         session_id: str | None = None,
         trace_id: str | None = None,
@@ -45,9 +46,7 @@ class InMemoryEventStore(EventStore):
             filtered_events = [
                 event for event in filtered_events if event.created_at <= created_before
             ]
-
         filtered_events = sorted(filtered_events, key=lambda event: event.created_at)
-
         if after is not None:
             cursor_index = next(
                 (
@@ -65,7 +64,6 @@ class InMemoryEventStore(EventStore):
                     for event in filtered_events
                     if (event.created_at, event.event_id) > after
                 ]
-
         if limit is not None:
             filtered_events = filtered_events[:limit]
         return list(filtered_events)

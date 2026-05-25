@@ -21,8 +21,5 @@ class BrowserSimulationAdapter(DeviceGateway):
             unsupported_features=("native_background_bridge", "hardware_lens_display"),
         )
 
-    def get_capabilities(self) -> DeviceCapabilities:
-        return self.capabilities()
-
     def deliver(self, command: LensCommand) -> None:
         self.delivered_commands.append(command)

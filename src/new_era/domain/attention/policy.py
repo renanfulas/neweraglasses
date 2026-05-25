@@ -12,6 +12,7 @@ from new_era.domain.attention.models import (
     AttentionOutcome,
 )
 
+
 DEFAULT_CATEGORY_LIMITS: dict[AttentionMode, dict[str, int]] = {
     AttentionMode.ESSENTIAL: {
         "critical_safety": 999,
@@ -68,6 +69,7 @@ class AttentionPolicy:
                 candidate=candidate,
                 budget=budget,
             )
+
         if candidate.confidence < 0.45:
             return self._decision(
                 outcome=AttentionOutcome.REQUEST_CONFIRMATION,
@@ -75,6 +77,7 @@ class AttentionPolicy:
                 candidate=candidate,
                 budget=budget,
             )
+
         if limit <= 0:
             return self._decision(
                 outcome=AttentionOutcome.SILENCE,
@@ -82,6 +85,7 @@ class AttentionPolicy:
                 candidate=candidate,
                 budget=budget,
             )
+
         if recent_category_count >= limit:
             return self._decision(
                 outcome=AttentionOutcome.GROUP,
@@ -89,6 +93,7 @@ class AttentionPolicy:
                 candidate=candidate,
                 budget=budget,
             )
+
         return self._decision(
             outcome=AttentionOutcome.SHOW_NOW,
             reason="within_attention_budget",

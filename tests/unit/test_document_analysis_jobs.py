@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from time import sleep
 from unittest import TestCase
@@ -31,6 +29,7 @@ class FakeDocumentReviewResult:
 class FakeDocumentProcessor:
     def __init__(
         self,
+        *,
         analysis_store: InMemoryDocumentAnalysisStore,
         failures_before_success: int = 0,
         sleep_seconds: float = 0.0,
@@ -42,6 +41,7 @@ class FakeDocumentProcessor:
 
     def process_contract_review(
         self,
+        *,
         observation_id: str,
         user_id: str,
         session_id: str,
@@ -58,7 +58,6 @@ class FakeDocumentProcessor:
             sleep(self.sleep_seconds)
         if self.calls <= self.failures_before_success:
             raise RuntimeError("temporary provider failure")
-
         record = DocumentAnalysisRecord(
             user_id=user_id,
             session_id=session_id,
@@ -71,7 +70,7 @@ class FakeDocumentProcessor:
                 review_confidence=0.88,
                 summary_title="Contract clause needs attention",
                 summary_body="This clause deserves review before signing.",
-            ).to_dict(),
+            ),
         )
         self.analysis_store.save(record)
         return FakeDocumentReviewResult(analysis_record=record)
@@ -87,6 +86,7 @@ class DocumentAnalysisJobsTest(TestCase):
     def _save_analysis(
         self,
         store: InMemoryDocumentAnalysisStore,
+        *,
         user_id: str = "user_1",
         session_id: str = "session_1",
         observation_id: str = "obs_1",
@@ -97,30 +97,29 @@ class DocumentAnalysisJobsTest(TestCase):
             session_id=session_id,
             observation_id=observation_id,
             trace_id=trace_id,
-            source_type="plain_text",
+            source_type="pwa_upload",
             analysis=ContractReviewAnalysis(
-                extracted_text="contract text",
-                source_confidence=0.92,
+                extracted_text="Automatic renewal clause.",
+                source_confidence=0.91,
                 review_confidence=0.88,
                 summary_title="Contract clause needs attention",
                 summary_body="This clause deserves review before signing.",
-            ).to_dict(),
+            ),
         )
         store.save(record)
         return record
 
-    def test_enqueues_job_and_persists_payload(self) -> None:
+    def test_enqueues_document_analysis_job_and_records_event(self) -> None:
         job_store = InMemoryJobStore()
         event_store = InMemoryEventStore()
         payload_store = self._build_payload_store()
-        enqueue = EnqueueDocumentAnalysisJob(
+        use_case = EnqueueDocumentAnalysisJob(
             job_store=job_store,
             event_store=event_store,
             payload_store=payload_store,
-            execution_policy=JobExecutionPolicy(max_attempts=3, timeout_seconds=10.0),
         )
 
-        job = enqueue.execute(
+        job = use_case.execute(
             user_id="user_1",
             session_id="session_1",
             idempotency_key="idem_12345678",
@@ -128,25 +127,20 @@ class DocumentAnalysisJobsTest(TestCase):
             trace_id="trace_1",
             artifact_label="gym-contract.pdf",
             source_type="pwa_upload",
-            document_text="contract body",
-            mode=AttentionMode.BALANCED,
+            document_text="Contrato com renovacao automatica e multa de cancelamento.",
         )
 
-        self.assertEqual(job.status, JobStatus.QUEUED)
+        self.assertEqual(job.status.value, "queued")
+        self.assertEqual(job_store.get(job.job_id), job)
         self.assertIsNotNone(payload_store.get(job.job_id))
         self.assertEqual(event_store.events[-1].event_type, EventType.JOB_STARTED)
 
-    def test_reuses_existing_job_for_same_idempotency_key(self) -> None:
+    def test_reuses_job_for_same_idempotency_key(self) -> None:
         job_store = InMemoryJobStore()
         event_store = InMemoryEventStore()
-        payload_store = self._build_payload_store()
-        enqueue = EnqueueDocumentAnalysisJob(
-            job_store=job_store,
-            event_store=event_store,
-            payload_store=payload_store,
-        )
+        use_case = EnqueueDocumentAnalysisJob(job_store=job_store, event_store=event_store)
 
-        first = enqueue.execute(
+        first_job = use_case.execute(
             user_id="user_1",
             session_id="session_1",
             idempotency_key="idem_12345678",
@@ -154,9 +148,8 @@ class DocumentAnalysisJobsTest(TestCase):
             trace_id="trace_1",
             artifact_label="gym-contract.pdf",
             source_type="pwa_upload",
-            document_text="contract body",
         )
-        second = enqueue.execute(
+        second_job = use_case.execute(
             user_id="user_1",
             session_id="session_1",
             idempotency_key="idem_12345678",
@@ -164,22 +157,20 @@ class DocumentAnalysisJobsTest(TestCase):
             trace_id="trace_2",
             artifact_label="gym-contract.pdf",
             source_type="pwa_upload",
-            document_text="contract body updated",
         )
 
-        self.assertEqual(first.job_id, second.job_id)
+        self.assertEqual(first_job.job_id, second_job.job_id)
         self.assertEqual(len(event_store.events), 1)
 
-    def test_runs_job_successfully_and_persists_result(self) -> None:
+    def test_runner_processes_document_job_and_persists_result(self) -> None:
         job_store = InMemoryJobStore()
         event_store = InMemoryEventStore()
-        payload_store = self._build_payload_store()
+        payload_store = InMemoryDocumentAnalysisJobPayloadStore()
         analysis_store = self._build_analysis_store()
         enqueue = EnqueueDocumentAnalysisJob(
             job_store=job_store,
             event_store=event_store,
             payload_store=payload_store,
-            execution_policy=JobExecutionPolicy(max_attempts=1, timeout_seconds=1.0),
         )
         processor = FakeDocumentProcessor(analysis_store=analysis_store)
         runner = RunDocumentAnalysisJob(
@@ -188,39 +179,44 @@ class DocumentAnalysisJobsTest(TestCase):
             payload_store=payload_store,
             document_processor=processor,
         )
-
         job = enqueue.execute(
             user_id="user_1",
             session_id="session_1",
-            idempotency_key="idem_success_123",
+            idempotency_key="idem_real_worker",
             correlation_id="corr_1",
             trace_id="trace_1",
             artifact_label="gym-contract.pdf",
             source_type="pwa_upload",
-            document_text="contract body",
+            document_text="Contrato com renovacao automatica e multa de cancelamento.",
         )
-        completed = runner.execute(job.job_id)
 
-        self.assertEqual(completed.status, JobStatus.SUCCEEDED)
-        self.assertIsNotNone(completed.result_id)
+        completed_job = runner.execute(job_id=job.job_id)
+
+        self.assertEqual(completed_job.status, JobStatus.SUCCEEDED)
+        self.assertEqual(completed_job.attempts, 1)
+        self.assertIsNotNone(completed_job.result_id)
+        self.assertEqual(completed_job.metadata["analysis_id"], completed_job.result_id)
+        self.assertIsNotNone(analysis_store.get(completed_job.result_id))
         self.assertIsNone(payload_store.get(job.job_id))
-        self.assertEqual(processor.calls, 1)
-        self.assertEqual(event_store.events[-1].event_type, EventType.JOB_COMPLETED)
+        self.assertEqual(
+            [event.event_type for event in event_store.events],
+            [
+                EventType.JOB_STARTED,
+                EventType.JOB_STATUS_UPDATED,
+                EventType.JOB_COMPLETED,
+            ],
+        )
 
-    def test_retries_before_succeeding(self) -> None:
+    def test_runner_retries_transient_failures_before_succeeding(self) -> None:
         job_store = InMemoryJobStore()
         event_store = InMemoryEventStore()
-        payload_store = self._build_payload_store()
+        payload_store = InMemoryDocumentAnalysisJobPayloadStore()
         analysis_store = self._build_analysis_store()
         enqueue = EnqueueDocumentAnalysisJob(
             job_store=job_store,
             event_store=event_store,
             payload_store=payload_store,
-            execution_policy=JobExecutionPolicy(
-                max_attempts=3,
-                timeout_seconds=1.0,
-                retry_backoff_seconds=0.0,
-            ),
+            execution_policy=JobExecutionPolicy(max_attempts=2, timeout_seconds=1.0),
         )
         processor = FakeDocumentProcessor(
             analysis_store=analysis_store,
@@ -232,30 +228,69 @@ class DocumentAnalysisJobsTest(TestCase):
             payload_store=payload_store,
             document_processor=processor,
         )
-
         job = enqueue.execute(
             user_id="user_1",
             session_id="session_1",
-            idempotency_key="idem_retry_123",
+            idempotency_key="idem_retry_worker",
             correlation_id="corr_1",
             trace_id="trace_1",
             artifact_label="gym-contract.pdf",
             source_type="pwa_upload",
-            document_text="contract body",
+            document_text="Contrato com renovacao automatica e multa de cancelamento.",
         )
-        completed = runner.execute(job.job_id)
 
-        self.assertEqual(completed.status, JobStatus.SUCCEEDED)
+        completed_job = runner.execute(job_id=job.job_id)
+
+        self.assertEqual(completed_job.status, JobStatus.SUCCEEDED)
+        self.assertEqual(completed_job.attempts, 2)
         self.assertEqual(processor.calls, 2)
-        self.assertEqual(completed.attempts, 2)
-        self.assertTrue(
-            any(event.event_type == EventType.AI_CALL_FAILED for event in event_store.events)
-        )
+        self.assertIn(EventType.AI_CALL_FAILED, [event.event_type for event in event_store.events])
+        self.assertEqual(event_store.events[-1].event_type, EventType.JOB_COMPLETED)
 
-    def test_times_out_and_fails_job(self) -> None:
+    def test_runner_fails_after_exhausting_attempts(self) -> None:
         job_store = InMemoryJobStore()
         event_store = InMemoryEventStore()
-        payload_store = self._build_payload_store()
+        payload_store = InMemoryDocumentAnalysisJobPayloadStore()
+        analysis_store = self._build_analysis_store()
+        enqueue = EnqueueDocumentAnalysisJob(
+            job_store=job_store,
+            event_store=event_store,
+            payload_store=payload_store,
+            execution_policy=JobExecutionPolicy(max_attempts=2, timeout_seconds=1.0),
+        )
+        processor = FakeDocumentProcessor(
+            analysis_store=analysis_store,
+            failures_before_success=10,
+        )
+        runner = RunDocumentAnalysisJob(
+            job_store=job_store,
+            event_store=event_store,
+            payload_store=payload_store,
+            document_processor=processor,
+        )
+        job = enqueue.execute(
+            user_id="user_1",
+            session_id="session_1",
+            idempotency_key="idem_fail_worker",
+            correlation_id="corr_1",
+            trace_id="trace_1",
+            artifact_label="gym-contract.pdf",
+            source_type="pwa_upload",
+            document_text="Contrato com renovacao automatica e multa de cancelamento.",
+        )
+
+        failed_job = runner.execute(job_id=job.job_id)
+
+        self.assertEqual(failed_job.status, JobStatus.FAILED)
+        self.assertEqual(failed_job.attempts, 2)
+        self.assertEqual(failed_job.error_code, "execution_error")
+        self.assertIsNone(payload_store.get(job.job_id))
+        self.assertEqual(event_store.events[-1].event_type, EventType.JOB_FAILED)
+
+    def test_runner_applies_timeout_policy(self) -> None:
+        job_store = InMemoryJobStore()
+        event_store = InMemoryEventStore()
+        payload_store = InMemoryDocumentAnalysisJobPayloadStore()
         analysis_store = self._build_analysis_store()
         enqueue = EnqueueDocumentAnalysisJob(
             job_store=job_store,
@@ -273,39 +308,40 @@ class DocumentAnalysisJobsTest(TestCase):
             payload_store=payload_store,
             document_processor=processor,
         )
-
         job = enqueue.execute(
             user_id="user_1",
             session_id="session_1",
-            idempotency_key="idem_timeout_123",
+            idempotency_key="idem_timeout_worker",
             correlation_id="corr_1",
             trace_id="trace_1",
             artifact_label="gym-contract.pdf",
             source_type="pwa_upload",
-            document_text="contract body",
+            document_text="Contrato com renovacao automatica e multa de cancelamento.",
         )
-        failed = runner.execute(job.job_id)
 
-        self.assertEqual(failed.status, JobStatus.FAILED)
-        self.assertEqual(failed.error_code, "timeout")
-        self.assertEqual(event_store.events[-1].event_type, EventType.JOB_FAILED)
+        failed_job = runner.execute(job_id=job.job_id)
 
-    def test_get_job_status_reads_saved_job(self) -> None:
+        self.assertEqual(failed_job.status, JobStatus.FAILED)
+        self.assertEqual(failed_job.error_code, "timeout")
+        self.assertEqual(failed_job.attempts, 1)
+
+    def test_reads_job_status(self) -> None:
         job_store = InMemoryJobStore()
         event_store = InMemoryEventStore()
         enqueue = EnqueueDocumentAnalysisJob(job_store=job_store, event_store=event_store)
         job = enqueue.execute(
             user_id="user_1",
             session_id="session_1",
-            idempotency_key="idem_status_123",
+            idempotency_key="idem_12345678",
             correlation_id="corr_1",
             trace_id="trace_1",
             artifact_label="gym-contract.pdf",
             source_type="pwa_upload",
         )
 
-        fetched = GetJobStatus(job_store=job_store).execute(job_id=job.job_id)
-        self.assertEqual(fetched.job_id, job.job_id)
+        status = GetJobStatus(job_store=job_store).execute(job_id=job.job_id)
+
+        self.assertEqual(status, job)
 
     def test_advances_job_through_running_and_succeeded(self) -> None:
         job_store = InMemoryJobStore()
@@ -318,7 +354,6 @@ class DocumentAnalysisJobsTest(TestCase):
             event_store=event_store,
             document_analysis_store=analysis_store,
         )
-
         job = enqueue.execute(
             user_id="user_1",
             session_id="session_1",
@@ -328,6 +363,7 @@ class DocumentAnalysisJobsTest(TestCase):
             artifact_label="gym-contract.pdf",
             source_type="pwa_upload",
         )
+
         running_job = advance.execute(
             job_id=job.job_id,
             target_status=JobStatus.RUNNING,
@@ -347,7 +383,11 @@ class DocumentAnalysisJobsTest(TestCase):
         self.assertEqual(succeeded_job.metadata["analysis_id"], record.analysis_id)
         self.assertEqual(
             [event.event_type for event in event_store.events],
-            [EventType.JOB_STARTED, EventType.JOB_STATUS_UPDATED, EventType.JOB_COMPLETED],
+            [
+                EventType.JOB_STARTED,
+                EventType.JOB_STATUS_UPDATED,
+                EventType.JOB_COMPLETED,
+            ],
         )
         self.assertEqual(event_store.events[-1].metadata["analysis_id"], record.analysis_id)
 
@@ -361,7 +401,6 @@ class DocumentAnalysisJobsTest(TestCase):
             event_store=event_store,
             document_analysis_store=analysis_store,
         )
-
         job = enqueue.execute(
             user_id="user_1",
             session_id="session_1",
@@ -398,7 +437,6 @@ class DocumentAnalysisJobsTest(TestCase):
             event_store=event_store,
             document_analysis_store=self._build_analysis_store(),
         )
-
         job = enqueue.execute(
             user_id="user_1",
             session_id="session_1",

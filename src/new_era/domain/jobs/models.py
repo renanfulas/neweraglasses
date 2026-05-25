@@ -3,7 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
+from types import MappingProxyType
+from typing import Mapping
 from uuid import uuid4
+
+
+class JobType(StrEnum):
+    DOCUMENT_CONTRACT_ANALYSIS = "document_contract_analysis"
 
 
 class JobStatus(StrEnum):
@@ -13,15 +19,19 @@ class JobStatus(StrEnum):
     FAILED = "failed"
 
 
-class JobType(StrEnum):
-    DOCUMENT_CONTRACT_ANALYSIS = "document_contract_analysis"
-
-
 @dataclass(frozen=True, slots=True)
 class JobExecutionPolicy:
-    max_attempts: int = 1
-    timeout_seconds: float = 30.0
+    max_attempts: int = 3
+    timeout_seconds: float = 10.0
     retry_backoff_seconds: float = 0.0
+
+    def __post_init__(self) -> None:
+        if self.max_attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
+        if self.timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be greater than 0")
+        if self.retry_backoff_seconds < 0:
+            raise ValueError("retry_backoff_seconds cannot be negative")
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,13 +41,13 @@ class JobRecord:
     session_id: str
     module: str
     idempotency_key: str
-    max_attempts: int
-    timeout_seconds: float
-    retry_backoff_seconds: float
-    metadata: dict[str, object] = field(default_factory=dict)
+    metadata: Mapping[str, object] = field(default_factory=dict)
     job_id: str = field(default_factory=lambda: f"job_{uuid4().hex}")
     status: JobStatus = JobStatus.QUEUED
     attempts: int = 0
+    max_attempts: int = 3
+    timeout_seconds: float = 10.0
+    retry_backoff_seconds: float = 0.0
     result_id: str | None = None
     error_code: str | None = None
     error_message: str | None = None
@@ -45,6 +55,17 @@ class JobRecord:
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     started_at: datetime | None = None
     completed_at: datetime | None = None
+
+    def __post_init__(self) -> None:
+        if self.attempts < 0:
+            raise ValueError("attempts cannot be negative")
+        if self.max_attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
+        if self.timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be greater than 0")
+        if self.retry_backoff_seconds < 0:
+            raise ValueError("retry_backoff_seconds cannot be negative")
+        object.__setattr__(self, "metadata", MappingProxyType(dict(self.metadata)))
 
     def to_dict(self) -> dict[str, object]:
         return {

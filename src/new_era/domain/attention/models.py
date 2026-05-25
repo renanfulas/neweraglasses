@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from uuid import uuid4
+from types import MappingProxyType
+from typing import Mapping
 
 
 class AttentionMode(StrEnum):
@@ -18,18 +19,32 @@ class AlertPriority(StrEnum):
     CRITICAL = "critical"
 
 
+class AttentionOutcome(StrEnum):
+    SHOW_NOW = "show_now"
+    GROUP = "group"
+    DELAY = "delay"
+    SILENCE = "silence"
+    REQUEST_CONFIRMATION = "request_confirmation"
+
+
 @dataclass(frozen=True, slots=True)
 class AlertCandidate:
+    candidate_id: str
     user_id: str
     session_id: str
     module: str
     alert_type: str
-    category: str
-    priority: AlertPriority
-    confidence: float
     title: str
     body: str
-    candidate_id: str = field(default_factory=lambda: f"candidate_{uuid4().hex}")
+    priority: AlertPriority
+    confidence: float
+    category: str
+    metadata: Mapping[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not 0 <= self.confidence <= 1:
+            raise ValueError("confidence must be between 0 and 1")
+        object.__setattr__(self, "metadata", MappingProxyType(dict(self.metadata)))
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,13 +53,6 @@ class AttentionBudget:
     category: str
     remaining: int
     limit: int
-
-
-class AttentionOutcome(StrEnum):
-    SHOW_NOW = "show_now"
-    REQUEST_CONFIRMATION = "request_confirmation"
-    SILENCE = "silence"
-    GROUP = "group"
 
 
 @dataclass(frozen=True, slots=True)

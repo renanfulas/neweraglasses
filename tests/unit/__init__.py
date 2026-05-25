@@ -1,1 +1,1 @@
-# Unit test package marker for unittest discovery.
+"""Unit tests."""

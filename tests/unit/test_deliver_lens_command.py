@@ -1,10 +1,8 @@
-from __future__ import annotations
-
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from unittest import TestCase
 
-from new_era.application.ports import DeviceDeliveryError, DeviceGateway
 from new_era.application.use_cases import DeliverLensCommand
+from new_era.application.ports import DeviceDeliveryError, DeviceGateway
 from new_era.domain.attention import AlertPriority
 from new_era.domain.device import DeviceCapabilities
 from new_era.domain.events import EventType
@@ -30,8 +28,8 @@ class DeliverLensCommandTest(TestCase):
         event_store = InMemoryEventStore()
         adapter = BrowserSimulationAdapter()
         use_case = DeliverLensCommand(device_gateway=adapter, event_store=event_store)
-        command = make_command()
 
+        command = make_command()
         delivered = use_case.execute(
             command=command,
             user_id="user_1",
@@ -44,10 +42,7 @@ class DeliverLensCommandTest(TestCase):
         self.assertTrue(delivered)
         self.assertEqual(adapter.delivered_commands, [command])
         self.assertEqual(event_store.events[-1].event_type, EventType.LENS_COMMAND_DELIVERED)
-        self.assertEqual(
-            event_store.events[-1].metadata["adapter_name"],
-            "browser_simulation",
-        )
+        self.assertEqual(event_store.events[-1].metadata["adapter_name"], "browser_simulation")
 
     def test_records_capability_missing_when_display_is_unsupported(self) -> None:
         event_store = InMemoryEventStore()
@@ -65,13 +60,10 @@ class DeliverLensCommandTest(TestCase):
 
         self.assertFalse(delivered)
         self.assertEqual(adapter.delivered_commands, [])
-        self.assertEqual(
-            event_store.events[-1].event_type,
-            EventType.DEVICE_CAPABILITY_MISSING,
-        )
+        self.assertEqual(event_store.events[-1].event_type, EventType.DEVICE_CAPABILITY_MISSING)
         self.assertEqual(event_store.events[-1].metadata["missing_capability"], "display")
 
-    def test_records_delivery_failure_when_bridge_rejects_command(self) -> None:
+    def test_records_delivery_failure_when_real_bridge_rejects_command(self) -> None:
         event_store = InMemoryEventStore()
         adapter = FailingDeliveryAdapter()
         use_case = DeliverLensCommand(device_gateway=adapter, event_store=event_store)
@@ -86,16 +78,16 @@ class DeliverLensCommandTest(TestCase):
         )
 
         self.assertFalse(delivered)
-        self.assertEqual(
-            event_store.events[-1].event_type,
-            EventType.DEVICE_DELIVERY_FAILED,
-        )
+        self.assertEqual(event_store.events[-1].event_type, EventType.DEVICE_DELIVERY_FAILED)
         self.assertEqual(event_store.events[-1].metadata["adapter_name"], "failing_bridge")
 
 
 @dataclass(slots=True)
 class NoDisplayAdapter(DeviceGateway):
-    delivered_commands: list[LensCommand] = field(default_factory=list)
+    delivered_commands: list[LensCommand]
+
+    def __init__(self) -> None:
+        self.delivered_commands = []
 
     def capabilities(self) -> DeviceCapabilities:
         return DeviceCapabilities(

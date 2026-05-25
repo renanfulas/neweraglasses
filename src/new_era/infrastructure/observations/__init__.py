@@ -1,5 +1,7 @@
 """Observation infrastructure adapters."""
 
-from .simple_simulation_adapter import SimpleSimulationObservationAdapter
+from new_era.infrastructure.observations.simple_simulation_adapter import (
+    SimpleSimulationObservationAdapter,
+)
 
 __all__ = ["SimpleSimulationObservationAdapter"]

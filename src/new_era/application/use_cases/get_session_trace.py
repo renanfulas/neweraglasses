@@ -20,7 +20,7 @@ class SessionTraceEntry:
     detail: str
     created_at: str
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self) -> dict[str, object]:
         return {
             "event_id": self.event_id,
             "event_type": self.event_type,
@@ -86,23 +86,25 @@ def build_trace_detail(event: Event) -> str:
     if event.event_type == EventType.ALERT_CANDIDATE_CREATED:
         priority = str(metadata.get("priority", "unknown")).replace("_", " ")
         confidence = metadata.get("confidence")
-        alert_type = metadata.get("alert_type", "alert")
-        return f"{alert_type} candidate with {priority} priority at confidence {confidence}."
-    if event.event_type in {EventType.ALERT_SHOWN, EventType.ALERT_SUPPRESSED}:
+        return (
+            f"{metadata.get('alert_type', 'alert')} candidate "
+            f"with {priority} priority at confidence {confidence}."
+        )
+    if event.event_type in (EventType.ALERT_SHOWN, EventType.ALERT_SUPPRESSED):
         return str(metadata.get("reason", "No decision reason recorded."))
     if event.event_type == EventType.LENS_COMMAND_DELIVERED:
         return f"Rendered by {metadata.get('adapter_name', 'device adapter')}."
     if event.event_type == EventType.DEVICE_CAPABILITY_MISSING:
         return (
-            f"Missing {metadata.get('missing_capability', 'required capability')} "
-            f"on {metadata.get('adapter_name', 'device adapter')}."
+            f"Missing {metadata.get('missing_capability', 'required capability')} on "
+            f"{metadata.get('adapter_name', 'device adapter')}."
         )
     if event.event_type == EventType.DEVICE_DELIVERY_FAILED:
         return f"Delivery failed on {metadata.get('adapter_name', 'device adapter')}."
     if event.event_type == EventType.JOB_STARTED:
         return (
-            f"Queued {metadata.get('job_type', 'job')} "
-            f"for {metadata.get('artifact_label', 'document artifact')}."
+            f"Queued {metadata.get('job_type', 'job')} for "
+            f"{metadata.get('artifact_label', 'document artifact')}."
         )
     if event.event_type == EventType.JOB_STATUS_UPDATED:
         return (
@@ -127,20 +129,20 @@ def build_trace_step(event_type: EventType) -> str:
         return "observation"
     if event_type == EventType.ALERT_CANDIDATE_CREATED:
         return "candidate"
-    if event_type in {EventType.ALERT_SHOWN, EventType.ALERT_SUPPRESSED}:
+    if event_type in (EventType.ALERT_SHOWN, EventType.ALERT_SUPPRESSED):
         return "decision"
-    if event_type in {
+    if event_type in (
         EventType.LENS_COMMAND_DELIVERED,
         EventType.DEVICE_CAPABILITY_MISSING,
         EventType.DEVICE_DELIVERY_FAILED,
-    }:
+    ):
         return "delivery"
-    if event_type in {
+    if event_type in (
         EventType.JOB_STARTED,
         EventType.JOB_STATUS_UPDATED,
         EventType.JOB_COMPLETED,
         EventType.JOB_FAILED,
-    }:
+    ):
         return "job"
     if event_type == EventType.AI_CALL_FAILED:
         return "provider"
@@ -189,7 +191,7 @@ def decode_trace_cursor(cursor: str | None) -> tuple[datetime, str] | None:
         decoded = urlsafe_b64decode(cursor.encode("ascii")).decode("utf-8")
         created_at_text, event_id = decoded.split("|", 1)
         return datetime.fromisoformat(created_at_text), event_id
-    except Exception as exc:  # pragma: no cover - parity with recovered runtime
+    except Exception as exc:
         raise ValueError("invalid trace cursor") from exc
 
 
@@ -198,9 +200,9 @@ def event_types_for_steps(steps: set[str] | None) -> set[EventType] | None:
         return None
     unknown_steps = steps.difference(TRACE_STEP_EVENT_TYPES.keys())
     if unknown_steps:
-        raise ValueError(
-            "unknown trace step filter: " + ", ".join(sorted(unknown_steps))
-        )
+        names = ", ".join(sorted(unknown_steps))
+        raise ValueError(f"unknown trace step filter: {names}")
+
     event_types: set[EventType] = set()
     for step in steps:
         event_types.update(TRACE_STEP_EVENT_TYPES[step])
@@ -208,6 +210,7 @@ def event_types_for_steps(steps: set[str] | None) -> set[EventType] | None:
 
 
 def combine_event_type_filters(
+    *,
     event_types: set[EventType] | None,
     steps: set[str] | None,
 ) -> set[EventType] | None:
@@ -225,6 +228,7 @@ class GetSessionTrace:
 
     def execute(
         self,
+        *,
         session_id: str,
         user_id: str | None = None,
         trace_id: str | None = None,

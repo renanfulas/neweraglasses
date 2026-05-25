@@ -29,6 +29,7 @@ class SimpleSimulationObservationAdapter(ObservationInterpreter):
         confidence = float(observation.metadata.get("confidence", 0.9))
         title = f"Missing {item_name}"
         body = f"You still need {item_name}."
+
         return AlertCandidate(
             candidate_id=f"candidate_{observation.observation_id}",
             user_id=observation.user_id,
@@ -40,6 +41,10 @@ class SimpleSimulationObservationAdapter(ObservationInterpreter):
             priority=AlertPriority.MEDIUM,
             confidence=confidence,
             category="grocery",
+            metadata={
+                "observation_id": observation.observation_id,
+                "item_name": item_name,
+            },
         )
 
     def _to_document_candidate(self, observation: Observation) -> AlertCandidate | None:
@@ -47,14 +52,8 @@ class SimpleSimulationObservationAdapter(ObservationInterpreter):
         if not analysis.has_findings:
             return None
 
-        finding_types = tuple(
-            finding.finding_type.value for finding in analysis.findings[:2]
-        )
-        priority = (
-            AlertPriority.HIGH
-            if len(analysis.findings) >= 2
-            else AlertPriority.MEDIUM
-        )
+        finding_types = tuple(finding.finding_type.value for finding in analysis.findings[:2])
+        priority = AlertPriority.HIGH if len(analysis.findings) >= 2 else AlertPriority.MEDIUM
         return AlertCandidate(
             candidate_id=f"candidate_{observation.observation_id}",
             user_id=observation.user_id,
@@ -66,12 +65,15 @@ class SimpleSimulationObservationAdapter(ObservationInterpreter):
             priority=priority,
             confidence=analysis.review_confidence,
             category="documents",
+            metadata={
+                "observation_id": observation.observation_id,
+                "finding_types": finding_types,
+                "excerpt_preview": tuple(finding.excerpt for finding in analysis.findings[:2]),
+                "source_confidence": analysis.source_confidence,
+            },
         )
 
-    def _resolve_document_analysis(
-        self,
-        observation: Observation,
-    ) -> ContractReviewAnalysis:
+    def _resolve_document_analysis(self, observation: Observation) -> ContractReviewAnalysis:
         serialized_analysis = observation.metadata.get("document_analysis")
         if isinstance(serialized_analysis, dict):
             findings = tuple(
@@ -88,10 +90,7 @@ class SimpleSimulationObservationAdapter(ObservationInterpreter):
                 source_confidence=float(serialized_analysis.get("source_confidence", 0.0)),
                 review_confidence=float(serialized_analysis.get("review_confidence", 0.0)),
                 summary_title=str(
-                    serialized_analysis.get(
-                        "summary_title",
-                        "Contract clause needs attention",
-                    )
+                    serialized_analysis.get("summary_title", "Contract clause needs attention")
                 ),
                 summary_body=str(serialized_analysis.get("summary_body", "")),
                 findings=findings,

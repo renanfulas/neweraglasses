@@ -1,5 +1,5 @@
 """OCR adapters."""
 
-from .rapidocr_engine import RapidOCRAdapter
+from new_era.infrastructure.ocr.rapidocr_engine import RapidOCRAdapter
 
 __all__ = ["RapidOCRAdapter"]
