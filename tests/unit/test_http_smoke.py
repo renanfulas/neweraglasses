@@ -33,7 +33,7 @@ class HttpSmokeTests(unittest.TestCase):
         self.assertEqual(health.status_code, 200)
         self.assertEqual(health.json()["status"], "ok")
         self.assertEqual(root.status_code, 200)
-        self.assertIn("New Era Glasses", root.text)
+        self.assertIn("New Era Simulator", root.text)
         self.assertEqual(capabilities.status_code, 200)
         self.assertEqual(capabilities.json()["adapter_name"], "browser_simulation")
 
@@ -85,7 +85,7 @@ class HttpSmokeTests(unittest.TestCase):
         self.assertEqual(analysis_list.json()[0]["analysis_id"], analysis_id)
 
         feedback = self.client.post(
-            f"/api/lens/commands/{command_id}/feedback",
+            f"/api/lens-commands/{command_id}/feedback",
             json={
                 "user_id": "user_contract",
                 "session_id": session_id,
