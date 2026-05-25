@@ -1,0 +1,269 @@
+# pyc_path: C:/Users/renan/OneDrive/Documents/New Era Glasses/src/new_era/application/use_cases/__pycache__/get_document_analysis.cpython-312.pyc
+# embedded_filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py
+# module_name: new_era.application.use_cases.get_document_analysis
+# first_line: 1
+# compiled_at: 2026-05-24T13:23:13+00:00
+# source_size: 695
+
+## code_object: <module>
+filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py
+first_line: 1
+argcount: 0
+locals: 0
+stacksize: 5
+flags: 16777216
+names: ['__future__', 'annotations', 'dataclasses', 'dataclass', 'new_era.application.ports', 'DocumentAnalysisStore', 'new_era.domain.documents', 'DocumentAnalysisRecord', 'GetDocumentAnalysis', 'ListDocumentAnalysesBySession']
+varnames: []
+cellvars: []
+freevars: []
+disassembly:
+  0           0 RESUME                   0
+
+  1           2 LOAD_CONST               0 (0)
+              4 LOAD_CONST               1 (('annotations',))
+              6 IMPORT_NAME              0 (__future__)
+              8 IMPORT_FROM              1 (annotations)
+             10 STORE_NAME               1 (annotations)
+             12 POP_TOP
+
+  3          14 LOAD_CONST               0 (0)
+             16 LOAD_CONST               2 (('dataclass',))
+             18 IMPORT_NAME              2 (dataclasses)
+             20 IMPORT_FROM              3 (dataclass)
+             22 STORE_NAME               3 (dataclass)
+             24 POP_TOP
+
+  5          26 LOAD_CONST               0 (0)
+             28 LOAD_CONST               3 (('DocumentAnalysisStore',))
+             30 IMPORT_NAME              4 (new_era.application.ports)
+             32 IMPORT_FROM              5 (DocumentAnalysisStore)
+             34 STORE_NAME               5 (DocumentAnalysisStore)
+             36 POP_TOP
+
+  6          38 LOAD_CONST               0 (0)
+             40 LOAD_CONST               4 (('DocumentAnalysisRecord',))
+             42 IMPORT_NAME              6 (new_era.domain.documents)
+             44 IMPORT_FROM              7 (DocumentAnalysisRecord)
+             46 STORE_NAME               7 (DocumentAnalysisRecord)
+             48 POP_TOP
+
+  9          50 PUSH_NULL
+             52 LOAD_NAME                3 (dataclass)
+             54 LOAD_CONST               5 (True)
+             56 LOAD_CONST               5 (True)
+             58 KW_NAMES                 6 (('frozen', 'slots'))
+             60 CALL                     2
+
+ 10          68 PUSH_NULL
+             70 LOAD_BUILD_CLASS
+             72 LOAD_CONST               7 (<code object GetDocumentAnalysis at 0x000001B19EA2A330, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 9>)
+             74 MAKE_FUNCTION            0
+             76 LOAD_CONST               8 ('GetDocumentAnalysis')
+             78 CALL                     2
+
+  9          86 CALL                     0
+
+ 10          94 STORE_NAME               8 (GetDocumentAnalysis)
+
+ 17          96 PUSH_NULL
+             98 LOAD_NAME                3 (dataclass)
+            100 LOAD_CONST               5 (True)
+            102 LOAD_CONST               5 (True)
+            104 KW_NAMES                 6 (('frozen', 'slots'))
+            106 CALL                     2
+
+ 18         114 PUSH_NULL
+            116 LOAD_BUILD_CLASS
+            118 LOAD_CONST               9 (<code object ListDocumentAnalysesBySession at 0x000001B19EB1C2D0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 17>)
+            120 MAKE_FUNCTION            0
+            122 LOAD_CONST              10 ('ListDocumentAnalysesBySession')
+            124 CALL                     2
+
+ 17         132 CALL                     0
+
+ 18         140 STORE_NAME               9 (ListDocumentAnalysesBySession)
+            142 RETURN_CONST            11 (None)
+
+Disassembly of <code object GetDocumentAnalysis at 0x000001B19EA2A330, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 9>:
+  9           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('GetDocumentAnalysis')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 11          12 LOAD_CONST               1 ('DocumentAnalysisStore')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('analysis_store')
+             18 STORE_SUBSCR
+
+ 13          22 LOAD_CONST               5 (('analysis_id', 'str', 'return', 'DocumentAnalysisRecord | None'))
+             24 LOAD_CONST               3 (<code object execute at 0x000001B19EA63730, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 13>)
+             26 MAKE_FUNCTION            4 (annotations)
+             28 STORE_NAME               4 (execute)
+             30 RETURN_CONST             4 (None)
+
+Disassembly of <code object execute at 0x000001B19EA63730, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 13>:
+ 13           0 RESUME                   0
+
+ 14           2 LOAD_FAST                0 (self)
+              4 LOAD_ATTR                0 (analysis_store)
+             24 LOAD_ATTR                3 (NULL|self + get)
+             44 LOAD_FAST                1 (analysis_id)
+             46 CALL                     1
+             54 RETURN_VALUE
+
+Disassembly of <code object ListDocumentAnalysesBySession at 0x000001B19EB1C2D0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 17>:
+ 17           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('ListDocumentAnalysesBySession')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 19          12 LOAD_CONST               1 ('DocumentAnalysisStore')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('analysis_store')
+             18 STORE_SUBSCR
+
+ 21          22 LOAD_CONST               5 (('session_id', 'str', 'return', 'list[DocumentAnalysisRecord]'))
+             24 LOAD_CONST               3 (<code object execute at 0x000001B19EA63930, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 21>)
+             26 MAKE_FUNCTION            4 (annotations)
+             28 STORE_NAME               4 (execute)
+             30 RETURN_CONST             4 (None)
+
+Disassembly of <code object execute at 0x000001B19EA63930, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 21>:
+ 21           0 RESUME                   0
+
+ 22           2 LOAD_FAST                0 (self)
+              4 LOAD_ATTR                0 (analysis_store)
+             24 LOAD_ATTR                3 (NULL|self + list_by_session)
+             44 LOAD_FAST                1 (session_id)
+             46 KW_NAMES                 1 (('session_id',))
+             48 CALL                     1
+             56 RETURN_VALUE
+
+  ## code_object: GetDocumentAnalysis
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py
+  first_line: 9
+  argcount: 0
+  locals: 0
+  stacksize: 3
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__', 'execute']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+    9           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('GetDocumentAnalysis')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   11          12 LOAD_CONST               1 ('DocumentAnalysisStore')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('analysis_store')
+               18 STORE_SUBSCR
+  
+   13          22 LOAD_CONST               5 (('analysis_id', 'str', 'return', 'DocumentAnalysisRecord | None'))
+               24 LOAD_CONST               3 (<code object execute at 0x000001B19EA63730, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 13>)
+               26 MAKE_FUNCTION            4 (annotations)
+               28 STORE_NAME               4 (execute)
+               30 RETURN_CONST             4 (None)
+  
+  Disassembly of <code object execute at 0x000001B19EA63730, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 13>:
+   13           0 RESUME                   0
+  
+   14           2 LOAD_FAST                0 (self)
+                4 LOAD_ATTR                0 (analysis_store)
+               24 LOAD_ATTR                3 (NULL|self + get)
+               44 LOAD_FAST                1 (analysis_id)
+               46 CALL                     1
+               54 RETURN_VALUE
+
+    ## code_object: execute
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py
+    first_line: 13
+    argcount: 1
+    locals: 2
+    stacksize: 3
+    flags: 16777219
+    names: ['analysis_store', 'get']
+    varnames: ['self', 'analysis_id']
+    cellvars: []
+    freevars: []
+    disassembly:
+     13           0 RESUME                   0
+    
+     14           2 LOAD_FAST                0 (self)
+                  4 LOAD_ATTR                0 (analysis_store)
+                 24 LOAD_ATTR                3 (NULL|self + get)
+                 44 LOAD_FAST                1 (analysis_id)
+                 46 CALL                     1
+                 54 RETURN_VALUE
+
+  ## code_object: ListDocumentAnalysesBySession
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py
+  first_line: 17
+  argcount: 0
+  locals: 0
+  stacksize: 3
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__', 'execute']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   17           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('ListDocumentAnalysesBySession')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   19          12 LOAD_CONST               1 ('DocumentAnalysisStore')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('analysis_store')
+               18 STORE_SUBSCR
+  
+   21          22 LOAD_CONST               5 (('session_id', 'str', 'return', 'list[DocumentAnalysisRecord]'))
+               24 LOAD_CONST               3 (<code object execute at 0x000001B19EA63930, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 21>)
+               26 MAKE_FUNCTION            4 (annotations)
+               28 STORE_NAME               4 (execute)
+               30 RETURN_CONST             4 (None)
+  
+  Disassembly of <code object execute at 0x000001B19EA63930, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py", line 21>:
+   21           0 RESUME                   0
+  
+   22           2 LOAD_FAST                0 (self)
+                4 LOAD_ATTR                0 (analysis_store)
+               24 LOAD_ATTR                3 (NULL|self + list_by_session)
+               44 LOAD_FAST                1 (session_id)
+               46 KW_NAMES                 1 (('session_id',))
+               48 CALL                     1
+               56 RETURN_VALUE
+
+    ## code_object: execute
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\get_document_analysis.py
+    first_line: 21
+    argcount: 1
+    locals: 2
+    stacksize: 3
+    flags: 16777219
+    names: ['analysis_store', 'list_by_session']
+    varnames: ['self', 'session_id']
+    cellvars: []
+    freevars: []
+    disassembly:
+     21           0 RESUME                   0
+    
+     22           2 LOAD_FAST                0 (self)
+                  4 LOAD_ATTR                0 (analysis_store)
+                 24 LOAD_ATTR                3 (NULL|self + list_by_session)
+                 44 LOAD_FAST                1 (session_id)
+                 46 KW_NAMES                 1 (('session_id',))
+                 48 CALL                     1
+                 56 RETURN_VALUE
+

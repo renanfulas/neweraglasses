@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>New Era Glasses</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <p class="eyebrow">Localhost runtime</p>
+        <h1>New Era Glasses</h1>
+        <p class="lede">
+          The backend runtime is alive again. This local shell is here to keep the
+          project bootable while we rebuild the rest of the app surface with care.
+        </p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Runtime status</h2>
+          <button id="refresh-health" type="button">Refresh</button>
+        </div>
+        <dl class="status-grid">
+          <div>
+            <dt>API</dt>
+            <dd id="api-status">Checking…</dd>
+          </div>
+          <div>
+            <dt>Device gateway</dt>
+            <dd id="device-status">Checking…</dd>
+          </div>
+          <div>
+            <dt>Version</dt>
+            <dd id="version-status">Checking…</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>What this shell covers</h2>
+        </div>
+        <ul class="checklist">
+          <li>FastAPI app boot and static mounting</li>
+          <li>Manifest and service worker routes</li>
+          <li>Health probe against the rebuilt runtime</li>
+          <li>A predictable local entry point while we keep restoring source</li>
+        </ul>
+      </section>
+    </main>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

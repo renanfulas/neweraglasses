@@ -1,0 +1,1620 @@
+# pyc_path: C:/Users/renan/OneDrive/Documents/New Era Glasses/src/new_era/application/services/__pycache__/document_session.cpython-312.pyc
+# embedded_filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py
+# module_name: new_era.application.services.document_session
+# first_line: 1
+# compiled_at: 2026-05-24T15:02:34+00:00
+# source_size: 6545
+
+## code_object: <module>
+filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py
+first_line: 1
+argcount: 0
+locals: 0
+stacksize: 5
+flags: 16777216
+names: ['__future__', 'annotations', 'dataclasses', 'dataclass', 'new_era.application.ports', 'DeviceGateway', 'DocumentAnalysisStore', 'EventStore', 'OCREngine', 'ObservationInterpreter', 'new_era.application.use_cases', 'ObservationProcessingResult', 'ProcessObservation', 'new_era.domain.attention', 'AttentionMode', 'new_era.domain.documents', 'ContractReviewAnalysis', 'DeterministicContractAnalyzer', 'DocumentAnalysisRecord', 'new_era.domain.observations', 'Observation', 'ObservationKind', 'new_era.infrastructure.device', 'BrowserSimulationAdapter', 'new_era.infrastructure.documents', 'InMemoryDocumentAnalysisStore', 'new_era.infrastructure.events', 'InMemoryEventStore', 'new_era.infrastructure.observations', 'SimpleSimulationObservationAdapter', 'new_era.infrastructure.ocr', 'RapidOCRAdapter', 'DocumentContractReviewResult', 'DocumentSessionService']
+varnames: []
+cellvars: []
+freevars: []
+disassembly:
+  0           0 RESUME                   0
+
+  1           2 LOAD_CONST               0 (0)
+              4 LOAD_CONST               1 (('annotations',))
+              6 IMPORT_NAME              0 (__future__)
+              8 IMPORT_FROM              1 (annotations)
+             10 STORE_NAME               1 (annotations)
+             12 POP_TOP
+
+  3          14 LOAD_CONST               0 (0)
+             16 LOAD_CONST               2 (('dataclass',))
+             18 IMPORT_NAME              2 (dataclasses)
+             20 IMPORT_FROM              3 (dataclass)
+             22 STORE_NAME               3 (dataclass)
+             24 POP_TOP
+
+  5          26 LOAD_CONST               0 (0)
+             28 LOAD_CONST               3 (('DeviceGateway', 'DocumentAnalysisStore', 'EventStore', 'OCREngine', 'ObservationInterpreter'))
+             30 IMPORT_NAME              4 (new_era.application.ports)
+             32 IMPORT_FROM              5 (DeviceGateway)
+             34 STORE_NAME               5 (DeviceGateway)
+             36 IMPORT_FROM              6 (DocumentAnalysisStore)
+             38 STORE_NAME               6 (DocumentAnalysisStore)
+             40 IMPORT_FROM              7 (EventStore)
+             42 STORE_NAME               7 (EventStore)
+             44 IMPORT_FROM              8 (OCREngine)
+             46 STORE_NAME               8 (OCREngine)
+             48 IMPORT_FROM              9 (ObservationInterpreter)
+             50 STORE_NAME               9 (ObservationInterpreter)
+             52 POP_TOP
+
+ 12          54 LOAD_CONST               0 (0)
+             56 LOAD_CONST               4 (('ObservationProcessingResult', 'ProcessObservation'))
+             58 IMPORT_NAME             10 (new_era.application.use_cases)
+             60 IMPORT_FROM             11 (ObservationProcessingResult)
+             62 STORE_NAME              11 (ObservationProcessingResult)
+             64 IMPORT_FROM             12 (ProcessObservation)
+             66 STORE_NAME              12 (ProcessObservation)
+             68 POP_TOP
+
+ 13          70 LOAD_CONST               0 (0)
+             72 LOAD_CONST               5 (('AttentionMode',))
+             74 IMPORT_NAME             13 (new_era.domain.attention)
+             76 IMPORT_FROM             14 (AttentionMode)
+             78 STORE_NAME              14 (AttentionMode)
+             80 POP_TOP
+
+ 14          82 LOAD_CONST               0 (0)
+             84 LOAD_CONST               6 (('ContractReviewAnalysis', 'DeterministicContractAnalyzer', 'DocumentAnalysisRecord'))
+             86 IMPORT_NAME             15 (new_era.domain.documents)
+             88 IMPORT_FROM             16 (ContractReviewAnalysis)
+             90 STORE_NAME              16 (ContractReviewAnalysis)
+             92 IMPORT_FROM             17 (DeterministicContractAnalyzer)
+             94 STORE_NAME              17 (DeterministicContractAnalyzer)
+             96 IMPORT_FROM             18 (DocumentAnalysisRecord)
+             98 STORE_NAME              18 (DocumentAnalysisRecord)
+            100 POP_TOP
+
+ 19         102 LOAD_CONST               0 (0)
+            104 LOAD_CONST               7 (('Observation', 'ObservationKind'))
+            106 IMPORT_NAME             19 (new_era.domain.observations)
+            108 IMPORT_FROM             20 (Observation)
+            110 STORE_NAME              20 (Observation)
+            112 IMPORT_FROM             21 (ObservationKind)
+            114 STORE_NAME              21 (ObservationKind)
+            116 POP_TOP
+
+ 20         118 LOAD_CONST               0 (0)
+            120 LOAD_CONST               8 (('BrowserSimulationAdapter',))
+            122 IMPORT_NAME             22 (new_era.infrastructure.device)
+            124 IMPORT_FROM             23 (BrowserSimulationAdapter)
+            126 STORE_NAME              23 (BrowserSimulationAdapter)
+            128 POP_TOP
+
+ 21         130 LOAD_CONST               0 (0)
+            132 LOAD_CONST               9 (('InMemoryDocumentAnalysisStore',))
+            134 IMPORT_NAME             24 (new_era.infrastructure.documents)
+            136 IMPORT_FROM             25 (InMemoryDocumentAnalysisStore)
+            138 STORE_NAME              25 (InMemoryDocumentAnalysisStore)
+            140 POP_TOP
+
+ 22         142 LOAD_CONST               0 (0)
+            144 LOAD_CONST              10 (('InMemoryEventStore',))
+            146 IMPORT_NAME             26 (new_era.infrastructure.events)
+            148 IMPORT_FROM             27 (InMemoryEventStore)
+            150 STORE_NAME              27 (InMemoryEventStore)
+            152 POP_TOP
+
+ 23         154 LOAD_CONST               0 (0)
+            156 LOAD_CONST              11 (('SimpleSimulationObservationAdapter',))
+            158 IMPORT_NAME             28 (new_era.infrastructure.observations)
+            160 IMPORT_FROM             29 (SimpleSimulationObservationAdapter)
+            162 STORE_NAME              29 (SimpleSimulationObservationAdapter)
+            164 POP_TOP
+
+ 24         166 LOAD_CONST               0 (0)
+            168 LOAD_CONST              12 (('RapidOCRAdapter',))
+            170 IMPORT_NAME             30 (new_era.infrastructure.ocr)
+            172 IMPORT_FROM             31 (RapidOCRAdapter)
+            174 STORE_NAME              31 (RapidOCRAdapter)
+            176 POP_TOP
+
+ 27         178 PUSH_NULL
+            180 LOAD_NAME                3 (dataclass)
+            182 LOAD_CONST              13 (True)
+            184 LOAD_CONST              13 (True)
+            186 KW_NAMES                14 (('frozen', 'slots'))
+            188 CALL                     2
+
+ 28         196 PUSH_NULL
+            198 LOAD_BUILD_CLASS
+            200 LOAD_CONST              15 (<code object DocumentContractReviewResult at 0x0000028CA2D4CFF0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 27>)
+            202 MAKE_FUNCTION            0
+            204 LOAD_CONST              16 ('DocumentContractReviewResult')
+            206 CALL                     2
+
+ 27         214 CALL                     0
+
+ 28         222 STORE_NAME              32 (DocumentContractReviewResult)
+
+ 46         224 PUSH_NULL
+            226 LOAD_NAME                3 (dataclass)
+            228 LOAD_CONST              13 (True)
+            230 LOAD_CONST              13 (True)
+            232 KW_NAMES                14 (('frozen', 'slots'))
+            234 CALL                     2
+
+ 47         242 PUSH_NULL
+            244 LOAD_BUILD_CLASS
+            246 LOAD_CONST              17 (<code object DocumentSessionService at 0x0000028CA2D14990, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 46>)
+            248 MAKE_FUNCTION            0
+            250 LOAD_CONST              18 ('DocumentSessionService')
+            252 CALL                     2
+
+ 46         260 CALL                     0
+
+ 47         268 STORE_NAME              33 (DocumentSessionService)
+            270 RETURN_CONST            19 (None)
+
+Disassembly of <code object DocumentContractReviewResult at 0x0000028CA2D4CFF0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 27>:
+ 27           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('DocumentContractReviewResult')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 29          12 LOAD_CONST               1 ('ObservationProcessingResult')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('processing_result')
+             18 STORE_SUBSCR
+
+ 30          22 LOAD_CONST               3 ('ContractReviewAnalysis')
+             24 LOAD_NAME                3 (__annotations__)
+             26 LOAD_CONST               4 ('analysis')
+             28 STORE_SUBSCR
+
+ 31          32 LOAD_CONST               5 ('DocumentAnalysisRecord')
+             34 LOAD_NAME                3 (__annotations__)
+             36 LOAD_CONST               6 ('analysis_record')
+             38 STORE_SUBSCR
+
+ 33          42 LOAD_NAME                4 (property)
+
+ 34          44 LOAD_CONST               7 (<code object outcome at 0x0000028CA2C83E10, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 33>)
+             46 MAKE_FUNCTION            0
+
+ 33          48 CALL                     0
+
+ 34          56 STORE_NAME               5 (outcome)
+
+ 37          58 LOAD_NAME                4 (property)
+
+ 38          60 LOAD_CONST              11 (('return', 'bool'))
+             62 LOAD_CONST               8 (<code object candidate_created at 0x0000028CA2F70030, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 37>)
+             64 MAKE_FUNCTION            4 (annotations)
+
+ 37          66 CALL                     0
+
+ 38          74 STORE_NAME               6 (candidate_created)
+
+ 41          76 LOAD_NAME                4 (property)
+
+ 42          78 LOAD_CONST               9 (<code object alert_result at 0x0000028CA2F70120, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 41>)
+             80 MAKE_FUNCTION            0
+
+ 41          82 CALL                     0
+
+ 42          90 STORE_NAME               7 (alert_result)
+             92 RETURN_CONST            10 (None)
+
+Disassembly of <code object outcome at 0x0000028CA2C83E10, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 33>:
+ 33           0 RESUME                   0
+
+ 35           2 LOAD_FAST                0 (self)
+              4 LOAD_ATTR                0 (processing_result)
+             24 LOAD_ATTR                2 (outcome)
+             44 RETURN_VALUE
+
+Disassembly of <code object candidate_created at 0x0000028CA2F70030, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 37>:
+ 37           0 RESUME                   0
+
+ 39           2 LOAD_FAST                0 (self)
+              4 LOAD_ATTR                0 (processing_result)
+             24 LOAD_ATTR                2 (candidate_created)
+             44 RETURN_VALUE
+
+Disassembly of <code object alert_result at 0x0000028CA2F70120, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 41>:
+ 41           0 RESUME                   0
+
+ 43           2 LOAD_FAST                0 (self)
+              4 LOAD_ATTR                0 (processing_result)
+             24 LOAD_ATTR                2 (alert_result)
+             44 RETURN_VALUE
+
+Disassembly of <code object DocumentSessionService at 0x0000028CA2D14990, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 46>:
+ 46           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('DocumentSessionService')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 48          12 LOAD_CONST               1 ('ProcessObservation')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('observation_processor')
+             18 STORE_SUBSCR
+
+ 49          22 LOAD_CONST               3 ('EventStore')
+             24 LOAD_NAME                3 (__annotations__)
+             26 LOAD_CONST               4 ('event_store')
+             28 STORE_SUBSCR
+
+ 50          32 LOAD_CONST               5 ('DeviceGateway')
+             34 LOAD_NAME                3 (__annotations__)
+             36 LOAD_CONST               6 ('device_gateway')
+             38 STORE_SUBSCR
+
+ 51          42 LOAD_CONST               7 ('DeterministicContractAnalyzer')
+             44 LOAD_NAME                3 (__annotations__)
+             46 LOAD_CONST               8 ('contract_analyzer')
+             48 STORE_SUBSCR
+
+ 52          52 LOAD_CONST               9 ('OCREngine')
+             54 LOAD_NAME                3 (__annotations__)
+             56 LOAD_CONST              10 ('ocr_engine')
+             58 STORE_SUBSCR
+
+ 53          62 LOAD_CONST              11 ('DocumentAnalysisStore')
+             64 LOAD_NAME                3 (__annotations__)
+             66 LOAD_CONST              12 ('analysis_store')
+             68 STORE_SUBSCR
+
+ 68          72 LOAD_CONST              13 (None)
+
+ 69          74 LOAD_CONST              13 (None)
+
+ 55          76 LOAD_CONST              14 (('source_type', 'observation_summary'))
+             78 BUILD_CONST_KEY_MAP      2
+
+ 58          80 NOP
+
+ 55          82 NOP
+
+ 59          84 NOP
+
+ 55          86 NOP
+
+ 60          88 NOP
+
+ 55          90 NOP
+
+ 61          92 NOP
+
+ 55          94 NOP
+
+ 62          96 NOP
+
+ 55          98 NOP
+
+ 63         100 NOP
+
+ 55         102 NOP
+
+ 64         104 NOP
+
+ 55         106 NOP
+
+ 65         108 NOP
+
+ 55         110 NOP
+
+ 66         112 NOP
+
+ 55         114 NOP
+
+ 67         116 NOP
+
+ 55         118 NOP
+
+ 68         120 NOP
+
+ 55         122 NOP
+
+ 69         124 NOP
+
+ 55         126 NOP
+
+ 70         128 NOP
+
+ 55         130 LOAD_CONST              18 (('observation_id', 'str', 'user_id', 'str', 'session_id', 'str', 'document_text', 'str | None', 'document_image_base64', 'str | None', 'confidence', 'float | None', 'mode', 'AttentionMode', 'recent_category_count', 'int', 'correlation_id', 'str', 'trace_id', 'str', 'source_type', 'str | None', 'observation_summary', 'str | None', 'return', 'DocumentContractReviewResult'))
+            132 LOAD_CONST              15 (<code object process_contract_review at 0x0000028CA2E4B500, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 55>)
+            134 MAKE_FUNCTION            6 (kwdefaults, annotations)
+            136 STORE_NAME               4 (process_contract_review)
+
+123         138 LOAD_NAME                5 (classmethod)
+
+124         140 NOP
+
+127         142 NOP
+
+124         144 NOP
+
+128         146 NOP
+
+124         148 NOP
+
+129         150 NOP
+
+124         152 NOP
+
+130         154 NOP
+
+124         156 NOP
+
+131         158 NOP
+
+124         160 NOP
+
+132         162 NOP
+
+124         164 NOP
+
+133         166 NOP
+
+124         168 LOAD_CONST              19 (('observation_processor', 'ProcessObservation', 'event_store', 'EventStore', 'device_gateway', 'DeviceGateway', 'contract_analyzer', 'DeterministicContractAnalyzer', 'ocr_engine', 'OCREngine', 'analysis_store', 'DocumentAnalysisStore', 'return', "'DocumentSessionService'"))
+            170 LOAD_CONST              16 (<code object build_simulation at 0x0000028CA2C6A330, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 123>)
+            172 MAKE_FUNCTION            4 (annotations)
+
+123         174 CALL                     0
+
+124         182 STORE_NAME               6 (build_simulation)
+
+143         184 LOAD_NAME                5 (classmethod)
+
+144         186 LOAD_CONST              20 (('return', "'DocumentSessionService'"))
+            188 LOAD_CONST              17 (<code object build_default_simulation at 0x0000028CA289AF10, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 143>)
+            190 MAKE_FUNCTION            4 (annotations)
+
+143         192 CALL                     0
+
+144         200 STORE_NAME               7 (build_default_simulation)
+            202 RETURN_CONST            13 (None)
+
+Disassembly of <code object process_contract_review at 0x0000028CA2E4B500, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 55>:
+ 55           0 RESUME                   0
+
+ 71           2 LOAD_CONST               0 (None)
+              4 STORE_FAST              13 (ocr_extraction)
+
+ 72           6 LOAD_FAST                4 (document_text)
+              8 COPY                     1
+             10 POP_JUMP_IF_TRUE         2 (to 16)
+             12 POP_TOP
+             14 LOAD_CONST               1 ('')
+        >>   16 LOAD_ATTR                1 (NULL|self + strip)
+             36 CALL                     0
+             44 STORE_FAST              14 (extracted_text)
+
+ 73          46 LOAD_GLOBAL              3 (NULL + float)
+             56 LOAD_FAST                6 (confidence)
+             58 POP_JUMP_IF_NONE         2 (to 64)
+             60 LOAD_FAST                6 (confidence)
+             62 JUMP_FORWARD             1 (to 66)
+        >>   64 LOAD_CONST               2 (0.0)
+        >>   66 CALL                     1
+             74 STORE_FAST              15 (source_confidence)
+
+ 75          76 LOAD_FAST                5 (document_image_base64)
+             78 POP_JUMP_IF_FALSE       53 (to 186)
+
+ 76          80 LOAD_FAST                0 (self)
+             82 LOAD_ATTR                4 (ocr_engine)
+            102 LOAD_ATTR                7 (NULL|self + extract_text)
+            122 LOAD_FAST                5 (document_image_base64)
+            124 KW_NAMES                 3 (('image_base64',))
+            126 CALL                     1
+            134 STORE_FAST              13 (ocr_extraction)
+
+ 77         136 LOAD_FAST               13 (ocr_extraction)
+            138 LOAD_ATTR                8 (text)
+            158 STORE_FAST              14 (extracted_text)
+
+ 78         160 LOAD_FAST               13 (ocr_extraction)
+            162 LOAD_ATTR               10 (confidence)
+            182 STORE_FAST              15 (source_confidence)
+            184 JUMP_FORWARD            17 (to 220)
+
+ 79     >>  186 LOAD_FAST               14 (extracted_text)
+            188 POP_JUMP_IF_FALSE       15 (to 220)
+
+ 80         190 LOAD_GLOBAL              3 (NULL + float)
+            200 LOAD_FAST                6 (confidence)
+            202 POP_JUMP_IF_NONE         2 (to 208)
+            204 LOAD_FAST                6 (confidence)
+            206 JUMP_FORWARD             1 (to 210)
+        >>  208 LOAD_CONST               4 (0.92)
+        >>  210 CALL                     1
+            218 STORE_FAST              15 (source_confidence)
+
+ 82     >>  220 LOAD_FAST                0 (self)
+            222 LOAD_ATTR               12 (contract_analyzer)
+            242 LOAD_ATTR               15 (NULL|self + analyze)
+
+ 83         262 LOAD_FAST               14 (extracted_text)
+
+ 84         264 LOAD_FAST               15 (source_confidence)
+
+ 82         266 KW_NAMES                 5 (('document_text', 'source_confidence'))
+            268 CALL                     2
+            276 STORE_FAST              16 (analysis)
+
+ 86         278 LOAD_FAST               11 (source_type)
+            280 COPY                     1
+            282 POP_JUMP_IF_TRUE         6 (to 296)
+            284 POP_TOP
+            286 LOAD_FAST                5 (document_image_base64)
+            288 POP_JUMP_IF_FALSE        2 (to 294)
+            290 LOAD_CONST               6 ('image_ocr')
+            292 JUMP_FORWARD             1 (to 296)
+        >>  294 LOAD_CONST               7 ('plain_text')
+        >>  296 STORE_FAST              11 (source_type)
+
+ 87         298 LOAD_GLOBAL             17 (NULL + DocumentAnalysisRecord)
+
+ 88         308 LOAD_FAST                2 (user_id)
+
+ 89         310 LOAD_FAST                3 (session_id)
+
+ 90         312 LOAD_FAST                1 (observation_id)
+
+ 91         314 LOAD_FAST               10 (trace_id)
+
+ 92         316 LOAD_FAST               11 (source_type)
+
+ 93         318 LOAD_FAST               16 (analysis)
+
+ 87         320 KW_NAMES                 8 (('user_id', 'session_id', 'observation_id', 'trace_id', 'source_type', 'analysis'))
+            322 CALL                     6
+            330 STORE_FAST              17 (analysis_record)
+
+ 95         332 LOAD_FAST                0 (self)
+            334 LOAD_ATTR               18 (analysis_store)
+            354 LOAD_ATTR               21 (NULL|self + save)
+            374 LOAD_FAST               17 (analysis_record)
+            376 CALL                     1
+            384 POP_TOP
+
+ 96         386 LOAD_GLOBAL             23 (NULL + Observation)
+
+ 97         396 LOAD_FAST                1 (observation_id)
+
+ 98         398 LOAD_FAST                2 (user_id)
+
+ 99         400 LOAD_FAST                3 (session_id)
+
+100         402 LOAD_CONST               9 ('documents')
+
+101         404 LOAD_GLOBAL             24 (ObservationKind)
+            414 LOAD_ATTR               26 (DOCUMENT_CONTRACT_REVIEW)
+
+102         434 LOAD_FAST               12 (observation_summary)
+            436 COPY                     1
+            438 POP_JUMP_IF_TRUE         2 (to 444)
+            440 POP_TOP
+            442 LOAD_CONST              10 ('Contract review requested from PWA simulation')
+
+104     >>  444 LOAD_FAST               16 (analysis)
+            446 LOAD_ATTR               29 (NULL|self + to_dict)
+            466 CALL                     0
+
+105         474 LOAD_FAST               17 (analysis_record)
+            476 LOAD_ATTR               30 (analysis_id)
+
+106         496 LOAD_FAST               11 (source_type)
+
+107         498 LOAD_FAST               13 (ocr_extraction)
+            500 POP_JUMP_IF_FALSE       12 (to 526)
+            502 LOAD_FAST               13 (ocr_extraction)
+            504 LOAD_ATTR               32 (engine_name)
+            524 JUMP_FORWARD             1 (to 528)
+        >>  526 LOAD_CONST               0 (None)
+
+103     >>  528 LOAD_CONST              11 (('document_analysis', 'analysis_id', 'source_type', 'ocr_engine'))
+            530 BUILD_CONST_KEY_MAP      4
+
+ 96         532 KW_NAMES                12 (('observation_id', 'user_id', 'session_id', 'module', 'kind', 'summary', 'metadata'))
+            534 CALL                     7
+            542 STORE_FAST              18 (observation)
+
+110         544 LOAD_FAST                0 (self)
+            546 LOAD_ATTR               34 (observation_processor)
+            566 LOAD_ATTR               37 (NULL|self + execute)
+
+111         586 LOAD_FAST               18 (observation)
+
+112         588 LOAD_FAST                7 (mode)
+
+113         590 LOAD_FAST                8 (recent_category_count)
+
+114         592 LOAD_FAST                9 (correlation_id)
+
+115         594 LOAD_FAST               10 (trace_id)
+
+110         596 KW_NAMES                13 (('observation', 'mode', 'recent_category_count', 'correlation_id', 'trace_id'))
+            598 CALL                     5
+            606 STORE_FAST              19 (processing_result)
+
+117         608 LOAD_GLOBAL             39 (NULL + DocumentContractReviewResult)
+
+118         618 LOAD_FAST               19 (processing_result)
+
+119         620 LOAD_FAST               16 (analysis)
+
+120         622 LOAD_FAST               17 (analysis_record)
+
+117         624 KW_NAMES                14 (('processing_result', 'analysis', 'analysis_record'))
+            626 CALL                     3
+            634 RETURN_VALUE
+
+Disassembly of <code object build_simulation at 0x0000028CA2C6A330, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 123>:
+123           0 RESUME                   0
+
+134           2 PUSH_NULL
+              4 LOAD_FAST                0 (cls)
+
+135           6 LOAD_FAST                1 (observation_processor)
+
+136           8 LOAD_FAST                2 (event_store)
+
+137          10 LOAD_FAST                3 (device_gateway)
+
+138          12 LOAD_FAST                4 (contract_analyzer)
+
+139          14 LOAD_FAST                5 (ocr_engine)
+
+140          16 LOAD_FAST                6 (analysis_store)
+
+134          18 KW_NAMES                 1 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+             20 CALL                     6
+             28 RETURN_VALUE
+
+Disassembly of <code object build_default_simulation at 0x0000028CA289AF10, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 143>:
+143           0 RESUME                   0
+
+145           2 LOAD_CONST               1 (0)
+              4 LOAD_CONST               2 (('DeliverLensCommand', 'EvaluateAlertCandidate', 'ProcessAlertCandidate'))
+              6 IMPORT_NAME              0 (new_era.application.use_cases)
+              8 IMPORT_FROM              1 (DeliverLensCommand)
+             10 STORE_FAST               1 (DeliverLensCommand)
+             12 IMPORT_FROM              2 (EvaluateAlertCandidate)
+             14 STORE_FAST               2 (EvaluateAlertCandidate)
+             16 IMPORT_FROM              3 (ProcessAlertCandidate)
+             18 STORE_FAST               3 (ProcessAlertCandidate)
+             20 POP_TOP
+
+150          22 LOAD_CONST               1 (0)
+             24 LOAD_CONST               3 (('AttentionPolicy',))
+             26 IMPORT_NAME              4 (new_era.domain.attention)
+             28 IMPORT_FROM              5 (AttentionPolicy)
+             30 STORE_FAST               4 (AttentionPolicy)
+             32 POP_TOP
+
+152          34 LOAD_GLOBAL             13 (NULL + InMemoryEventStore)
+             44 CALL                     0
+             52 STORE_FAST               5 (event_store)
+
+153          54 LOAD_GLOBAL             15 (NULL + BrowserSimulationAdapter)
+             64 CALL                     0
+             72 STORE_FAST               6 (device_gateway)
+
+154          74 LOAD_GLOBAL             17 (NULL + SimpleSimulationObservationAdapter)
+             84 CALL                     0
+             92 STORE_FAST               7 (observation_interpreter)
+
+155          94 LOAD_GLOBAL             19 (NULL + DeterministicContractAnalyzer)
+            104 CALL                     0
+            112 STORE_FAST               8 (contract_analyzer)
+
+156         114 LOAD_GLOBAL             21 (NULL + RapidOCRAdapter)
+            124 CALL                     0
+            132 STORE_FAST               9 (ocr_engine)
+
+157         134 LOAD_GLOBAL             23 (NULL + InMemoryDocumentAnalysisStore)
+            144 CALL                     0
+            152 STORE_FAST              10 (analysis_store)
+
+158         154 LOAD_GLOBAL             25 (NULL + ProcessObservation)
+
+159         164 LOAD_FAST                7 (observation_interpreter)
+
+160         166 PUSH_NULL
+            168 LOAD_FAST                3 (ProcessAlertCandidate)
+
+161         170 PUSH_NULL
+            172 LOAD_FAST                2 (EvaluateAlertCandidate)
+
+162         174 PUSH_NULL
+            176 LOAD_FAST                4 (AttentionPolicy)
+            178 CALL                     0
+
+163         186 LOAD_FAST                5 (event_store)
+
+161         188 KW_NAMES                 4 (('attention_policy', 'event_store'))
+            190 CALL                     2
+
+165         198 PUSH_NULL
+            200 LOAD_FAST                1 (DeliverLensCommand)
+
+166         202 LOAD_FAST                6 (device_gateway)
+
+167         204 LOAD_FAST                5 (event_store)
+
+165         206 KW_NAMES                 5 (('device_gateway', 'event_store'))
+            208 CALL                     2
+
+160         216 KW_NAMES                 6 (('evaluator', 'delivery'))
+            218 CALL                     2
+
+170         226 LOAD_FAST                5 (event_store)
+
+158         228 KW_NAMES                 7 (('observation_interpreter', 'alert_processor', 'event_store'))
+            230 CALL                     3
+            238 STORE_FAST              11 (observation_processor)
+
+172         240 LOAD_FAST                0 (cls)
+            242 LOAD_ATTR               27 (NULL|self + build_simulation)
+
+173         262 LOAD_FAST               11 (observation_processor)
+
+174         264 LOAD_FAST                5 (event_store)
+
+175         266 LOAD_FAST                6 (device_gateway)
+
+176         268 LOAD_FAST                8 (contract_analyzer)
+
+177         270 LOAD_FAST                9 (ocr_engine)
+
+178         272 LOAD_FAST               10 (analysis_store)
+
+172         274 KW_NAMES                 8 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+            276 CALL                     6
+            284 RETURN_VALUE
+
+  ## code_object: DocumentContractReviewResult
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py
+  first_line: 27
+  argcount: 0
+  locals: 0
+  stacksize: 3
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__', 'property', 'outcome', 'candidate_created', 'alert_result']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   27           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('DocumentContractReviewResult')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   29          12 LOAD_CONST               1 ('ObservationProcessingResult')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('processing_result')
+               18 STORE_SUBSCR
+  
+   30          22 LOAD_CONST               3 ('ContractReviewAnalysis')
+               24 LOAD_NAME                3 (__annotations__)
+               26 LOAD_CONST               4 ('analysis')
+               28 STORE_SUBSCR
+  
+   31          32 LOAD_CONST               5 ('DocumentAnalysisRecord')
+               34 LOAD_NAME                3 (__annotations__)
+               36 LOAD_CONST               6 ('analysis_record')
+               38 STORE_SUBSCR
+  
+   33          42 LOAD_NAME                4 (property)
+  
+   34          44 LOAD_CONST               7 (<code object outcome at 0x0000028CA2C83E10, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 33>)
+               46 MAKE_FUNCTION            0
+  
+   33          48 CALL                     0
+  
+   34          56 STORE_NAME               5 (outcome)
+  
+   37          58 LOAD_NAME                4 (property)
+  
+   38          60 LOAD_CONST              11 (('return', 'bool'))
+               62 LOAD_CONST               8 (<code object candidate_created at 0x0000028CA2F70030, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 37>)
+               64 MAKE_FUNCTION            4 (annotations)
+  
+   37          66 CALL                     0
+  
+   38          74 STORE_NAME               6 (candidate_created)
+  
+   41          76 LOAD_NAME                4 (property)
+  
+   42          78 LOAD_CONST               9 (<code object alert_result at 0x0000028CA2F70120, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 41>)
+               80 MAKE_FUNCTION            0
+  
+   41          82 CALL                     0
+  
+   42          90 STORE_NAME               7 (alert_result)
+               92 RETURN_CONST            10 (None)
+  
+  Disassembly of <code object outcome at 0x0000028CA2C83E10, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 33>:
+   33           0 RESUME                   0
+  
+   35           2 LOAD_FAST                0 (self)
+                4 LOAD_ATTR                0 (processing_result)
+               24 LOAD_ATTR                2 (outcome)
+               44 RETURN_VALUE
+  
+  Disassembly of <code object candidate_created at 0x0000028CA2F70030, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 37>:
+   37           0 RESUME                   0
+  
+   39           2 LOAD_FAST                0 (self)
+                4 LOAD_ATTR                0 (processing_result)
+               24 LOAD_ATTR                2 (candidate_created)
+               44 RETURN_VALUE
+  
+  Disassembly of <code object alert_result at 0x0000028CA2F70120, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 41>:
+   41           0 RESUME                   0
+  
+   43           2 LOAD_FAST                0 (self)
+                4 LOAD_ATTR                0 (processing_result)
+               24 LOAD_ATTR                2 (alert_result)
+               44 RETURN_VALUE
+
+    ## code_object: outcome
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py
+    first_line: 33
+    argcount: 1
+    locals: 1
+    stacksize: 1
+    flags: 16777219
+    names: ['processing_result', 'outcome']
+    varnames: ['self']
+    cellvars: []
+    freevars: []
+    disassembly:
+     33           0 RESUME                   0
+    
+     35           2 LOAD_FAST                0 (self)
+                  4 LOAD_ATTR                0 (processing_result)
+                 24 LOAD_ATTR                2 (outcome)
+                 44 RETURN_VALUE
+
+    ## code_object: candidate_created
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py
+    first_line: 37
+    argcount: 1
+    locals: 1
+    stacksize: 1
+    flags: 16777219
+    names: ['processing_result', 'candidate_created']
+    varnames: ['self']
+    cellvars: []
+    freevars: []
+    disassembly:
+     37           0 RESUME                   0
+    
+     39           2 LOAD_FAST                0 (self)
+                  4 LOAD_ATTR                0 (processing_result)
+                 24 LOAD_ATTR                2 (candidate_created)
+                 44 RETURN_VALUE
+
+    ## code_object: alert_result
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py
+    first_line: 41
+    argcount: 1
+    locals: 1
+    stacksize: 1
+    flags: 16777219
+    names: ['processing_result', 'alert_result']
+    varnames: ['self']
+    cellvars: []
+    freevars: []
+    disassembly:
+     41           0 RESUME                   0
+    
+     43           2 LOAD_FAST                0 (self)
+                  4 LOAD_ATTR                0 (processing_result)
+                 24 LOAD_ATTR                2 (alert_result)
+                 44 RETURN_VALUE
+
+  ## code_object: DocumentSessionService
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py
+  first_line: 46
+  argcount: 0
+  locals: 0
+  stacksize: 3
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__', 'process_contract_review', 'classmethod', 'build_simulation', 'build_default_simulation']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   46           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('DocumentSessionService')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   48          12 LOAD_CONST               1 ('ProcessObservation')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('observation_processor')
+               18 STORE_SUBSCR
+  
+   49          22 LOAD_CONST               3 ('EventStore')
+               24 LOAD_NAME                3 (__annotations__)
+               26 LOAD_CONST               4 ('event_store')
+               28 STORE_SUBSCR
+  
+   50          32 LOAD_CONST               5 ('DeviceGateway')
+               34 LOAD_NAME                3 (__annotations__)
+               36 LOAD_CONST               6 ('device_gateway')
+               38 STORE_SUBSCR
+  
+   51          42 LOAD_CONST               7 ('DeterministicContractAnalyzer')
+               44 LOAD_NAME                3 (__annotations__)
+               46 LOAD_CONST               8 ('contract_analyzer')
+               48 STORE_SUBSCR
+  
+   52          52 LOAD_CONST               9 ('OCREngine')
+               54 LOAD_NAME                3 (__annotations__)
+               56 LOAD_CONST              10 ('ocr_engine')
+               58 STORE_SUBSCR
+  
+   53          62 LOAD_CONST              11 ('DocumentAnalysisStore')
+               64 LOAD_NAME                3 (__annotations__)
+               66 LOAD_CONST              12 ('analysis_store')
+               68 STORE_SUBSCR
+  
+   68          72 LOAD_CONST              13 (None)
+  
+   69          74 LOAD_CONST              13 (None)
+  
+   55          76 LOAD_CONST              14 (('source_type', 'observation_summary'))
+               78 BUILD_CONST_KEY_MAP      2
+  
+   58          80 NOP
+  
+   55          82 NOP
+  
+   59          84 NOP
+  
+   55          86 NOP
+  
+   60          88 NOP
+  
+   55          90 NOP
+  
+   61          92 NOP
+  
+   55          94 NOP
+  
+   62          96 NOP
+  
+   55          98 NOP
+  
+   63         100 NOP
+  
+   55         102 NOP
+  
+   64         104 NOP
+  
+   55         106 NOP
+  
+   65         108 NOP
+  
+   55         110 NOP
+  
+   66         112 NOP
+  
+   55         114 NOP
+  
+   67         116 NOP
+  
+   55         118 NOP
+  
+   68         120 NOP
+  
+   55         122 NOP
+  
+   69         124 NOP
+  
+   55         126 NOP
+  
+   70         128 NOP
+  
+   55         130 LOAD_CONST              18 (('observation_id', 'str', 'user_id', 'str', 'session_id', 'str', 'document_text', 'str | None', 'document_image_base64', 'str | None', 'confidence', 'float | None', 'mode', 'AttentionMode', 'recent_category_count', 'int', 'correlation_id', 'str', 'trace_id', 'str', 'source_type', 'str | None', 'observation_summary', 'str | None', 'return', 'DocumentContractReviewResult'))
+              132 LOAD_CONST              15 (<code object process_contract_review at 0x0000028CA2E4B500, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 55>)
+              134 MAKE_FUNCTION            6 (kwdefaults, annotations)
+              136 STORE_NAME               4 (process_contract_review)
+  
+  123         138 LOAD_NAME                5 (classmethod)
+  
+  124         140 NOP
+  
+  127         142 NOP
+  
+  124         144 NOP
+  
+  128         146 NOP
+  
+  124         148 NOP
+  
+  129         150 NOP
+  
+  124         152 NOP
+  
+  130         154 NOP
+  
+  124         156 NOP
+  
+  131         158 NOP
+  
+  124         160 NOP
+  
+  132         162 NOP
+  
+  124         164 NOP
+  
+  133         166 NOP
+  
+  124         168 LOAD_CONST              19 (('observation_processor', 'ProcessObservation', 'event_store', 'EventStore', 'device_gateway', 'DeviceGateway', 'contract_analyzer', 'DeterministicContractAnalyzer', 'ocr_engine', 'OCREngine', 'analysis_store', 'DocumentAnalysisStore', 'return', "'DocumentSessionService'"))
+              170 LOAD_CONST              16 (<code object build_simulation at 0x0000028CA2C6A330, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 123>)
+              172 MAKE_FUNCTION            4 (annotations)
+  
+  123         174 CALL                     0
+  
+  124         182 STORE_NAME               6 (build_simulation)
+  
+  143         184 LOAD_NAME                5 (classmethod)
+  
+  144         186 LOAD_CONST              20 (('return', "'DocumentSessionService'"))
+              188 LOAD_CONST              17 (<code object build_default_simulation at 0x0000028CA289AF10, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 143>)
+              190 MAKE_FUNCTION            4 (annotations)
+  
+  143         192 CALL                     0
+  
+  144         200 STORE_NAME               7 (build_default_simulation)
+              202 RETURN_CONST            13 (None)
+  
+  Disassembly of <code object process_contract_review at 0x0000028CA2E4B500, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 55>:
+   55           0 RESUME                   0
+  
+   71           2 LOAD_CONST               0 (None)
+                4 STORE_FAST              13 (ocr_extraction)
+  
+   72           6 LOAD_FAST                4 (document_text)
+                8 COPY                     1
+               10 POP_JUMP_IF_TRUE         2 (to 16)
+               12 POP_TOP
+               14 LOAD_CONST               1 ('')
+          >>   16 LOAD_ATTR                1 (NULL|self + strip)
+               36 CALL                     0
+               44 STORE_FAST              14 (extracted_text)
+  
+   73          46 LOAD_GLOBAL              3 (NULL + float)
+               56 LOAD_FAST                6 (confidence)
+               58 POP_JUMP_IF_NONE         2 (to 64)
+               60 LOAD_FAST                6 (confidence)
+               62 JUMP_FORWARD             1 (to 66)
+          >>   64 LOAD_CONST               2 (0.0)
+          >>   66 CALL                     1
+               74 STORE_FAST              15 (source_confidence)
+  
+   75          76 LOAD_FAST                5 (document_image_base64)
+               78 POP_JUMP_IF_FALSE       53 (to 186)
+  
+   76          80 LOAD_FAST                0 (self)
+               82 LOAD_ATTR                4 (ocr_engine)
+              102 LOAD_ATTR                7 (NULL|self + extract_text)
+              122 LOAD_FAST                5 (document_image_base64)
+              124 KW_NAMES                 3 (('image_base64',))
+              126 CALL                     1
+              134 STORE_FAST              13 (ocr_extraction)
+  
+   77         136 LOAD_FAST               13 (ocr_extraction)
+              138 LOAD_ATTR                8 (text)
+              158 STORE_FAST              14 (extracted_text)
+  
+   78         160 LOAD_FAST               13 (ocr_extraction)
+              162 LOAD_ATTR               10 (confidence)
+              182 STORE_FAST              15 (source_confidence)
+              184 JUMP_FORWARD            17 (to 220)
+  
+   79     >>  186 LOAD_FAST               14 (extracted_text)
+              188 POP_JUMP_IF_FALSE       15 (to 220)
+  
+   80         190 LOAD_GLOBAL              3 (NULL + float)
+              200 LOAD_FAST                6 (confidence)
+              202 POP_JUMP_IF_NONE         2 (to 208)
+              204 LOAD_FAST                6 (confidence)
+              206 JUMP_FORWARD             1 (to 210)
+          >>  208 LOAD_CONST               4 (0.92)
+          >>  210 CALL                     1
+              218 STORE_FAST              15 (source_confidence)
+  
+   82     >>  220 LOAD_FAST                0 (self)
+              222 LOAD_ATTR               12 (contract_analyzer)
+              242 LOAD_ATTR               15 (NULL|self + analyze)
+  
+   83         262 LOAD_FAST               14 (extracted_text)
+  
+   84         264 LOAD_FAST               15 (source_confidence)
+  
+   82         266 KW_NAMES                 5 (('document_text', 'source_confidence'))
+              268 CALL                     2
+              276 STORE_FAST              16 (analysis)
+  
+   86         278 LOAD_FAST               11 (source_type)
+              280 COPY                     1
+              282 POP_JUMP_IF_TRUE         6 (to 296)
+              284 POP_TOP
+              286 LOAD_FAST                5 (document_image_base64)
+              288 POP_JUMP_IF_FALSE        2 (to 294)
+              290 LOAD_CONST               6 ('image_ocr')
+              292 JUMP_FORWARD             1 (to 296)
+          >>  294 LOAD_CONST               7 ('plain_text')
+          >>  296 STORE_FAST              11 (source_type)
+  
+   87         298 LOAD_GLOBAL             17 (NULL + DocumentAnalysisRecord)
+  
+   88         308 LOAD_FAST                2 (user_id)
+  
+   89         310 LOAD_FAST                3 (session_id)
+  
+   90         312 LOAD_FAST                1 (observation_id)
+  
+   91         314 LOAD_FAST               10 (trace_id)
+  
+   92         316 LOAD_FAST               11 (source_type)
+  
+   93         318 LOAD_FAST               16 (analysis)
+  
+   87         320 KW_NAMES                 8 (('user_id', 'session_id', 'observation_id', 'trace_id', 'source_type', 'analysis'))
+              322 CALL                     6
+              330 STORE_FAST              17 (analysis_record)
+  
+   95         332 LOAD_FAST                0 (self)
+              334 LOAD_ATTR               18 (analysis_store)
+              354 LOAD_ATTR               21 (NULL|self + save)
+              374 LOAD_FAST               17 (analysis_record)
+              376 CALL                     1
+              384 POP_TOP
+  
+   96         386 LOAD_GLOBAL             23 (NULL + Observation)
+  
+   97         396 LOAD_FAST                1 (observation_id)
+  
+   98         398 LOAD_FAST                2 (user_id)
+  
+   99         400 LOAD_FAST                3 (session_id)
+  
+  100         402 LOAD_CONST               9 ('documents')
+  
+  101         404 LOAD_GLOBAL             24 (ObservationKind)
+              414 LOAD_ATTR               26 (DOCUMENT_CONTRACT_REVIEW)
+  
+  102         434 LOAD_FAST               12 (observation_summary)
+              436 COPY                     1
+              438 POP_JUMP_IF_TRUE         2 (to 444)
+              440 POP_TOP
+              442 LOAD_CONST              10 ('Contract review requested from PWA simulation')
+  
+  104     >>  444 LOAD_FAST               16 (analysis)
+              446 LOAD_ATTR               29 (NULL|self + to_dict)
+              466 CALL                     0
+  
+  105         474 LOAD_FAST               17 (analysis_record)
+              476 LOAD_ATTR               30 (analysis_id)
+  
+  106         496 LOAD_FAST               11 (source_type)
+  
+  107         498 LOAD_FAST               13 (ocr_extraction)
+              500 POP_JUMP_IF_FALSE       12 (to 526)
+              502 LOAD_FAST               13 (ocr_extraction)
+              504 LOAD_ATTR               32 (engine_name)
+              524 JUMP_FORWARD             1 (to 528)
+          >>  526 LOAD_CONST               0 (None)
+  
+  103     >>  528 LOAD_CONST              11 (('document_analysis', 'analysis_id', 'source_type', 'ocr_engine'))
+              530 BUILD_CONST_KEY_MAP      4
+  
+   96         532 KW_NAMES                12 (('observation_id', 'user_id', 'session_id', 'module', 'kind', 'summary', 'metadata'))
+              534 CALL                     7
+              542 STORE_FAST              18 (observation)
+  
+  110         544 LOAD_FAST                0 (self)
+              546 LOAD_ATTR               34 (observation_processor)
+              566 LOAD_ATTR               37 (NULL|self + execute)
+  
+  111         586 LOAD_FAST               18 (observation)
+  
+  112         588 LOAD_FAST                7 (mode)
+  
+  113         590 LOAD_FAST                8 (recent_category_count)
+  
+  114         592 LOAD_FAST                9 (correlation_id)
+  
+  115         594 LOAD_FAST               10 (trace_id)
+  
+  110         596 KW_NAMES                13 (('observation', 'mode', 'recent_category_count', 'correlation_id', 'trace_id'))
+              598 CALL                     5
+              606 STORE_FAST              19 (processing_result)
+  
+  117         608 LOAD_GLOBAL             39 (NULL + DocumentContractReviewResult)
+  
+  118         618 LOAD_FAST               19 (processing_result)
+  
+  119         620 LOAD_FAST               16 (analysis)
+  
+  120         622 LOAD_FAST               17 (analysis_record)
+  
+  117         624 KW_NAMES                14 (('processing_result', 'analysis', 'analysis_record'))
+              626 CALL                     3
+              634 RETURN_VALUE
+  
+  Disassembly of <code object build_simulation at 0x0000028CA2C6A330, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 123>:
+  123           0 RESUME                   0
+  
+  134           2 PUSH_NULL
+                4 LOAD_FAST                0 (cls)
+  
+  135           6 LOAD_FAST                1 (observation_processor)
+  
+  136           8 LOAD_FAST                2 (event_store)
+  
+  137          10 LOAD_FAST                3 (device_gateway)
+  
+  138          12 LOAD_FAST                4 (contract_analyzer)
+  
+  139          14 LOAD_FAST                5 (ocr_engine)
+  
+  140          16 LOAD_FAST                6 (analysis_store)
+  
+  134          18 KW_NAMES                 1 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+               20 CALL                     6
+               28 RETURN_VALUE
+  
+  Disassembly of <code object build_default_simulation at 0x0000028CA289AF10, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py", line 143>:
+  143           0 RESUME                   0
+  
+  145           2 LOAD_CONST               1 (0)
+                4 LOAD_CONST               2 (('DeliverLensCommand', 'EvaluateAlertCandidate', 'ProcessAlertCandidate'))
+                6 IMPORT_NAME              0 (new_era.application.use_cases)
+                8 IMPORT_FROM              1 (DeliverLensCommand)
+               10 STORE_FAST               1 (DeliverLensCommand)
+               12 IMPORT_FROM              2 (EvaluateAlertCandidate)
+               14 STORE_FAST               2 (EvaluateAlertCandidate)
+               16 IMPORT_FROM              3 (ProcessAlertCandidate)
+               18 STORE_FAST               3 (ProcessAlertCandidate)
+               20 POP_TOP
+  
+  150          22 LOAD_CONST               1 (0)
+               24 LOAD_CONST               3 (('AttentionPolicy',))
+               26 IMPORT_NAME              4 (new_era.domain.attention)
+               28 IMPORT_FROM              5 (AttentionPolicy)
+               30 STORE_FAST               4 (AttentionPolicy)
+               32 POP_TOP
+  
+  152          34 LOAD_GLOBAL             13 (NULL + InMemoryEventStore)
+               44 CALL                     0
+               52 STORE_FAST               5 (event_store)
+  
+  153          54 LOAD_GLOBAL             15 (NULL + BrowserSimulationAdapter)
+               64 CALL                     0
+               72 STORE_FAST               6 (device_gateway)
+  
+  154          74 LOAD_GLOBAL             17 (NULL + SimpleSimulationObservationAdapter)
+               84 CALL                     0
+               92 STORE_FAST               7 (observation_interpreter)
+  
+  155          94 LOAD_GLOBAL             19 (NULL + DeterministicContractAnalyzer)
+              104 CALL                     0
+              112 STORE_FAST               8 (contract_analyzer)
+  
+  156         114 LOAD_GLOBAL             21 (NULL + RapidOCRAdapter)
+              124 CALL                     0
+              132 STORE_FAST               9 (ocr_engine)
+  
+  157         134 LOAD_GLOBAL             23 (NULL + InMemoryDocumentAnalysisStore)
+              144 CALL                     0
+              152 STORE_FAST              10 (analysis_store)
+  
+  158         154 LOAD_GLOBAL             25 (NULL + ProcessObservation)
+  
+  159         164 LOAD_FAST                7 (observation_interpreter)
+  
+  160         166 PUSH_NULL
+              168 LOAD_FAST                3 (ProcessAlertCandidate)
+  
+  161         170 PUSH_NULL
+              172 LOAD_FAST                2 (EvaluateAlertCandidate)
+  
+  162         174 PUSH_NULL
+              176 LOAD_FAST                4 (AttentionPolicy)
+              178 CALL                     0
+  
+  163         186 LOAD_FAST                5 (event_store)
+  
+  161         188 KW_NAMES                 4 (('attention_policy', 'event_store'))
+              190 CALL                     2
+  
+  165         198 PUSH_NULL
+              200 LOAD_FAST                1 (DeliverLensCommand)
+  
+  166         202 LOAD_FAST                6 (device_gateway)
+  
+  167         204 LOAD_FAST                5 (event_store)
+  
+  165         206 KW_NAMES                 5 (('device_gateway', 'event_store'))
+              208 CALL                     2
+  
+  160         216 KW_NAMES                 6 (('evaluator', 'delivery'))
+              218 CALL                     2
+  
+  170         226 LOAD_FAST                5 (event_store)
+  
+  158         228 KW_NAMES                 7 (('observation_interpreter', 'alert_processor', 'event_store'))
+              230 CALL                     3
+              238 STORE_FAST              11 (observation_processor)
+  
+  172         240 LOAD_FAST                0 (cls)
+              242 LOAD_ATTR               27 (NULL|self + build_simulation)
+  
+  173         262 LOAD_FAST               11 (observation_processor)
+  
+  174         264 LOAD_FAST                5 (event_store)
+  
+  175         266 LOAD_FAST                6 (device_gateway)
+  
+  176         268 LOAD_FAST                8 (contract_analyzer)
+  
+  177         270 LOAD_FAST                9 (ocr_engine)
+  
+  178         272 LOAD_FAST               10 (analysis_store)
+  
+  172         274 KW_NAMES                 8 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+              276 CALL                     6
+              284 RETURN_VALUE
+
+    ## code_object: process_contract_review
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py
+    first_line: 55
+    argcount: 1
+    locals: 20
+    stacksize: 13
+    flags: 16777219
+    names: ['strip', 'float', 'ocr_engine', 'extract_text', 'text', 'confidence', 'contract_analyzer', 'analyze', 'DocumentAnalysisRecord', 'analysis_store', 'save', 'Observation', 'ObservationKind', 'DOCUMENT_CONTRACT_REVIEW', 'to_dict', 'analysis_id', 'engine_name', 'observation_processor', 'execute', 'DocumentContractReviewResult']
+    varnames: ['self', 'observation_id', 'user_id', 'session_id', 'document_text', 'document_image_base64', 'confidence', 'mode', 'recent_category_count', 'correlation_id', 'trace_id', 'source_type', 'observation_summary', 'ocr_extraction', 'extracted_text', 'source_confidence', 'analysis', 'analysis_record', 'observation', 'processing_result']
+    cellvars: []
+    freevars: []
+    disassembly:
+     55           0 RESUME                   0
+    
+     71           2 LOAD_CONST               0 (None)
+                  4 STORE_FAST              13 (ocr_extraction)
+    
+     72           6 LOAD_FAST                4 (document_text)
+                  8 COPY                     1
+                 10 POP_JUMP_IF_TRUE         2 (to 16)
+                 12 POP_TOP
+                 14 LOAD_CONST               1 ('')
+            >>   16 LOAD_ATTR                1 (NULL|self + strip)
+                 36 CALL                     0
+                 44 STORE_FAST              14 (extracted_text)
+    
+     73          46 LOAD_GLOBAL              3 (NULL + float)
+                 56 LOAD_FAST                6 (confidence)
+                 58 POP_JUMP_IF_NONE         2 (to 64)
+                 60 LOAD_FAST                6 (confidence)
+                 62 JUMP_FORWARD             1 (to 66)
+            >>   64 LOAD_CONST               2 (0.0)
+            >>   66 CALL                     1
+                 74 STORE_FAST              15 (source_confidence)
+    
+     75          76 LOAD_FAST                5 (document_image_base64)
+                 78 POP_JUMP_IF_FALSE       53 (to 186)
+    
+     76          80 LOAD_FAST                0 (self)
+                 82 LOAD_ATTR                4 (ocr_engine)
+                102 LOAD_ATTR                7 (NULL|self + extract_text)
+                122 LOAD_FAST                5 (document_image_base64)
+                124 KW_NAMES                 3 (('image_base64',))
+                126 CALL                     1
+                134 STORE_FAST              13 (ocr_extraction)
+    
+     77         136 LOAD_FAST               13 (ocr_extraction)
+                138 LOAD_ATTR                8 (text)
+                158 STORE_FAST              14 (extracted_text)
+    
+     78         160 LOAD_FAST               13 (ocr_extraction)
+                162 LOAD_ATTR               10 (confidence)
+                182 STORE_FAST              15 (source_confidence)
+                184 JUMP_FORWARD            17 (to 220)
+    
+     79     >>  186 LOAD_FAST               14 (extracted_text)
+                188 POP_JUMP_IF_FALSE       15 (to 220)
+    
+     80         190 LOAD_GLOBAL              3 (NULL + float)
+                200 LOAD_FAST                6 (confidence)
+                202 POP_JUMP_IF_NONE         2 (to 208)
+                204 LOAD_FAST                6 (confidence)
+                206 JUMP_FORWARD             1 (to 210)
+            >>  208 LOAD_CONST               4 (0.92)
+            >>  210 CALL                     1
+                218 STORE_FAST              15 (source_confidence)
+    
+     82     >>  220 LOAD_FAST                0 (self)
+                222 LOAD_ATTR               12 (contract_analyzer)
+                242 LOAD_ATTR               15 (NULL|self + analyze)
+    
+     83         262 LOAD_FAST               14 (extracted_text)
+    
+     84         264 LOAD_FAST               15 (source_confidence)
+    
+     82         266 KW_NAMES                 5 (('document_text', 'source_confidence'))
+                268 CALL                     2
+                276 STORE_FAST              16 (analysis)
+    
+     86         278 LOAD_FAST               11 (source_type)
+                280 COPY                     1
+                282 POP_JUMP_IF_TRUE         6 (to 296)
+                284 POP_TOP
+                286 LOAD_FAST                5 (document_image_base64)
+                288 POP_JUMP_IF_FALSE        2 (to 294)
+                290 LOAD_CONST               6 ('image_ocr')
+                292 JUMP_FORWARD             1 (to 296)
+            >>  294 LOAD_CONST               7 ('plain_text')
+            >>  296 STORE_FAST              11 (source_type)
+    
+     87         298 LOAD_GLOBAL             17 (NULL + DocumentAnalysisRecord)
+    
+     88         308 LOAD_FAST                2 (user_id)
+    
+     89         310 LOAD_FAST                3 (session_id)
+    
+     90         312 LOAD_FAST                1 (observation_id)
+    
+     91         314 LOAD_FAST               10 (trace_id)
+    
+     92         316 LOAD_FAST               11 (source_type)
+    
+     93         318 LOAD_FAST               16 (analysis)
+    
+     87         320 KW_NAMES                 8 (('user_id', 'session_id', 'observation_id', 'trace_id', 'source_type', 'analysis'))
+                322 CALL                     6
+                330 STORE_FAST              17 (analysis_record)
+    
+     95         332 LOAD_FAST                0 (self)
+                334 LOAD_ATTR               18 (analysis_store)
+                354 LOAD_ATTR               21 (NULL|self + save)
+                374 LOAD_FAST               17 (analysis_record)
+                376 CALL                     1
+                384 POP_TOP
+    
+     96         386 LOAD_GLOBAL             23 (NULL + Observation)
+    
+     97         396 LOAD_FAST                1 (observation_id)
+    
+     98         398 LOAD_FAST                2 (user_id)
+    
+     99         400 LOAD_FAST                3 (session_id)
+    
+    100         402 LOAD_CONST               9 ('documents')
+    
+    101         404 LOAD_GLOBAL             24 (ObservationKind)
+                414 LOAD_ATTR               26 (DOCUMENT_CONTRACT_REVIEW)
+    
+    102         434 LOAD_FAST               12 (observation_summary)
+                436 COPY                     1
+                438 POP_JUMP_IF_TRUE         2 (to 444)
+                440 POP_TOP
+                442 LOAD_CONST              10 ('Contract review requested from PWA simulation')
+    
+    104     >>  444 LOAD_FAST               16 (analysis)
+                446 LOAD_ATTR               29 (NULL|self + to_dict)
+                466 CALL                     0
+    
+    105         474 LOAD_FAST               17 (analysis_record)
+                476 LOAD_ATTR               30 (analysis_id)
+    
+    106         496 LOAD_FAST               11 (source_type)
+    
+    107         498 LOAD_FAST               13 (ocr_extraction)
+                500 POP_JUMP_IF_FALSE       12 (to 526)
+                502 LOAD_FAST               13 (ocr_extraction)
+                504 LOAD_ATTR               32 (engine_name)
+                524 JUMP_FORWARD             1 (to 528)
+            >>  526 LOAD_CONST               0 (None)
+    
+    103     >>  528 LOAD_CONST              11 (('document_analysis', 'analysis_id', 'source_type', 'ocr_engine'))
+                530 BUILD_CONST_KEY_MAP      4
+    
+     96         532 KW_NAMES                12 (('observation_id', 'user_id', 'session_id', 'module', 'kind', 'summary', 'metadata'))
+                534 CALL                     7
+                542 STORE_FAST              18 (observation)
+    
+    110         544 LOAD_FAST                0 (self)
+                546 LOAD_ATTR               34 (observation_processor)
+                566 LOAD_ATTR               37 (NULL|self + execute)
+    
+    111         586 LOAD_FAST               18 (observation)
+    
+    112         588 LOAD_FAST                7 (mode)
+    
+    113         590 LOAD_FAST                8 (recent_category_count)
+    
+    114         592 LOAD_FAST                9 (correlation_id)
+    
+    115         594 LOAD_FAST               10 (trace_id)
+    
+    110         596 KW_NAMES                13 (('observation', 'mode', 'recent_category_count', 'correlation_id', 'trace_id'))
+                598 CALL                     5
+                606 STORE_FAST              19 (processing_result)
+    
+    117         608 LOAD_GLOBAL             39 (NULL + DocumentContractReviewResult)
+    
+    118         618 LOAD_FAST               19 (processing_result)
+    
+    119         620 LOAD_FAST               16 (analysis)
+    
+    120         622 LOAD_FAST               17 (analysis_record)
+    
+    117         624 KW_NAMES                14 (('processing_result', 'analysis', 'analysis_record'))
+                626 CALL                     3
+                634 RETURN_VALUE
+
+    ## code_object: build_simulation
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py
+    first_line: 123
+    argcount: 1
+    locals: 7
+    stacksize: 8
+    flags: 16777219
+    names: []
+    varnames: ['cls', 'observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store']
+    cellvars: []
+    freevars: []
+    disassembly:
+    123           0 RESUME                   0
+    
+    134           2 PUSH_NULL
+                  4 LOAD_FAST                0 (cls)
+    
+    135           6 LOAD_FAST                1 (observation_processor)
+    
+    136           8 LOAD_FAST                2 (event_store)
+    
+    137          10 LOAD_FAST                3 (device_gateway)
+    
+    138          12 LOAD_FAST                4 (contract_analyzer)
+    
+    139          14 LOAD_FAST                5 (ocr_engine)
+    
+    140          16 LOAD_FAST                6 (analysis_store)
+    
+    134          18 KW_NAMES                 1 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+                 20 CALL                     6
+                 28 RETURN_VALUE
+
+    ## code_object: build_default_simulation
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\document_session.py
+    first_line: 143
+    argcount: 1
+    locals: 12
+    stacksize: 10
+    flags: 16777219
+    names: ['new_era.application.use_cases', 'DeliverLensCommand', 'EvaluateAlertCandidate', 'ProcessAlertCandidate', 'new_era.domain.attention', 'AttentionPolicy', 'InMemoryEventStore', 'BrowserSimulationAdapter', 'SimpleSimulationObservationAdapter', 'DeterministicContractAnalyzer', 'RapidOCRAdapter', 'InMemoryDocumentAnalysisStore', 'ProcessObservation', 'build_simulation']
+    varnames: ['cls', 'DeliverLensCommand', 'EvaluateAlertCandidate', 'ProcessAlertCandidate', 'AttentionPolicy', 'event_store', 'device_gateway', 'observation_interpreter', 'contract_analyzer', 'ocr_engine', 'analysis_store', 'observation_processor']
+    cellvars: []
+    freevars: []
+    disassembly:
+    143           0 RESUME                   0
+    
+    145           2 LOAD_CONST               1 (0)
+                  4 LOAD_CONST               2 (('DeliverLensCommand', 'EvaluateAlertCandidate', 'ProcessAlertCandidate'))
+                  6 IMPORT_NAME              0 (new_era.application.use_cases)
+                  8 IMPORT_FROM              1 (DeliverLensCommand)
+                 10 STORE_FAST               1 (DeliverLensCommand)
+                 12 IMPORT_FROM              2 (EvaluateAlertCandidate)
+                 14 STORE_FAST               2 (EvaluateAlertCandidate)
+                 16 IMPORT_FROM              3 (ProcessAlertCandidate)
+                 18 STORE_FAST               3 (ProcessAlertCandidate)
+                 20 POP_TOP
+    
+    150          22 LOAD_CONST               1 (0)
+                 24 LOAD_CONST               3 (('AttentionPolicy',))
+                 26 IMPORT_NAME              4 (new_era.domain.attention)
+                 28 IMPORT_FROM              5 (AttentionPolicy)
+                 30 STORE_FAST               4 (AttentionPolicy)
+                 32 POP_TOP
+    
+    152          34 LOAD_GLOBAL             13 (NULL + InMemoryEventStore)
+                 44 CALL                     0
+                 52 STORE_FAST               5 (event_store)
+    
+    153          54 LOAD_GLOBAL             15 (NULL + BrowserSimulationAdapter)
+                 64 CALL                     0
+                 72 STORE_FAST               6 (device_gateway)
+    
+    154          74 LOAD_GLOBAL             17 (NULL + SimpleSimulationObservationAdapter)
+                 84 CALL                     0
+                 92 STORE_FAST               7 (observation_interpreter)
+    
+    155          94 LOAD_GLOBAL             19 (NULL + DeterministicContractAnalyzer)
+                104 CALL                     0
+                112 STORE_FAST               8 (contract_analyzer)
+    
+    156         114 LOAD_GLOBAL             21 (NULL + RapidOCRAdapter)
+                124 CALL                     0
+                132 STORE_FAST               9 (ocr_engine)
+    
+    157         134 LOAD_GLOBAL             23 (NULL + InMemoryDocumentAnalysisStore)
+                144 CALL                     0
+                152 STORE_FAST              10 (analysis_store)
+    
+    158         154 LOAD_GLOBAL             25 (NULL + ProcessObservation)
+    
+    159         164 LOAD_FAST                7 (observation_interpreter)
+    
+    160         166 PUSH_NULL
+                168 LOAD_FAST                3 (ProcessAlertCandidate)
+    
+    161         170 PUSH_NULL
+                172 LOAD_FAST                2 (EvaluateAlertCandidate)
+    
+    162         174 PUSH_NULL
+                176 LOAD_FAST                4 (AttentionPolicy)
+                178 CALL                     0
+    
+    163         186 LOAD_FAST                5 (event_store)
+    
+    161         188 KW_NAMES                 4 (('attention_policy', 'event_store'))
+                190 CALL                     2
+    
+    165         198 PUSH_NULL
+                200 LOAD_FAST                1 (DeliverLensCommand)
+    
+    166         202 LOAD_FAST                6 (device_gateway)
+    
+    167         204 LOAD_FAST                5 (event_store)
+    
+    165         206 KW_NAMES                 5 (('device_gateway', 'event_store'))
+                208 CALL                     2
+    
+    160         216 KW_NAMES                 6 (('evaluator', 'delivery'))
+                218 CALL                     2
+    
+    170         226 LOAD_FAST                5 (event_store)
+    
+    158         228 KW_NAMES                 7 (('observation_interpreter', 'alert_processor', 'event_store'))
+                230 CALL                     3
+                238 STORE_FAST              11 (observation_processor)
+    
+    172         240 LOAD_FAST                0 (cls)
+                242 LOAD_ATTR               27 (NULL|self + build_simulation)
+    
+    173         262 LOAD_FAST               11 (observation_processor)
+    
+    174         264 LOAD_FAST                5 (event_store)
+    
+    175         266 LOAD_FAST                6 (device_gateway)
+    
+    176         268 LOAD_FAST                8 (contract_analyzer)
+    
+    177         270 LOAD_FAST                9 (ocr_engine)
+    
+    178         272 LOAD_FAST               10 (analysis_store)
+    
+    172         274 KW_NAMES                 8 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+                276 CALL                     6
+                284 RETURN_VALUE
+

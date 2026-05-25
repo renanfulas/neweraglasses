@@ -1,0 +1,802 @@
+# pyc_path: C:/Users/renan/OneDrive/Documents/New Era Glasses/src/new_era/application/services/__pycache__/grocery_session.cpython-312.pyc
+# embedded_filename: src\new_era\application\services\grocery_session.py
+# module_name: src.new_era.application.services.grocery_session
+# first_line: 1
+# compiled_at: 2026-05-23T20:58:37+00:00
+# source_size: 3291
+
+## code_object: <module>
+filename: src\new_era\application\services\grocery_session.py
+first_line: 1
+argcount: 0
+locals: 0
+stacksize: 5
+flags: 16777216
+names: ['__future__', 'annotations', 'dataclasses', 'dataclass', 'new_era.application.ports', 'DeviceGateway', 'EventStore', 'ObservationInterpreter', 'new_era.application.use_cases', 'ProcessObservation', 'new_era.domain.attention', 'AttentionMode', 'new_era.domain.observations', 'Observation', 'ObservationKind', 'new_era.infrastructure.device', 'BrowserSimulationAdapter', 'new_era.infrastructure.events', 'InMemoryEventStore', 'new_era.infrastructure.observations', 'SimpleSimulationObservationAdapter', 'GrocerySessionService']
+varnames: []
+cellvars: []
+freevars: []
+disassembly:
+  0           0 RESUME                   0
+
+  1           2 LOAD_CONST               0 (0)
+              4 LOAD_CONST               1 (('annotations',))
+              6 IMPORT_NAME              0 (__future__)
+              8 IMPORT_FROM              1 (annotations)
+             10 STORE_NAME               1 (annotations)
+             12 POP_TOP
+
+  3          14 LOAD_CONST               0 (0)
+             16 LOAD_CONST               2 (('dataclass',))
+             18 IMPORT_NAME              2 (dataclasses)
+             20 IMPORT_FROM              3 (dataclass)
+             22 STORE_NAME               3 (dataclass)
+             24 POP_TOP
+
+  5          26 LOAD_CONST               0 (0)
+             28 LOAD_CONST               3 (('DeviceGateway', 'EventStore', 'ObservationInterpreter'))
+             30 IMPORT_NAME              4 (new_era.application.ports)
+             32 IMPORT_FROM              5 (DeviceGateway)
+             34 STORE_NAME               5 (DeviceGateway)
+             36 IMPORT_FROM              6 (EventStore)
+             38 STORE_NAME               6 (EventStore)
+             40 IMPORT_FROM              7 (ObservationInterpreter)
+             42 STORE_NAME               7 (ObservationInterpreter)
+             44 POP_TOP
+
+  6          46 LOAD_CONST               0 (0)
+             48 LOAD_CONST               4 (('ProcessObservation',))
+             50 IMPORT_NAME              8 (new_era.application.use_cases)
+             52 IMPORT_FROM              9 (ProcessObservation)
+             54 STORE_NAME               9 (ProcessObservation)
+             56 POP_TOP
+
+  7          58 LOAD_CONST               0 (0)
+             60 LOAD_CONST               5 (('AttentionMode',))
+             62 IMPORT_NAME             10 (new_era.domain.attention)
+             64 IMPORT_FROM             11 (AttentionMode)
+             66 STORE_NAME              11 (AttentionMode)
+             68 POP_TOP
+
+  8          70 LOAD_CONST               0 (0)
+             72 LOAD_CONST               6 (('Observation', 'ObservationKind'))
+             74 IMPORT_NAME             12 (new_era.domain.observations)
+             76 IMPORT_FROM             13 (Observation)
+             78 STORE_NAME              13 (Observation)
+             80 IMPORT_FROM             14 (ObservationKind)
+             82 STORE_NAME              14 (ObservationKind)
+             84 POP_TOP
+
+  9          86 LOAD_CONST               0 (0)
+             88 LOAD_CONST               7 (('BrowserSimulationAdapter',))
+             90 IMPORT_NAME             15 (new_era.infrastructure.device)
+             92 IMPORT_FROM             16 (BrowserSimulationAdapter)
+             94 STORE_NAME              16 (BrowserSimulationAdapter)
+             96 POP_TOP
+
+ 10          98 LOAD_CONST               0 (0)
+            100 LOAD_CONST               8 (('InMemoryEventStore',))
+            102 IMPORT_NAME             17 (new_era.infrastructure.events)
+            104 IMPORT_FROM             18 (InMemoryEventStore)
+            106 STORE_NAME              18 (InMemoryEventStore)
+            108 POP_TOP
+
+ 11         110 LOAD_CONST               0 (0)
+            112 LOAD_CONST               9 (('SimpleSimulationObservationAdapter',))
+            114 IMPORT_NAME             19 (new_era.infrastructure.observations)
+            116 IMPORT_FROM             20 (SimpleSimulationObservationAdapter)
+            118 STORE_NAME              20 (SimpleSimulationObservationAdapter)
+            120 POP_TOP
+
+ 14         122 PUSH_NULL
+            124 LOAD_NAME                3 (dataclass)
+            126 LOAD_CONST              10 (True)
+            128 LOAD_CONST              10 (True)
+            130 KW_NAMES                11 (('frozen', 'slots'))
+            132 CALL                     2
+
+ 15         140 PUSH_NULL
+            142 LOAD_BUILD_CLASS
+            144 LOAD_CONST              12 (<code object GrocerySessionService at 0x00000214789DEB80, file "src\new_era\application\services\grocery_session.py", line 14>)
+            146 MAKE_FUNCTION            0
+            148 LOAD_CONST              13 ('GrocerySessionService')
+            150 CALL                     2
+
+ 14         158 CALL                     0
+
+ 15         166 STORE_NAME              21 (GrocerySessionService)
+            168 RETURN_CONST            14 (None)
+
+Disassembly of <code object GrocerySessionService at 0x00000214789DEB80, file "src\new_era\application\services\grocery_session.py", line 14>:
+ 14           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('GrocerySessionService')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 16          12 LOAD_CONST               1 ('ProcessObservation')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('observation_processor')
+             18 STORE_SUBSCR
+
+ 17          22 LOAD_CONST               3 ('EventStore')
+             24 LOAD_NAME                3 (__annotations__)
+             26 LOAD_CONST               4 ('event_store')
+             28 STORE_SUBSCR
+
+ 18          32 LOAD_CONST               5 ('DeviceGateway')
+             34 LOAD_NAME                3 (__annotations__)
+             36 LOAD_CONST               6 ('device_gateway')
+             38 STORE_SUBSCR
+
+ 20          42 NOP
+
+ 23          44 NOP
+
+ 20          46 NOP
+
+ 24          48 NOP
+
+ 20          50 NOP
+
+ 25          52 NOP
+
+ 20          54 NOP
+
+ 26          56 NOP
+
+ 20          58 NOP
+
+ 27          60 NOP
+
+ 20          62 NOP
+
+ 28          64 NOP
+
+ 20          66 NOP
+
+ 29          68 NOP
+
+ 20          70 NOP
+
+ 30          72 NOP
+
+ 20          74 NOP
+
+ 31          76 NOP
+
+ 20          78 LOAD_CONST              11 (('observation_id', 'str', 'user_id', 'str', 'session_id', 'str', 'item_name', 'str', 'confidence', 'float', 'mode', 'AttentionMode', 'recent_category_count', 'int', 'correlation_id', 'str', 'trace_id', 'str'))
+             80 LOAD_CONST               7 (<code object process_missing_item at 0x00000214789DE790, file "src\new_era\application\services\grocery_session.py", line 20>)
+             82 MAKE_FUNCTION            4 (annotations)
+             84 STORE_NAME               4 (process_missing_item)
+
+ 50          86 LOAD_NAME                5 (classmethod)
+
+ 51          88 NOP
+
+ 54          90 NOP
+
+ 51          92 NOP
+
+ 55          94 NOP
+
+ 51          96 NOP
+
+ 56          98 NOP
+
+ 51         100 NOP
+
+ 57         102 NOP
+
+ 51         104 LOAD_CONST              12 (('observation_processor', 'ProcessObservation', 'event_store', 'EventStore', 'device_gateway', 'DeviceGateway', 'return', "'GrocerySessionService'"))
+            106 LOAD_CONST               8 (<code object build_simulation at 0x00000214789DA330, file "src\new_era\application\services\grocery_session.py", line 50>)
+            108 MAKE_FUNCTION            4 (annotations)
+
+ 50         110 CALL                     0
+
+ 51         118 STORE_NAME               6 (build_simulation)
+
+ 64         120 LOAD_NAME                5 (classmethod)
+
+ 65         122 LOAD_CONST              13 (('return', "'GrocerySessionService'"))
+            124 LOAD_CONST               9 (<code object build_default_simulation at 0x0000021478A213B0, file "src\new_era\application\services\grocery_session.py", line 64>)
+            126 MAKE_FUNCTION            4 (annotations)
+
+ 64         128 CALL                     0
+
+ 65         136 STORE_NAME               7 (build_default_simulation)
+            138 RETURN_CONST            10 (None)
+
+Disassembly of <code object process_missing_item at 0x00000214789DE790, file "src\new_era\application\services\grocery_session.py", line 20>:
+ 20           0 RESUME                   0
+
+ 33           2 LOAD_GLOBAL              1 (NULL + Observation)
+
+ 34          12 LOAD_FAST                1 (observation_id)
+
+ 35          14 LOAD_FAST                2 (user_id)
+
+ 36          16 LOAD_FAST                3 (session_id)
+
+ 37          18 LOAD_CONST               1 ('grocery')
+
+ 38          20 LOAD_GLOBAL              2 (ObservationKind)
+             30 LOAD_ATTR                4 (GROCERY_MISSING_ITEM)
+
+ 39          50 LOAD_CONST               2 ('Missing ')
+             52 LOAD_FAST                4 (item_name)
+             54 FORMAT_VALUE             0
+             56 LOAD_CONST               3 (' in grocery session')
+             58 BUILD_STRING             3
+
+ 40          60 LOAD_FAST                4 (item_name)
+             62 LOAD_FAST                5 (confidence)
+             64 LOAD_CONST               4 (('item_name', 'confidence'))
+             66 BUILD_CONST_KEY_MAP      2
+
+ 33          68 KW_NAMES                 5 (('observation_id', 'user_id', 'session_id', 'module', 'kind', 'summary', 'metadata'))
+             70 CALL                     7
+             78 STORE_FAST              10 (observation)
+
+ 42          80 LOAD_FAST                0 (self)
+             82 LOAD_ATTR                6 (observation_processor)
+            102 LOAD_ATTR                9 (NULL|self + execute)
+
+ 43         122 LOAD_FAST               10 (observation)
+
+ 44         124 LOAD_FAST                6 (mode)
+
+ 45         126 LOAD_FAST                7 (recent_category_count)
+
+ 46         128 LOAD_FAST                8 (correlation_id)
+
+ 47         130 LOAD_FAST                9 (trace_id)
+
+ 42         132 KW_NAMES                 6 (('observation', 'mode', 'recent_category_count', 'correlation_id', 'trace_id'))
+            134 CALL                     5
+            142 RETURN_VALUE
+
+Disassembly of <code object build_simulation at 0x00000214789DA330, file "src\new_era\application\services\grocery_session.py", line 50>:
+ 50           0 RESUME                   0
+
+ 58           2 PUSH_NULL
+              4 LOAD_FAST                0 (cls)
+
+ 59           6 LOAD_FAST                1 (observation_processor)
+
+ 60           8 LOAD_FAST                2 (event_store)
+
+ 61          10 LOAD_FAST                3 (device_gateway)
+
+ 58          12 KW_NAMES                 1 (('observation_processor', 'event_store', 'device_gateway'))
+             14 CALL                     3
+             22 RETURN_VALUE
+
+Disassembly of <code object build_default_simulation at 0x0000021478A213B0, file "src\new_era\application\services\grocery_session.py", line 64>:
+ 64           0 RESUME                   0
+
+ 66           2 LOAD_CONST               1 (0)
+              4 LOAD_CONST               2 (('DeliverLensCommand', 'EvaluateAlertCandidate', 'ProcessAlertCandidate'))
+              6 IMPORT_NAME              0 (new_era.application.use_cases)
+              8 IMPORT_FROM              1 (DeliverLensCommand)
+             10 STORE_FAST               1 (DeliverLensCommand)
+             12 IMPORT_FROM              2 (EvaluateAlertCandidate)
+             14 STORE_FAST               2 (EvaluateAlertCandidate)
+             16 IMPORT_FROM              3 (ProcessAlertCandidate)
+             18 STORE_FAST               3 (ProcessAlertCandidate)
+             20 POP_TOP
+
+ 71          22 LOAD_CONST               1 (0)
+             24 LOAD_CONST               3 (('AttentionPolicy',))
+             26 IMPORT_NAME              4 (new_era.domain.attention)
+             28 IMPORT_FROM              5 (AttentionPolicy)
+             30 STORE_FAST               4 (AttentionPolicy)
+             32 POP_TOP
+
+ 73          34 LOAD_GLOBAL             13 (NULL + InMemoryEventStore)
+             44 CALL                     0
+             52 STORE_FAST               5 (event_store)
+
+ 74          54 LOAD_GLOBAL             15 (NULL + BrowserSimulationAdapter)
+             64 CALL                     0
+             72 STORE_FAST               6 (device_gateway)
+
+ 75          74 LOAD_GLOBAL             17 (NULL + SimpleSimulationObservationAdapter)
+             84 CALL                     0
+             92 STORE_FAST               7 (observation_interpreter)
+
+ 76          94 LOAD_GLOBAL             19 (NULL + ProcessObservation)
+
+ 77         104 LOAD_FAST                7 (observation_interpreter)
+
+ 78         106 PUSH_NULL
+            108 LOAD_FAST                3 (ProcessAlertCandidate)
+
+ 79         110 PUSH_NULL
+            112 LOAD_FAST                2 (EvaluateAlertCandidate)
+
+ 80         114 PUSH_NULL
+            116 LOAD_FAST                4 (AttentionPolicy)
+            118 CALL                     0
+
+ 81         126 LOAD_FAST                5 (event_store)
+
+ 79         128 KW_NAMES                 4 (('attention_policy', 'event_store'))
+            130 CALL                     2
+
+ 83         138 PUSH_NULL
+            140 LOAD_FAST                1 (DeliverLensCommand)
+
+ 84         142 LOAD_FAST                6 (device_gateway)
+
+ 85         144 LOAD_FAST                5 (event_store)
+
+ 83         146 KW_NAMES                 5 (('device_gateway', 'event_store'))
+            148 CALL                     2
+
+ 78         156 KW_NAMES                 6 (('evaluator', 'delivery'))
+            158 CALL                     2
+
+ 88         166 LOAD_FAST                5 (event_store)
+
+ 76         168 KW_NAMES                 7 (('observation_interpreter', 'alert_processor', 'event_store'))
+            170 CALL                     3
+            178 STORE_FAST               8 (observation_processor)
+
+ 90         180 LOAD_FAST                0 (cls)
+            182 LOAD_ATTR               21 (NULL|self + build_simulation)
+
+ 91         202 LOAD_FAST                8 (observation_processor)
+
+ 92         204 LOAD_FAST                5 (event_store)
+
+ 93         206 LOAD_FAST                6 (device_gateway)
+
+ 90         208 KW_NAMES                 8 (('observation_processor', 'event_store', 'device_gateway'))
+            210 CALL                     3
+            218 RETURN_VALUE
+
+  ## code_object: GrocerySessionService
+  filename: src\new_era\application\services\grocery_session.py
+  first_line: 14
+  argcount: 0
+  locals: 0
+  stacksize: 3
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__', 'process_missing_item', 'classmethod', 'build_simulation', 'build_default_simulation']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   14           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('GrocerySessionService')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   16          12 LOAD_CONST               1 ('ProcessObservation')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('observation_processor')
+               18 STORE_SUBSCR
+  
+   17          22 LOAD_CONST               3 ('EventStore')
+               24 LOAD_NAME                3 (__annotations__)
+               26 LOAD_CONST               4 ('event_store')
+               28 STORE_SUBSCR
+  
+   18          32 LOAD_CONST               5 ('DeviceGateway')
+               34 LOAD_NAME                3 (__annotations__)
+               36 LOAD_CONST               6 ('device_gateway')
+               38 STORE_SUBSCR
+  
+   20          42 NOP
+  
+   23          44 NOP
+  
+   20          46 NOP
+  
+   24          48 NOP
+  
+   20          50 NOP
+  
+   25          52 NOP
+  
+   20          54 NOP
+  
+   26          56 NOP
+  
+   20          58 NOP
+  
+   27          60 NOP
+  
+   20          62 NOP
+  
+   28          64 NOP
+  
+   20          66 NOP
+  
+   29          68 NOP
+  
+   20          70 NOP
+  
+   30          72 NOP
+  
+   20          74 NOP
+  
+   31          76 NOP
+  
+   20          78 LOAD_CONST              11 (('observation_id', 'str', 'user_id', 'str', 'session_id', 'str', 'item_name', 'str', 'confidence', 'float', 'mode', 'AttentionMode', 'recent_category_count', 'int', 'correlation_id', 'str', 'trace_id', 'str'))
+               80 LOAD_CONST               7 (<code object process_missing_item at 0x00000214789DE790, file "src\new_era\application\services\grocery_session.py", line 20>)
+               82 MAKE_FUNCTION            4 (annotations)
+               84 STORE_NAME               4 (process_missing_item)
+  
+   50          86 LOAD_NAME                5 (classmethod)
+  
+   51          88 NOP
+  
+   54          90 NOP
+  
+   51          92 NOP
+  
+   55          94 NOP
+  
+   51          96 NOP
+  
+   56          98 NOP
+  
+   51         100 NOP
+  
+   57         102 NOP
+  
+   51         104 LOAD_CONST              12 (('observation_processor', 'ProcessObservation', 'event_store', 'EventStore', 'device_gateway', 'DeviceGateway', 'return', "'GrocerySessionService'"))
+              106 LOAD_CONST               8 (<code object build_simulation at 0x00000214789DA330, file "src\new_era\application\services\grocery_session.py", line 50>)
+              108 MAKE_FUNCTION            4 (annotations)
+  
+   50         110 CALL                     0
+  
+   51         118 STORE_NAME               6 (build_simulation)
+  
+   64         120 LOAD_NAME                5 (classmethod)
+  
+   65         122 LOAD_CONST              13 (('return', "'GrocerySessionService'"))
+              124 LOAD_CONST               9 (<code object build_default_simulation at 0x0000021478A213B0, file "src\new_era\application\services\grocery_session.py", line 64>)
+              126 MAKE_FUNCTION            4 (annotations)
+  
+   64         128 CALL                     0
+  
+   65         136 STORE_NAME               7 (build_default_simulation)
+              138 RETURN_CONST            10 (None)
+  
+  Disassembly of <code object process_missing_item at 0x00000214789DE790, file "src\new_era\application\services\grocery_session.py", line 20>:
+   20           0 RESUME                   0
+  
+   33           2 LOAD_GLOBAL              1 (NULL + Observation)
+  
+   34          12 LOAD_FAST                1 (observation_id)
+  
+   35          14 LOAD_FAST                2 (user_id)
+  
+   36          16 LOAD_FAST                3 (session_id)
+  
+   37          18 LOAD_CONST               1 ('grocery')
+  
+   38          20 LOAD_GLOBAL              2 (ObservationKind)
+               30 LOAD_ATTR                4 (GROCERY_MISSING_ITEM)
+  
+   39          50 LOAD_CONST               2 ('Missing ')
+               52 LOAD_FAST                4 (item_name)
+               54 FORMAT_VALUE             0
+               56 LOAD_CONST               3 (' in grocery session')
+               58 BUILD_STRING             3
+  
+   40          60 LOAD_FAST                4 (item_name)
+               62 LOAD_FAST                5 (confidence)
+               64 LOAD_CONST               4 (('item_name', 'confidence'))
+               66 BUILD_CONST_KEY_MAP      2
+  
+   33          68 KW_NAMES                 5 (('observation_id', 'user_id', 'session_id', 'module', 'kind', 'summary', 'metadata'))
+               70 CALL                     7
+               78 STORE_FAST              10 (observation)
+  
+   42          80 LOAD_FAST                0 (self)
+               82 LOAD_ATTR                6 (observation_processor)
+              102 LOAD_ATTR                9 (NULL|self + execute)
+  
+   43         122 LOAD_FAST               10 (observation)
+  
+   44         124 LOAD_FAST                6 (mode)
+  
+   45         126 LOAD_FAST                7 (recent_category_count)
+  
+   46         128 LOAD_FAST                8 (correlation_id)
+  
+   47         130 LOAD_FAST                9 (trace_id)
+  
+   42         132 KW_NAMES                 6 (('observation', 'mode', 'recent_category_count', 'correlation_id', 'trace_id'))
+              134 CALL                     5
+              142 RETURN_VALUE
+  
+  Disassembly of <code object build_simulation at 0x00000214789DA330, file "src\new_era\application\services\grocery_session.py", line 50>:
+   50           0 RESUME                   0
+  
+   58           2 PUSH_NULL
+                4 LOAD_FAST                0 (cls)
+  
+   59           6 LOAD_FAST                1 (observation_processor)
+  
+   60           8 LOAD_FAST                2 (event_store)
+  
+   61          10 LOAD_FAST                3 (device_gateway)
+  
+   58          12 KW_NAMES                 1 (('observation_processor', 'event_store', 'device_gateway'))
+               14 CALL                     3
+               22 RETURN_VALUE
+  
+  Disassembly of <code object build_default_simulation at 0x0000021478A213B0, file "src\new_era\application\services\grocery_session.py", line 64>:
+   64           0 RESUME                   0
+  
+   66           2 LOAD_CONST               1 (0)
+                4 LOAD_CONST               2 (('DeliverLensCommand', 'EvaluateAlertCandidate', 'ProcessAlertCandidate'))
+                6 IMPORT_NAME              0 (new_era.application.use_cases)
+                8 IMPORT_FROM              1 (DeliverLensCommand)
+               10 STORE_FAST               1 (DeliverLensCommand)
+               12 IMPORT_FROM              2 (EvaluateAlertCandidate)
+               14 STORE_FAST               2 (EvaluateAlertCandidate)
+               16 IMPORT_FROM              3 (ProcessAlertCandidate)
+               18 STORE_FAST               3 (ProcessAlertCandidate)
+               20 POP_TOP
+  
+   71          22 LOAD_CONST               1 (0)
+               24 LOAD_CONST               3 (('AttentionPolicy',))
+               26 IMPORT_NAME              4 (new_era.domain.attention)
+               28 IMPORT_FROM              5 (AttentionPolicy)
+               30 STORE_FAST               4 (AttentionPolicy)
+               32 POP_TOP
+  
+   73          34 LOAD_GLOBAL             13 (NULL + InMemoryEventStore)
+               44 CALL                     0
+               52 STORE_FAST               5 (event_store)
+  
+   74          54 LOAD_GLOBAL             15 (NULL + BrowserSimulationAdapter)
+               64 CALL                     0
+               72 STORE_FAST               6 (device_gateway)
+  
+   75          74 LOAD_GLOBAL             17 (NULL + SimpleSimulationObservationAdapter)
+               84 CALL                     0
+               92 STORE_FAST               7 (observation_interpreter)
+  
+   76          94 LOAD_GLOBAL             19 (NULL + ProcessObservation)
+  
+   77         104 LOAD_FAST                7 (observation_interpreter)
+  
+   78         106 PUSH_NULL
+              108 LOAD_FAST                3 (ProcessAlertCandidate)
+  
+   79         110 PUSH_NULL
+              112 LOAD_FAST                2 (EvaluateAlertCandidate)
+  
+   80         114 PUSH_NULL
+              116 LOAD_FAST                4 (AttentionPolicy)
+              118 CALL                     0
+  
+   81         126 LOAD_FAST                5 (event_store)
+  
+   79         128 KW_NAMES                 4 (('attention_policy', 'event_store'))
+              130 CALL                     2
+  
+   83         138 PUSH_NULL
+              140 LOAD_FAST                1 (DeliverLensCommand)
+  
+   84         142 LOAD_FAST                6 (device_gateway)
+  
+   85         144 LOAD_FAST                5 (event_store)
+  
+   83         146 KW_NAMES                 5 (('device_gateway', 'event_store'))
+              148 CALL                     2
+  
+   78         156 KW_NAMES                 6 (('evaluator', 'delivery'))
+              158 CALL                     2
+  
+   88         166 LOAD_FAST                5 (event_store)
+  
+   76         168 KW_NAMES                 7 (('observation_interpreter', 'alert_processor', 'event_store'))
+              170 CALL                     3
+              178 STORE_FAST               8 (observation_processor)
+  
+   90         180 LOAD_FAST                0 (cls)
+              182 LOAD_ATTR               21 (NULL|self + build_simulation)
+  
+   91         202 LOAD_FAST                8 (observation_processor)
+  
+   92         204 LOAD_FAST                5 (event_store)
+  
+   93         206 LOAD_FAST                6 (device_gateway)
+  
+   90         208 KW_NAMES                 8 (('observation_processor', 'event_store', 'device_gateway'))
+              210 CALL                     3
+              218 RETURN_VALUE
+
+    ## code_object: process_missing_item
+    filename: src\new_era\application\services\grocery_session.py
+    first_line: 20
+    argcount: 1
+    locals: 11
+    stacksize: 11
+    flags: 16777219
+    names: ['Observation', 'ObservationKind', 'GROCERY_MISSING_ITEM', 'observation_processor', 'execute']
+    varnames: ['self', 'observation_id', 'user_id', 'session_id', 'item_name', 'confidence', 'mode', 'recent_category_count', 'correlation_id', 'trace_id', 'observation']
+    cellvars: []
+    freevars: []
+    disassembly:
+     20           0 RESUME                   0
+    
+     33           2 LOAD_GLOBAL              1 (NULL + Observation)
+    
+     34          12 LOAD_FAST                1 (observation_id)
+    
+     35          14 LOAD_FAST                2 (user_id)
+    
+     36          16 LOAD_FAST                3 (session_id)
+    
+     37          18 LOAD_CONST               1 ('grocery')
+    
+     38          20 LOAD_GLOBAL              2 (ObservationKind)
+                 30 LOAD_ATTR                4 (GROCERY_MISSING_ITEM)
+    
+     39          50 LOAD_CONST               2 ('Missing ')
+                 52 LOAD_FAST                4 (item_name)
+                 54 FORMAT_VALUE             0
+                 56 LOAD_CONST               3 (' in grocery session')
+                 58 BUILD_STRING             3
+    
+     40          60 LOAD_FAST                4 (item_name)
+                 62 LOAD_FAST                5 (confidence)
+                 64 LOAD_CONST               4 (('item_name', 'confidence'))
+                 66 BUILD_CONST_KEY_MAP      2
+    
+     33          68 KW_NAMES                 5 (('observation_id', 'user_id', 'session_id', 'module', 'kind', 'summary', 'metadata'))
+                 70 CALL                     7
+                 78 STORE_FAST              10 (observation)
+    
+     42          80 LOAD_FAST                0 (self)
+                 82 LOAD_ATTR                6 (observation_processor)
+                102 LOAD_ATTR                9 (NULL|self + execute)
+    
+     43         122 LOAD_FAST               10 (observation)
+    
+     44         124 LOAD_FAST                6 (mode)
+    
+     45         126 LOAD_FAST                7 (recent_category_count)
+    
+     46         128 LOAD_FAST                8 (correlation_id)
+    
+     47         130 LOAD_FAST                9 (trace_id)
+    
+     42         132 KW_NAMES                 6 (('observation', 'mode', 'recent_category_count', 'correlation_id', 'trace_id'))
+                134 CALL                     5
+                142 RETURN_VALUE
+
+    ## code_object: build_simulation
+    filename: src\new_era\application\services\grocery_session.py
+    first_line: 50
+    argcount: 1
+    locals: 4
+    stacksize: 5
+    flags: 16777219
+    names: []
+    varnames: ['cls', 'observation_processor', 'event_store', 'device_gateway']
+    cellvars: []
+    freevars: []
+    disassembly:
+     50           0 RESUME                   0
+    
+     58           2 PUSH_NULL
+                  4 LOAD_FAST                0 (cls)
+    
+     59           6 LOAD_FAST                1 (observation_processor)
+    
+     60           8 LOAD_FAST                2 (event_store)
+    
+     61          10 LOAD_FAST                3 (device_gateway)
+    
+     58          12 KW_NAMES                 1 (('observation_processor', 'event_store', 'device_gateway'))
+                 14 CALL                     3
+                 22 RETURN_VALUE
+
+    ## code_object: build_default_simulation
+    filename: src\new_era\application\services\grocery_session.py
+    first_line: 64
+    argcount: 1
+    locals: 9
+    stacksize: 10
+    flags: 16777219
+    names: ['new_era.application.use_cases', 'DeliverLensCommand', 'EvaluateAlertCandidate', 'ProcessAlertCandidate', 'new_era.domain.attention', 'AttentionPolicy', 'InMemoryEventStore', 'BrowserSimulationAdapter', 'SimpleSimulationObservationAdapter', 'ProcessObservation', 'build_simulation']
+    varnames: ['cls', 'DeliverLensCommand', 'EvaluateAlertCandidate', 'ProcessAlertCandidate', 'AttentionPolicy', 'event_store', 'device_gateway', 'observation_interpreter', 'observation_processor']
+    cellvars: []
+    freevars: []
+    disassembly:
+     64           0 RESUME                   0
+    
+     66           2 LOAD_CONST               1 (0)
+                  4 LOAD_CONST               2 (('DeliverLensCommand', 'EvaluateAlertCandidate', 'ProcessAlertCandidate'))
+                  6 IMPORT_NAME              0 (new_era.application.use_cases)
+                  8 IMPORT_FROM              1 (DeliverLensCommand)
+                 10 STORE_FAST               1 (DeliverLensCommand)
+                 12 IMPORT_FROM              2 (EvaluateAlertCandidate)
+                 14 STORE_FAST               2 (EvaluateAlertCandidate)
+                 16 IMPORT_FROM              3 (ProcessAlertCandidate)
+                 18 STORE_FAST               3 (ProcessAlertCandidate)
+                 20 POP_TOP
+    
+     71          22 LOAD_CONST               1 (0)
+                 24 LOAD_CONST               3 (('AttentionPolicy',))
+                 26 IMPORT_NAME              4 (new_era.domain.attention)
+                 28 IMPORT_FROM              5 (AttentionPolicy)
+                 30 STORE_FAST               4 (AttentionPolicy)
+                 32 POP_TOP
+    
+     73          34 LOAD_GLOBAL             13 (NULL + InMemoryEventStore)
+                 44 CALL                     0
+                 52 STORE_FAST               5 (event_store)
+    
+     74          54 LOAD_GLOBAL             15 (NULL + BrowserSimulationAdapter)
+                 64 CALL                     0
+                 72 STORE_FAST               6 (device_gateway)
+    
+     75          74 LOAD_GLOBAL             17 (NULL + SimpleSimulationObservationAdapter)
+                 84 CALL                     0
+                 92 STORE_FAST               7 (observation_interpreter)
+    
+     76          94 LOAD_GLOBAL             19 (NULL + ProcessObservation)
+    
+     77         104 LOAD_FAST                7 (observation_interpreter)
+    
+     78         106 PUSH_NULL
+                108 LOAD_FAST                3 (ProcessAlertCandidate)
+    
+     79         110 PUSH_NULL
+                112 LOAD_FAST                2 (EvaluateAlertCandidate)
+    
+     80         114 PUSH_NULL
+                116 LOAD_FAST                4 (AttentionPolicy)
+                118 CALL                     0
+    
+     81         126 LOAD_FAST                5 (event_store)
+    
+     79         128 KW_NAMES                 4 (('attention_policy', 'event_store'))
+                130 CALL                     2
+    
+     83         138 PUSH_NULL
+                140 LOAD_FAST                1 (DeliverLensCommand)
+    
+     84         142 LOAD_FAST                6 (device_gateway)
+    
+     85         144 LOAD_FAST                5 (event_store)
+    
+     83         146 KW_NAMES                 5 (('device_gateway', 'event_store'))
+                148 CALL                     2
+    
+     78         156 KW_NAMES                 6 (('evaluator', 'delivery'))
+                158 CALL                     2
+    
+     88         166 LOAD_FAST                5 (event_store)
+    
+     76         168 KW_NAMES                 7 (('observation_interpreter', 'alert_processor', 'event_store'))
+                170 CALL                     3
+                178 STORE_FAST               8 (observation_processor)
+    
+     90         180 LOAD_FAST                0 (cls)
+                182 LOAD_ATTR               21 (NULL|self + build_simulation)
+    
+     91         202 LOAD_FAST                8 (observation_processor)
+    
+     92         204 LOAD_FAST                5 (event_store)
+    
+     93         206 LOAD_FAST                6 (device_gateway)
+    
+     90         208 KW_NAMES                 8 (('observation_processor', 'event_store', 'device_gateway'))
+                210 CALL                     3
+                218 RETURN_VALUE
+

@@ -1,0 +1,9 @@
+{
+  "name": "New Era Glasses",
+  "short_name": "New Era",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08111f",
+  "theme_color": "#0f172a",
+  "description": "Localhost shell for the New Era Glasses runtime."
+}

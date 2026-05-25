@@ -1,0 +1,752 @@
+# pyc_path: C:/Users/renan/OneDrive/Documents/New Era Glasses/src/new_era/application/use_cases/__pycache__/record_lens_feedback.cpython-312.pyc
+# embedded_filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py
+# module_name: new_era.application.use_cases.record_lens_feedback
+# first_line: 1
+# compiled_at: 2026-05-24T13:36:48+00:00
+# source_size: 2164
+
+## code_object: <module>
+filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py
+first_line: 1
+argcount: 0
+locals: 0
+stacksize: 5
+flags: 16777216
+names: ['__future__', 'annotations', 'dataclasses', 'dataclass', 'enum', 'StrEnum', 'new_era.application.ports', 'EventStore', 'new_era.domain.events', 'Event', 'EventType', 'LensFeedbackValue', 'LensFeedbackResult', 'RecordLensFeedback']
+varnames: []
+cellvars: []
+freevars: []
+disassembly:
+  0           0 RESUME                   0
+
+  1           2 LOAD_CONST               0 (0)
+              4 LOAD_CONST               1 (('annotations',))
+              6 IMPORT_NAME              0 (__future__)
+              8 IMPORT_FROM              1 (annotations)
+             10 STORE_NAME               1 (annotations)
+             12 POP_TOP
+
+  3          14 LOAD_CONST               0 (0)
+             16 LOAD_CONST               2 (('dataclass',))
+             18 IMPORT_NAME              2 (dataclasses)
+             20 IMPORT_FROM              3 (dataclass)
+             22 STORE_NAME               3 (dataclass)
+             24 POP_TOP
+
+  4          26 LOAD_CONST               0 (0)
+             28 LOAD_CONST               3 (('StrEnum',))
+             30 IMPORT_NAME              4 (enum)
+             32 IMPORT_FROM              5 (StrEnum)
+             34 STORE_NAME               5 (StrEnum)
+             36 POP_TOP
+
+  6          38 LOAD_CONST               0 (0)
+             40 LOAD_CONST               4 (('EventStore',))
+             42 IMPORT_NAME              6 (new_era.application.ports)
+             44 IMPORT_FROM              7 (EventStore)
+             46 STORE_NAME               7 (EventStore)
+             48 POP_TOP
+
+  7          50 LOAD_CONST               0 (0)
+             52 LOAD_CONST               5 (('Event', 'EventType'))
+             54 IMPORT_NAME              8 (new_era.domain.events)
+             56 IMPORT_FROM              9 (Event)
+             58 STORE_NAME               9 (Event)
+             60 IMPORT_FROM             10 (EventType)
+             62 STORE_NAME              10 (EventType)
+             64 POP_TOP
+
+ 10          66 PUSH_NULL
+             68 LOAD_BUILD_CLASS
+             70 LOAD_CONST               6 (<code object LensFeedbackValue at 0x00000273C6F7C2D0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 10>)
+             72 MAKE_FUNCTION            0
+             74 LOAD_CONST               7 ('LensFeedbackValue')
+             76 LOAD_NAME                5 (StrEnum)
+             78 CALL                     3
+             86 STORE_NAME              11 (LensFeedbackValue)
+
+ 15          88 PUSH_NULL
+             90 LOAD_NAME                3 (dataclass)
+             92 LOAD_CONST               8 (True)
+             94 LOAD_CONST               8 (True)
+             96 KW_NAMES                 9 (('frozen', 'slots'))
+             98 CALL                     2
+
+ 16         106 PUSH_NULL
+            108 LOAD_BUILD_CLASS
+            110 LOAD_CONST              10 (<code object LensFeedbackResult at 0x00000273C6EA3E10, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 15>)
+            112 MAKE_FUNCTION            0
+            114 LOAD_CONST              11 ('LensFeedbackResult')
+            116 CALL                     2
+
+ 15         124 CALL                     0
+
+ 16         132 STORE_NAME              12 (LensFeedbackResult)
+
+ 22         134 PUSH_NULL
+            136 LOAD_NAME                3 (dataclass)
+            138 LOAD_CONST               8 (True)
+            140 LOAD_CONST               8 (True)
+            142 KW_NAMES                 9 (('frozen', 'slots'))
+            144 CALL                     2
+
+ 23         152 PUSH_NULL
+            154 LOAD_BUILD_CLASS
+            156 LOAD_CONST              12 (<code object RecordLensFeedback at 0x00000273C6F6CFF0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 22>)
+            158 MAKE_FUNCTION            0
+            160 LOAD_CONST              13 ('RecordLensFeedback')
+            162 CALL                     2
+
+ 22         170 CALL                     0
+
+ 23         178 STORE_NAME              13 (RecordLensFeedback)
+            180 RETURN_CONST            14 (None)
+
+Disassembly of <code object LensFeedbackValue at 0x00000273C6F7C2D0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 10>:
+ 10           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('LensFeedbackValue')
+              8 STORE_NAME               2 (__qualname__)
+
+ 11          10 LOAD_CONST               1 ('useful')
+             12 STORE_NAME               3 (USEFUL)
+
+ 12          14 LOAD_CONST               2 ('not_useful')
+             16 STORE_NAME               4 (NOT_USEFUL)
+             18 RETURN_CONST             3 (None)
+
+Disassembly of <code object LensFeedbackResult at 0x00000273C6EA3E10, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 15>:
+ 15           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('LensFeedbackResult')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 17          12 LOAD_CONST               1 ('str')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('event_id')
+             18 STORE_SUBSCR
+
+ 18          22 LOAD_CONST               1 ('str')
+             24 LOAD_NAME                3 (__annotations__)
+             26 LOAD_CONST               3 ('command_id')
+             28 STORE_SUBSCR
+
+ 19          32 LOAD_CONST               4 ('LensFeedbackValue')
+             34 LOAD_NAME                3 (__annotations__)
+             36 LOAD_CONST               5 ('feedback')
+             38 STORE_SUBSCR
+             42 RETURN_CONST             6 (None)
+
+Disassembly of <code object RecordLensFeedback at 0x00000273C6F6CFF0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 22>:
+ 22           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('RecordLensFeedback')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 24          12 LOAD_CONST               1 ('EventStore')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('event_store')
+             18 STORE_SUBSCR
+
+ 34          22 LOAD_CONST               3 (None)
+
+ 26          24 LOAD_CONST               4 (('trace_id',))
+             26 BUILD_CONST_KEY_MAP      1
+
+ 29          28 NOP
+
+ 26          30 NOP
+
+ 30          32 NOP
+
+ 26          34 NOP
+
+ 31          36 NOP
+
+ 26          38 NOP
+
+ 32          40 NOP
+
+ 26          42 NOP
+
+ 33          44 NOP
+
+ 26          46 NOP
+
+ 34          48 NOP
+
+ 26          50 NOP
+
+ 35          52 NOP
+
+ 26          54 LOAD_CONST               7 (('command_id', 'str', 'user_id', 'str', 'session_id', 'str', 'feedback', 'LensFeedbackValue', 'correlation_id', 'str', 'trace_id', 'str | None', 'return', 'LensFeedbackResult | None'))
+             56 LOAD_CONST               5 (<code object execute at 0x00000273C6AC30A0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 26>)
+             58 MAKE_FUNCTION            6 (kwdefaults, annotations)
+             60 STORE_NAME               4 (execute)
+
+ 64          62 NOP
+
+ 67          64 NOP
+
+ 64          66 NOP
+
+ 68          68 NOP
+
+ 64          70 NOP
+
+ 69          72 NOP
+
+ 64          74 NOP
+
+ 70          76 NOP
+
+ 64          78 LOAD_CONST               8 (('command_id', 'str', 'user_id', 'str', 'session_id', 'str', 'return', 'Event | None'))
+             80 LOAD_CONST               6 (<code object _find_delivered_command at 0x00000273C6ADE3A0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 64>)
+             82 MAKE_FUNCTION            4 (annotations)
+             84 STORE_NAME               5 (_find_delivered_command)
+             86 RETURN_CONST             3 (None)
+
+Disassembly of <code object execute at 0x00000273C6AC30A0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 26>:
+ 26           0 RESUME                   0
+
+ 36           2 LOAD_FAST                0 (self)
+              4 LOAD_ATTR                1 (NULL|self + _find_delivered_command)
+
+ 37          24 LOAD_FAST                1 (command_id)
+
+ 38          26 LOAD_FAST                2 (user_id)
+
+ 39          28 LOAD_FAST                3 (session_id)
+
+ 36          30 KW_NAMES                 1 (('command_id', 'user_id', 'session_id'))
+             32 CALL                     3
+             40 STORE_FAST               7 (delivery_event)
+
+ 41          42 LOAD_FAST                7 (delivery_event)
+             44 POP_JUMP_IF_NOT_NONE     1 (to 48)
+
+ 42          46 RETURN_CONST             0 (None)
+
+ 44     >>   48 LOAD_GLOBAL              3 (NULL + Event)
+
+ 45          58 LOAD_GLOBAL              4 (EventType)
+             68 LOAD_ATTR                6 (ALERT_FEEDBACK_GIVEN)
+
+ 46          88 LOAD_FAST                2 (user_id)
+
+ 47          90 LOAD_FAST                3 (session_id)
+
+ 48          92 LOAD_FAST                7 (delivery_event)
+             94 LOAD_ATTR                8 (module)
+
+ 49         114 LOAD_FAST                5 (correlation_id)
+
+ 50         116 LOAD_FAST                6 (trace_id)
+            118 COPY                     1
+            120 POP_JUMP_IF_TRUE        12 (to 146)
+            122 POP_TOP
+            124 LOAD_FAST                7 (delivery_event)
+            126 LOAD_ATTR               10 (trace_id)
+
+ 52     >>  146 LOAD_FAST                1 (command_id)
+
+ 53         148 LOAD_FAST                4 (feedback)
+            150 LOAD_ATTR               12 (value)
+
+ 54         170 LOAD_CONST               2 ('pwa_companion')
+
+ 51         172 LOAD_CONST               3 (('command_id', 'feedback', 'source'))
+            174 BUILD_CONST_KEY_MAP      3
+
+ 44         176 KW_NAMES                 4 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+            178 CALL                     7
+            186 STORE_FAST               8 (feedback_event)
+
+ 57         188 LOAD_FAST                0 (self)
+            190 LOAD_ATTR               14 (event_store)
+            210 LOAD_ATTR               17 (NULL|self + append)
+            230 LOAD_FAST                8 (feedback_event)
+            232 CALL                     1
+            240 POP_TOP
+
+ 58         242 LOAD_GLOBAL             19 (NULL + LensFeedbackResult)
+
+ 59         252 LOAD_FAST                8 (feedback_event)
+            254 LOAD_ATTR               20 (event_id)
+
+ 60         274 LOAD_FAST                1 (command_id)
+
+ 61         276 LOAD_FAST                4 (feedback)
+
+ 58         278 KW_NAMES                 5 (('event_id', 'command_id', 'feedback'))
+            280 CALL                     3
+            288 RETURN_VALUE
+
+Disassembly of <code object _find_delivered_command at 0x00000273C6ADE3A0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 64>:
+ 64           0 RESUME                   0
+
+ 71           2 LOAD_FAST                0 (self)
+              4 LOAD_ATTR                0 (event_store)
+             24 LOAD_ATTR                3 (NULL|self + list_events)
+             44 LOAD_FAST                3 (session_id)
+             46 KW_NAMES                 1 (('session_id',))
+             48 CALL                     1
+             56 GET_ITER
+        >>   58 FOR_ITER                82 (to 226)
+             62 STORE_FAST               4 (event)
+
+ 72          64 LOAD_FAST                4 (event)
+             66 LOAD_ATTR                4 (user_id)
+             86 LOAD_FAST                2 (user_id)
+             88 COMPARE_OP              55 (!=)
+             92 POP_JUMP_IF_FALSE        1 (to 96)
+
+ 73          94 JUMP_BACKWARD           19 (to 58)
+
+ 74     >>   96 LOAD_FAST                4 (event)
+             98 LOAD_ATTR                6 (event_type)
+            118 LOAD_GLOBAL              8 (EventType)
+            128 LOAD_ATTR               10 (LENS_COMMAND_DELIVERED)
+            148 COMPARE_OP              55 (!=)
+            152 POP_JUMP_IF_FALSE        1 (to 156)
+
+ 75         154 JUMP_BACKWARD           49 (to 58)
+
+ 76     >>  156 LOAD_FAST                4 (event)
+            158 LOAD_ATTR               12 (metadata)
+            178 LOAD_ATTR               15 (NULL|self + get)
+            198 LOAD_CONST               2 ('command_id')
+            200 CALL                     1
+            208 LOAD_FAST                1 (command_id)
+            210 COMPARE_OP              40 (==)
+            214 POP_JUMP_IF_TRUE         1 (to 218)
+            216 JUMP_BACKWARD           80 (to 58)
+
+ 77     >>  218 LOAD_FAST                4 (event)
+            220 SWAP                     2
+            222 POP_TOP
+            224 RETURN_VALUE
+
+ 71     >>  226 END_FOR
+
+ 78         228 RETURN_CONST             0 (None)
+
+  ## code_object: LensFeedbackValue
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py
+  first_line: 10
+  argcount: 0
+  locals: 0
+  stacksize: 1
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', 'USEFUL', 'NOT_USEFUL']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   10           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('LensFeedbackValue')
+                8 STORE_NAME               2 (__qualname__)
+  
+   11          10 LOAD_CONST               1 ('useful')
+               12 STORE_NAME               3 (USEFUL)
+  
+   12          14 LOAD_CONST               2 ('not_useful')
+               16 STORE_NAME               4 (NOT_USEFUL)
+               18 RETURN_CONST             3 (None)
+
+  ## code_object: LensFeedbackResult
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py
+  first_line: 15
+  argcount: 0
+  locals: 0
+  stacksize: 3
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   15           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('LensFeedbackResult')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   17          12 LOAD_CONST               1 ('str')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('event_id')
+               18 STORE_SUBSCR
+  
+   18          22 LOAD_CONST               1 ('str')
+               24 LOAD_NAME                3 (__annotations__)
+               26 LOAD_CONST               3 ('command_id')
+               28 STORE_SUBSCR
+  
+   19          32 LOAD_CONST               4 ('LensFeedbackValue')
+               34 LOAD_NAME                3 (__annotations__)
+               36 LOAD_CONST               5 ('feedback')
+               38 STORE_SUBSCR
+               42 RETURN_CONST             6 (None)
+
+  ## code_object: RecordLensFeedback
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py
+  first_line: 22
+  argcount: 0
+  locals: 0
+  stacksize: 3
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__', 'execute', '_find_delivered_command']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   22           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('RecordLensFeedback')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   24          12 LOAD_CONST               1 ('EventStore')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('event_store')
+               18 STORE_SUBSCR
+  
+   34          22 LOAD_CONST               3 (None)
+  
+   26          24 LOAD_CONST               4 (('trace_id',))
+               26 BUILD_CONST_KEY_MAP      1
+  
+   29          28 NOP
+  
+   26          30 NOP
+  
+   30          32 NOP
+  
+   26          34 NOP
+  
+   31          36 NOP
+  
+   26          38 NOP
+  
+   32          40 NOP
+  
+   26          42 NOP
+  
+   33          44 NOP
+  
+   26          46 NOP
+  
+   34          48 NOP
+  
+   26          50 NOP
+  
+   35          52 NOP
+  
+   26          54 LOAD_CONST               7 (('command_id', 'str', 'user_id', 'str', 'session_id', 'str', 'feedback', 'LensFeedbackValue', 'correlation_id', 'str', 'trace_id', 'str | None', 'return', 'LensFeedbackResult | None'))
+               56 LOAD_CONST               5 (<code object execute at 0x00000273C6AC30A0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 26>)
+               58 MAKE_FUNCTION            6 (kwdefaults, annotations)
+               60 STORE_NAME               4 (execute)
+  
+   64          62 NOP
+  
+   67          64 NOP
+  
+   64          66 NOP
+  
+   68          68 NOP
+  
+   64          70 NOP
+  
+   69          72 NOP
+  
+   64          74 NOP
+  
+   70          76 NOP
+  
+   64          78 LOAD_CONST               8 (('command_id', 'str', 'user_id', 'str', 'session_id', 'str', 'return', 'Event | None'))
+               80 LOAD_CONST               6 (<code object _find_delivered_command at 0x00000273C6ADE3A0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 64>)
+               82 MAKE_FUNCTION            4 (annotations)
+               84 STORE_NAME               5 (_find_delivered_command)
+               86 RETURN_CONST             3 (None)
+  
+  Disassembly of <code object execute at 0x00000273C6AC30A0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 26>:
+   26           0 RESUME                   0
+  
+   36           2 LOAD_FAST                0 (self)
+                4 LOAD_ATTR                1 (NULL|self + _find_delivered_command)
+  
+   37          24 LOAD_FAST                1 (command_id)
+  
+   38          26 LOAD_FAST                2 (user_id)
+  
+   39          28 LOAD_FAST                3 (session_id)
+  
+   36          30 KW_NAMES                 1 (('command_id', 'user_id', 'session_id'))
+               32 CALL                     3
+               40 STORE_FAST               7 (delivery_event)
+  
+   41          42 LOAD_FAST                7 (delivery_event)
+               44 POP_JUMP_IF_NOT_NONE     1 (to 48)
+  
+   42          46 RETURN_CONST             0 (None)
+  
+   44     >>   48 LOAD_GLOBAL              3 (NULL + Event)
+  
+   45          58 LOAD_GLOBAL              4 (EventType)
+               68 LOAD_ATTR                6 (ALERT_FEEDBACK_GIVEN)
+  
+   46          88 LOAD_FAST                2 (user_id)
+  
+   47          90 LOAD_FAST                3 (session_id)
+  
+   48          92 LOAD_FAST                7 (delivery_event)
+               94 LOAD_ATTR                8 (module)
+  
+   49         114 LOAD_FAST                5 (correlation_id)
+  
+   50         116 LOAD_FAST                6 (trace_id)
+              118 COPY                     1
+              120 POP_JUMP_IF_TRUE        12 (to 146)
+              122 POP_TOP
+              124 LOAD_FAST                7 (delivery_event)
+              126 LOAD_ATTR               10 (trace_id)
+  
+   52     >>  146 LOAD_FAST                1 (command_id)
+  
+   53         148 LOAD_FAST                4 (feedback)
+              150 LOAD_ATTR               12 (value)
+  
+   54         170 LOAD_CONST               2 ('pwa_companion')
+  
+   51         172 LOAD_CONST               3 (('command_id', 'feedback', 'source'))
+              174 BUILD_CONST_KEY_MAP      3
+  
+   44         176 KW_NAMES                 4 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+              178 CALL                     7
+              186 STORE_FAST               8 (feedback_event)
+  
+   57         188 LOAD_FAST                0 (self)
+              190 LOAD_ATTR               14 (event_store)
+              210 LOAD_ATTR               17 (NULL|self + append)
+              230 LOAD_FAST                8 (feedback_event)
+              232 CALL                     1
+              240 POP_TOP
+  
+   58         242 LOAD_GLOBAL             19 (NULL + LensFeedbackResult)
+  
+   59         252 LOAD_FAST                8 (feedback_event)
+              254 LOAD_ATTR               20 (event_id)
+  
+   60         274 LOAD_FAST                1 (command_id)
+  
+   61         276 LOAD_FAST                4 (feedback)
+  
+   58         278 KW_NAMES                 5 (('event_id', 'command_id', 'feedback'))
+              280 CALL                     3
+              288 RETURN_VALUE
+  
+  Disassembly of <code object _find_delivered_command at 0x00000273C6ADE3A0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py", line 64>:
+   64           0 RESUME                   0
+  
+   71           2 LOAD_FAST                0 (self)
+                4 LOAD_ATTR                0 (event_store)
+               24 LOAD_ATTR                3 (NULL|self + list_events)
+               44 LOAD_FAST                3 (session_id)
+               46 KW_NAMES                 1 (('session_id',))
+               48 CALL                     1
+               56 GET_ITER
+          >>   58 FOR_ITER                82 (to 226)
+               62 STORE_FAST               4 (event)
+  
+   72          64 LOAD_FAST                4 (event)
+               66 LOAD_ATTR                4 (user_id)
+               86 LOAD_FAST                2 (user_id)
+               88 COMPARE_OP              55 (!=)
+               92 POP_JUMP_IF_FALSE        1 (to 96)
+  
+   73          94 JUMP_BACKWARD           19 (to 58)
+  
+   74     >>   96 LOAD_FAST                4 (event)
+               98 LOAD_ATTR                6 (event_type)
+              118 LOAD_GLOBAL              8 (EventType)
+              128 LOAD_ATTR               10 (LENS_COMMAND_DELIVERED)
+              148 COMPARE_OP              55 (!=)
+              152 POP_JUMP_IF_FALSE        1 (to 156)
+  
+   75         154 JUMP_BACKWARD           49 (to 58)
+  
+   76     >>  156 LOAD_FAST                4 (event)
+              158 LOAD_ATTR               12 (metadata)
+              178 LOAD_ATTR               15 (NULL|self + get)
+              198 LOAD_CONST               2 ('command_id')
+              200 CALL                     1
+              208 LOAD_FAST                1 (command_id)
+              210 COMPARE_OP              40 (==)
+              214 POP_JUMP_IF_TRUE         1 (to 218)
+              216 JUMP_BACKWARD           80 (to 58)
+  
+   77     >>  218 LOAD_FAST                4 (event)
+              220 SWAP                     2
+              222 POP_TOP
+              224 RETURN_VALUE
+  
+   71     >>  226 END_FOR
+  
+   78         228 RETURN_CONST             0 (None)
+
+    ## code_object: execute
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py
+    first_line: 26
+    argcount: 1
+    locals: 9
+    stacksize: 12
+    flags: 16777219
+    names: ['_find_delivered_command', 'Event', 'EventType', 'ALERT_FEEDBACK_GIVEN', 'module', 'trace_id', 'value', 'event_store', 'append', 'LensFeedbackResult', 'event_id']
+    varnames: ['self', 'command_id', 'user_id', 'session_id', 'feedback', 'correlation_id', 'trace_id', 'delivery_event', 'feedback_event']
+    cellvars: []
+    freevars: []
+    disassembly:
+     26           0 RESUME                   0
+    
+     36           2 LOAD_FAST                0 (self)
+                  4 LOAD_ATTR                1 (NULL|self + _find_delivered_command)
+    
+     37          24 LOAD_FAST                1 (command_id)
+    
+     38          26 LOAD_FAST                2 (user_id)
+    
+     39          28 LOAD_FAST                3 (session_id)
+    
+     36          30 KW_NAMES                 1 (('command_id', 'user_id', 'session_id'))
+                 32 CALL                     3
+                 40 STORE_FAST               7 (delivery_event)
+    
+     41          42 LOAD_FAST                7 (delivery_event)
+                 44 POP_JUMP_IF_NOT_NONE     1 (to 48)
+    
+     42          46 RETURN_CONST             0 (None)
+    
+     44     >>   48 LOAD_GLOBAL              3 (NULL + Event)
+    
+     45          58 LOAD_GLOBAL              4 (EventType)
+                 68 LOAD_ATTR                6 (ALERT_FEEDBACK_GIVEN)
+    
+     46          88 LOAD_FAST                2 (user_id)
+    
+     47          90 LOAD_FAST                3 (session_id)
+    
+     48          92 LOAD_FAST                7 (delivery_event)
+                 94 LOAD_ATTR                8 (module)
+    
+     49         114 LOAD_FAST                5 (correlation_id)
+    
+     50         116 LOAD_FAST                6 (trace_id)
+                118 COPY                     1
+                120 POP_JUMP_IF_TRUE        12 (to 146)
+                122 POP_TOP
+                124 LOAD_FAST                7 (delivery_event)
+                126 LOAD_ATTR               10 (trace_id)
+    
+     52     >>  146 LOAD_FAST                1 (command_id)
+    
+     53         148 LOAD_FAST                4 (feedback)
+                150 LOAD_ATTR               12 (value)
+    
+     54         170 LOAD_CONST               2 ('pwa_companion')
+    
+     51         172 LOAD_CONST               3 (('command_id', 'feedback', 'source'))
+                174 BUILD_CONST_KEY_MAP      3
+    
+     44         176 KW_NAMES                 4 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+                178 CALL                     7
+                186 STORE_FAST               8 (feedback_event)
+    
+     57         188 LOAD_FAST                0 (self)
+                190 LOAD_ATTR               14 (event_store)
+                210 LOAD_ATTR               17 (NULL|self + append)
+                230 LOAD_FAST                8 (feedback_event)
+                232 CALL                     1
+                240 POP_TOP
+    
+     58         242 LOAD_GLOBAL             19 (NULL + LensFeedbackResult)
+    
+     59         252 LOAD_FAST                8 (feedback_event)
+                254 LOAD_ATTR               20 (event_id)
+    
+     60         274 LOAD_FAST                1 (command_id)
+    
+     61         276 LOAD_FAST                4 (feedback)
+    
+     58         278 KW_NAMES                 5 (('event_id', 'command_id', 'feedback'))
+                280 CALL                     3
+                288 RETURN_VALUE
+
+    ## code_object: _find_delivered_command
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\record_lens_feedback.py
+    first_line: 64
+    argcount: 1
+    locals: 5
+    stacksize: 4
+    flags: 16777219
+    names: ['event_store', 'list_events', 'user_id', 'event_type', 'EventType', 'LENS_COMMAND_DELIVERED', 'metadata', 'get']
+    varnames: ['self', 'command_id', 'user_id', 'session_id', 'event']
+    cellvars: []
+    freevars: []
+    disassembly:
+     64           0 RESUME                   0
+    
+     71           2 LOAD_FAST                0 (self)
+                  4 LOAD_ATTR                0 (event_store)
+                 24 LOAD_ATTR                3 (NULL|self + list_events)
+                 44 LOAD_FAST                3 (session_id)
+                 46 KW_NAMES                 1 (('session_id',))
+                 48 CALL                     1
+                 56 GET_ITER
+            >>   58 FOR_ITER                82 (to 226)
+                 62 STORE_FAST               4 (event)
+    
+     72          64 LOAD_FAST                4 (event)
+                 66 LOAD_ATTR                4 (user_id)
+                 86 LOAD_FAST                2 (user_id)
+                 88 COMPARE_OP              55 (!=)
+                 92 POP_JUMP_IF_FALSE        1 (to 96)
+    
+     73          94 JUMP_BACKWARD           19 (to 58)
+    
+     74     >>   96 LOAD_FAST                4 (event)
+                 98 LOAD_ATTR                6 (event_type)
+                118 LOAD_GLOBAL              8 (EventType)
+                128 LOAD_ATTR               10 (LENS_COMMAND_DELIVERED)
+                148 COMPARE_OP              55 (!=)
+                152 POP_JUMP_IF_FALSE        1 (to 156)
+    
+     75         154 JUMP_BACKWARD           49 (to 58)
+    
+     76     >>  156 LOAD_FAST                4 (event)
+                158 LOAD_ATTR               12 (metadata)
+                178 LOAD_ATTR               15 (NULL|self + get)
+                198 LOAD_CONST               2 ('command_id')
+                200 CALL                     1
+                208 LOAD_FAST                1 (command_id)
+                210 COMPARE_OP              40 (==)
+                214 POP_JUMP_IF_TRUE         1 (to 218)
+                216 JUMP_BACKWARD           80 (to 58)
+    
+     77     >>  218 LOAD_FAST                4 (event)
+                220 SWAP                     2
+                222 POP_TOP
+                224 RETURN_VALUE
+    
+     71     >>  226 END_FOR
+    
+     78         228 RETURN_CONST             0 (None)
+

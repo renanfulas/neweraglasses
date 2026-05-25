@@ -1,0 +1,127 @@
+# pyc_path: C:/Users/renan/OneDrive/Documents/New Era Glasses/src/new_era/application/use_cases/__pycache__/__init__.cpython-312.pyc
+# embedded_filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\__init__.py
+# module_name: new_era.application.use_cases.__init__
+# first_line: 1
+# compiled_at: 2026-05-24T14:43:45+00:00
+# source_size: 2047
+
+## code_object: <module>
+filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\__init__.py
+first_line: 1
+argcount: 0
+locals: 0
+stacksize: 2
+flags: 0
+names: ['__doc__', 'new_era.application.use_cases.document_analysis_jobs', 'AdvanceDocumentAnalysisJob', 'DocumentAnalysisJobTimedOut', 'EnqueueDocumentAnalysisJob', 'GetJobStatus', 'RunDocumentAnalysisJob', 'new_era.application.use_cases.get_document_analysis', 'GetDocumentAnalysis', 'ListDocumentAnalysesBySession', 'new_era.application.use_cases.deliver_lens_command', 'DeliverLensCommand', 'new_era.application.use_cases.evaluate_alert_candidate', 'EvaluateAlertCandidate', 'new_era.application.use_cases.get_session_trace', 'GetSessionTrace', 'SessionTraceEntry', 'SessionTraceReadModel', 'new_era.application.use_cases.process_observation', 'ObservationProcessingResult', 'ProcessObservation', 'new_era.application.use_cases.process_alert_candidate', 'AlertProcessingOutcome', 'AlertProcessingResult', 'ProcessAlertCandidate', 'new_era.application.use_cases.record_lens_feedback', 'LensFeedbackResult', 'LensFeedbackValue', 'RecordLensFeedback', 'new_era.application.use_cases.user_sessions', 'GetUserSession', 'ListUserSessions', 'SessionOwnershipError', 'StartUserSession', 'UserSessionPageReadModel', 'UserSessionReadModel', '__all__']
+varnames: []
+cellvars: []
+freevars: []
+disassembly:
+  0           0 RESUME                   0
+
+  1           2 LOAD_CONST               0 ('Application use cases.')
+              4 STORE_NAME               0 (__doc__)
+
+  3           6 LOAD_CONST               1 (0)
+              8 LOAD_CONST               2 (('AdvanceDocumentAnalysisJob', 'DocumentAnalysisJobTimedOut', 'EnqueueDocumentAnalysisJob', 'GetJobStatus', 'RunDocumentAnalysisJob'))
+             10 IMPORT_NAME              1 (new_era.application.use_cases.document_analysis_jobs)
+             12 IMPORT_FROM              2 (AdvanceDocumentAnalysisJob)
+             14 STORE_NAME               2 (AdvanceDocumentAnalysisJob)
+             16 IMPORT_FROM              3 (DocumentAnalysisJobTimedOut)
+             18 STORE_NAME               3 (DocumentAnalysisJobTimedOut)
+             20 IMPORT_FROM              4 (EnqueueDocumentAnalysisJob)
+             22 STORE_NAME               4 (EnqueueDocumentAnalysisJob)
+             24 IMPORT_FROM              5 (GetJobStatus)
+             26 STORE_NAME               5 (GetJobStatus)
+             28 IMPORT_FROM              6 (RunDocumentAnalysisJob)
+             30 STORE_NAME               6 (RunDocumentAnalysisJob)
+             32 POP_TOP
+
+ 10          34 LOAD_CONST               1 (0)
+             36 LOAD_CONST               3 (('GetDocumentAnalysis', 'ListDocumentAnalysesBySession'))
+             38 IMPORT_NAME              7 (new_era.application.use_cases.get_document_analysis)
+             40 IMPORT_FROM              8 (GetDocumentAnalysis)
+             42 STORE_NAME               8 (GetDocumentAnalysis)
+             44 IMPORT_FROM              9 (ListDocumentAnalysesBySession)
+             46 STORE_NAME               9 (ListDocumentAnalysesBySession)
+             48 POP_TOP
+
+ 14          50 LOAD_CONST               1 (0)
+             52 LOAD_CONST               4 (('DeliverLensCommand',))
+             54 IMPORT_NAME             10 (new_era.application.use_cases.deliver_lens_command)
+             56 IMPORT_FROM             11 (DeliverLensCommand)
+             58 STORE_NAME              11 (DeliverLensCommand)
+             60 POP_TOP
+
+ 15          62 LOAD_CONST               1 (0)
+             64 LOAD_CONST               5 (('EvaluateAlertCandidate',))
+             66 IMPORT_NAME             12 (new_era.application.use_cases.evaluate_alert_candidate)
+             68 IMPORT_FROM             13 (EvaluateAlertCandidate)
+             70 STORE_NAME              13 (EvaluateAlertCandidate)
+             72 POP_TOP
+
+ 16          74 LOAD_CONST               1 (0)
+             76 LOAD_CONST               6 (('GetSessionTrace', 'SessionTraceEntry', 'SessionTraceReadModel'))
+             78 IMPORT_NAME             14 (new_era.application.use_cases.get_session_trace)
+             80 IMPORT_FROM             15 (GetSessionTrace)
+             82 STORE_NAME              15 (GetSessionTrace)
+             84 IMPORT_FROM             16 (SessionTraceEntry)
+             86 STORE_NAME              16 (SessionTraceEntry)
+             88 IMPORT_FROM             17 (SessionTraceReadModel)
+             90 STORE_NAME              17 (SessionTraceReadModel)
+             92 POP_TOP
+
+ 21          94 LOAD_CONST               1 (0)
+             96 LOAD_CONST               7 (('ObservationProcessingResult', 'ProcessObservation'))
+             98 IMPORT_NAME             18 (new_era.application.use_cases.process_observation)
+            100 IMPORT_FROM             19 (ObservationProcessingResult)
+            102 STORE_NAME              19 (ObservationProcessingResult)
+            104 IMPORT_FROM             20 (ProcessObservation)
+            106 STORE_NAME              20 (ProcessObservation)
+            108 POP_TOP
+
+ 25         110 LOAD_CONST               1 (0)
+            112 LOAD_CONST               8 (('AlertProcessingOutcome', 'AlertProcessingResult', 'ProcessAlertCandidate'))
+            114 IMPORT_NAME             21 (new_era.application.use_cases.process_alert_candidate)
+            116 IMPORT_FROM             22 (AlertProcessingOutcome)
+            118 STORE_NAME              22 (AlertProcessingOutcome)
+            120 IMPORT_FROM             23 (AlertProcessingResult)
+            122 STORE_NAME              23 (AlertProcessingResult)
+            124 IMPORT_FROM             24 (ProcessAlertCandidate)
+            126 STORE_NAME              24 (ProcessAlertCandidate)
+            128 POP_TOP
+
+ 30         130 LOAD_CONST               1 (0)
+            132 LOAD_CONST               9 (('LensFeedbackResult', 'LensFeedbackValue', 'RecordLensFeedback'))
+            134 IMPORT_NAME             25 (new_era.application.use_cases.record_lens_feedback)
+            136 IMPORT_FROM             26 (LensFeedbackResult)
+            138 STORE_NAME              26 (LensFeedbackResult)
+            140 IMPORT_FROM             27 (LensFeedbackValue)
+            142 STORE_NAME              27 (LensFeedbackValue)
+            144 IMPORT_FROM             28 (RecordLensFeedback)
+            146 STORE_NAME              28 (RecordLensFeedback)
+            148 POP_TOP
+
+ 35         150 LOAD_CONST               1 (0)
+            152 LOAD_CONST              10 (('GetUserSession', 'ListUserSessions', 'SessionOwnershipError', 'StartUserSession', 'UserSessionPageReadModel', 'UserSessionReadModel'))
+            154 IMPORT_NAME             29 (new_era.application.use_cases.user_sessions)
+            156 IMPORT_FROM             30 (GetUserSession)
+            158 STORE_NAME              30 (GetUserSession)
+            160 IMPORT_FROM             31 (ListUserSessions)
+            162 STORE_NAME              31 (ListUserSessions)
+            164 IMPORT_FROM             32 (SessionOwnershipError)
+            166 STORE_NAME              32 (SessionOwnershipError)
+            168 IMPORT_FROM             33 (StartUserSession)
+            170 STORE_NAME              33 (StartUserSession)
+            172 IMPORT_FROM             34 (UserSessionPageReadModel)
+            174 STORE_NAME              34 (UserSessionPageReadModel)
+            176 IMPORT_FROM             35 (UserSessionReadModel)
+            178 STORE_NAME              35 (UserSessionReadModel)
+            180 POP_TOP
+
+ 44         182 BUILD_LIST               0
+            184 LOAD_CONST              11 (('AlertProcessingOutcome', 'AlertProcessingResult', 'AdvanceDocumentAnalysisJob', 'DocumentAnalysisJobTimedOut', 'DeliverLensCommand', 'EnqueueDocumentAnalysisJob', 'EvaluateAlertCandidate', 'GetDocumentAnalysis', 'GetJobStatus', 'GetSessionTrace', 'GetUserSession', 'LensFeedbackResult', 'LensFeedbackValue', 'ListUserSessions', 'ListDocumentAnalysesBySession', 'ObservationProcessingResult', 'ProcessObservation', 'ProcessAlertCandidate', 'RecordLensFeedback', 'RunDocumentAnalysisJob', 'SessionOwnershipError', 'SessionTraceEntry', 'SessionTraceReadModel', 'StartUserSession', 'UserSessionPageReadModel', 'UserSessionReadModel'))
+            186 LIST_EXTEND              1
+            188 STORE_NAME              36 (__all__)
+            190 RETURN_CONST            12 (None)
+
