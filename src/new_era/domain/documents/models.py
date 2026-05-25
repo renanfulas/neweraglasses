@@ -69,8 +69,10 @@ class ContractReviewAnalysis:
         return len(self.findings) > 0
 
     def to_dict(self) -> dict[str, object]:
+        return self.to_history_dict()
+
+    def to_history_dict(self) -> dict[str, object]:
         return {
-            "extracted_text": self.extracted_text,
             "source_confidence": self.source_confidence,
             "review_confidence": self.review_confidence,
             "summary_title": self.summary_title,

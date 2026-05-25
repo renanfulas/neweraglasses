@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from new_era.application.use_cases import (
     DocumentAnalysisFeedbackValue,
     DocumentFeedbackMetricsReadModel,
+    PolicyRejection,
     LensFeedbackValue,
 )
 from new_era.domain.attention import AttentionMode
@@ -165,6 +166,7 @@ class JobPageResponse(BaseModel):
     session_id: str
     job_count: int
     jobs: list[JobResponse]
+    blocked_reason: dict[str, object] | None = None
 
 
 class JobTransitionRequest(BaseModel):
@@ -246,6 +248,12 @@ class DocumentFeedbackMetricsResponse(BaseModel):
 
 def serialize_job(job: JobRecord) -> JobResponse:
     return JobResponse(**job.to_dict())
+
+
+def serialize_policy_rejection(rejection: PolicyRejection | None) -> dict[str, object] | None:
+    if rejection is None:
+        return None
+    return rejection.to_dict()
 
 
 def serialize_document_analysis(

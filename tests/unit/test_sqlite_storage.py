@@ -149,6 +149,53 @@ class SQLiteStorageTest(TestCase):
             self.assertEqual([job.job_id for job in jobs], ["job_2", "job_1"])
             self.assertEqual([job.job_id for job in queued_jobs], ["job_1"])
 
+    def test_job_store_counts_jobs_by_statuses(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            database_path = Path(temp_dir) / "new_era.sqlite3"
+            store = SQLiteJobStore(database_path)
+            store.save(
+                JobRecord(
+                    job_id="job_1",
+                    job_type=JobType.DOCUMENT_CONTRACT_ANALYSIS,
+                    status=JobStatus.QUEUED,
+                    user_id="user_1",
+                    session_id="session_1",
+                    module="documents",
+                    idempotency_key="idem_12345678",
+                )
+            )
+            store.save(
+                JobRecord(
+                    job_id="job_2",
+                    job_type=JobType.DOCUMENT_CONTRACT_ANALYSIS,
+                    status=JobStatus.RUNNING,
+                    user_id="user_1",
+                    session_id="session_1",
+                    module="documents",
+                    idempotency_key="idem_87654321",
+                )
+            )
+            store.save(
+                JobRecord(
+                    job_id="job_3",
+                    job_type=JobType.DOCUMENT_CONTRACT_ANALYSIS,
+                    status=JobStatus.SUCCEEDED,
+                    user_id="user_1",
+                    session_id="session_1",
+                    module="documents",
+                    idempotency_key="idem_done",
+                )
+            )
+
+            active_jobs = store.count_by_session_statuses(
+                user_id="user_1",
+                session_id="session_1",
+                module="documents",
+                statuses=(JobStatus.QUEUED, JobStatus.RUNNING),
+            )
+
+            self.assertEqual(active_jobs, 2)
+
     def test_job_store_persists_updates_across_instances(self) -> None:
         with TemporaryDirectory() as temp_dir:
             database_path = Path(temp_dir) / "new_era.sqlite3"

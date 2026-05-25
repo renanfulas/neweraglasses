@@ -13,6 +13,7 @@ from new_era.application.use_cases import (
     GetDocumentAnalysisFeedback,
     GetDocumentFeedbackMetrics,
     GetJobStatus,
+    GetRecentPolicyRejectionForSession,
     GetSessionTrace,
     GetUserSession,
     ListDocumentAnalysesBySession,
@@ -75,6 +76,16 @@ def get_job_session_lister(
     runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
 ) -> ListJobsBySession:
     return runtime.job_session_lister
+
+
+def get_recent_policy_rejection_reader(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> GetRecentPolicyRejectionForSession:
+    return GetRecentPolicyRejectionForSession(
+        event_store=runtime.event_store,
+        job_store=runtime.job_store,
+        artifact_store=runtime.document_artifact_store,
+    )
 
 
 def get_document_job_advancer(

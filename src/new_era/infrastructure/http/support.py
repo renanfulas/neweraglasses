@@ -5,7 +5,13 @@ from pathlib import PurePosixPath
 
 from fastapi import HTTPException, UploadFile
 
-from new_era.application.use_cases import GetDocumentAnalysisFeedback, GetSessionTrace, StartUserSession
+from new_era.application.use_cases import (
+    GetDocumentAnalysisFeedback,
+    GetSessionTrace,
+    PolicyRejectedError,
+    PolicyRejection,
+    StartUserSession,
+)
 from new_era.domain.documents import DocumentAnalysisRecord
 from new_era.domain.events import EventType
 from new_era.domain.jobs import JobRecord
@@ -97,16 +103,74 @@ def parse_datetime_query(value: str | None, *, field_name: str) -> datetime | No
         raise HTTPException(status_code=422, detail=f"invalid_{field_name}") from exc
 
 
+def raise_policy_http_error(status_code: int, rejection: PolicyRejection) -> None:
+    raise HTTPException(status_code=status_code, detail=rejection.to_dict())
+
+
+def policy_status_code_for(rejection: PolicyRejection) -> int:
+    if rejection.code in {
+        "session_upload_quota_exceeded",
+        "session_active_job_limit_exceeded",
+    }:
+        return 429
+    if rejection.code in {
+        "idempotency_payload_mismatch",
+        "artifact_retention_expired",
+    }:
+        return 409
+    if rejection.code in {
+        "unsupported_upload_content_type",
+        "unsupported_camera_content_type",
+    }:
+        return 415
+    if rejection.code == "upload_payload_too_large":
+        return 413
+    if rejection.code in {
+        "upload_file_empty",
+        "document_text_or_document_image_base64_required",
+    }:
+        return 422
+    return 400
+
+
+def raise_rejected_http_error(status_code: int, error: PolicyRejectedError) -> None:
+    raise_policy_http_error(status_code, error.rejection)
+
+
 def validate_camera_content_type(content_type: str) -> None:
     normalized = content_type.lower().split(";", 1)[0].strip()
     if normalized not in SUPPORTED_DOCUMENT_IMAGE_TYPES:
-        raise HTTPException(status_code=415, detail="unsupported_camera_content_type")
+        raise_policy_http_error(
+            415,
+            PolicyRejection(
+                code="unsupported_camera_content_type",
+                message="Use PNG, JPEG, or WebP for camera contract review.",
+                reason="unsupported_content_type",
+                scope="upload",
+                metadata={
+                    "content_type": normalized or "unknown",
+                    "error_code": "unsupported_camera_content_type",
+                },
+            ),
+        )
 
 
 def validate_upload_content_type(content_type: str) -> str:
     normalized = content_type.lower().split(";", 1)[0].strip()
     if normalized not in SUPPORTED_DOCUMENT_IMAGE_TYPES:
-        raise HTTPException(status_code=415, detail="unsupported_upload_content_type")
+        raise_policy_http_error(
+            415,
+            PolicyRejection(
+                code="unsupported_upload_content_type",
+                message="Use PNG, JPEG, or WebP for document uploads.",
+                reason="unsupported_content_type",
+                scope="upload",
+                metadata={
+                    "content_type": normalized or "unknown",
+                    "error_code": "unsupported_upload_content_type",
+                },
+            ),
+        )
     return normalized
 
 
@@ -130,9 +194,33 @@ def upload_extension_for(content_type: str) -> str:
 async def read_upload_bytes(upload: UploadFile) -> bytes:
     payload = await upload.read(MAX_DOCUMENT_UPLOAD_BYTES + 1)
     if not payload:
-        raise HTTPException(status_code=422, detail="upload_file_empty")
+        raise_policy_http_error(
+            422,
+            PolicyRejection(
+                code="upload_file_empty",
+                message="The selected file is empty.",
+                reason="validation_failed",
+                scope="upload",
+                metadata={"error_code": "upload_file_empty"},
+            ),
+        )
     if len(payload) > MAX_DOCUMENT_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail="upload_file_too_large")
+        raise_policy_http_error(
+            413,
+            PolicyRejection(
+                code="upload_payload_too_large",
+                message="The file is above the local upload limit.",
+                reason="payload_too_large",
+                scope="upload",
+                limit=MAX_DOCUMENT_UPLOAD_BYTES,
+                current=len(payload),
+                metadata={
+                    "byte_size": len(payload),
+                    "limit_value": MAX_DOCUMENT_UPLOAD_BYTES,
+                    "error_code": "upload_payload_too_large",
+                },
+            ),
+        )
     return payload
 
 

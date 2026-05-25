@@ -23,6 +23,7 @@ from new_era.application.use_cases import (
     DeliverLensCommand,
     EnforceSessionArtifactQuota,
     EnqueueDocumentAnalysisJob,
+    ExpireDocumentArtifact,
     EvaluateAlertCandidate,
     GetDocumentAnalysis,
     GetDocumentFeedbackMetrics,
@@ -133,6 +134,11 @@ class SimulationRuntime:
         document_artifact_storage: LocalDocumentArtifactStorage = (
             FilesystemDocumentArtifactStorage(upload_dir)
         )
+        artifact_expirer = ExpireDocumentArtifact(
+            artifact_store=document_artifact_store,
+            storage=document_artifact_storage,
+            event_store=event_store,
+        )
         artifact_quota_enforcer = EnforceSessionArtifactQuota(
             artifact_store=document_artifact_store,
             quota=SessionArtifactQuota(
@@ -191,6 +197,7 @@ class SimulationRuntime:
                 job_store=job_store,
                 event_store=event_store,
                 document_analysis_store=document_analysis_store,
+                artifact_expirer=artifact_expirer,
             ),
             job_status_reader=GetJobStatus(job_store=job_store),
             job_session_lister=ListJobsBySession(job_store=job_store),
@@ -215,10 +222,12 @@ class SimulationRuntime:
                 artifact_store=document_artifact_store,
                 storage=document_artifact_storage,
                 quota_enforcer=artifact_quota_enforcer,
+                event_store=event_store,
             ),
             document_artifact_deleter=DeleteLocalDocumentArtifact(
                 artifact_store=document_artifact_store,
                 storage=document_artifact_storage,
+                event_store=event_store,
             ),
             lens_feedback_recorder=RecordLensFeedback(event_store=event_store),
             user_session_starter=StartUserSession(session_store=session_store),
@@ -229,6 +238,7 @@ class SimulationRuntime:
                     job_store=job_store,
                     event_store=event_store,
                     payload_store=document_job_payload_store,
+                    artifact_expirer=artifact_expirer,
                     document_processor=DocumentSessionService.build_simulation(
                         observation_processor=observation_processor,
                         event_store=event_store,

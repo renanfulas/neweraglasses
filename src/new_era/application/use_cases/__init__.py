@@ -26,6 +26,9 @@ from new_era.application.use_cases.get_document_feedback_metrics import (
     DocumentFeedbackMetricsReadModel,
     GetDocumentFeedbackMetrics,
 )
+from new_era.application.use_cases.get_recent_policy_rejection import (
+    GetRecentPolicyRejectionForSession,
+)
 from new_era.application.use_cases.deliver_lens_command import DeliverLensCommand
 from new_era.application.use_cases.evaluate_alert_candidate import EvaluateAlertCandidate
 from new_era.application.use_cases.get_session_trace import (
@@ -41,6 +44,10 @@ from new_era.application.use_cases.process_alert_candidate import (
     AlertProcessingOutcome,
     AlertProcessingResult,
     ProcessAlertCandidate,
+)
+from new_era.application.use_cases.policy_rejection import (
+    PolicyRejectedError,
+    PolicyRejection,
 )
 from new_era.application.use_cases.record_lens_feedback import (
     LensFeedbackResult,
@@ -79,6 +86,7 @@ __all__ = [
     "GetDocumentFeedbackMetrics",
     "GetDocumentAnalysisFeedback",
     "GetJobStatus",
+    "GetRecentPolicyRejectionForSession",
     "GetSessionTrace",
     "GetUserSession",
     "LensFeedbackResult",
@@ -87,6 +95,8 @@ __all__ = [
     "ListUserSessions",
     "ListDocumentAnalysesBySession",
     "ObservationProcessingResult",
+    "PolicyRejectedError",
+    "PolicyRejection",
     "ProcessObservation",
     "RecordDocumentAnalysisFeedback",
     "ProcessAlertCandidate",

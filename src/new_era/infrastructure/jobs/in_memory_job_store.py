@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Collection
 from dataclasses import dataclass, field
 from threading import RLock
 
@@ -63,3 +64,24 @@ class InMemoryJobStore(JobStore):
             ]
         jobs.sort(key=lambda job: (job.created_at, job.job_id), reverse=True)
         return jobs[:limit] if limit is not None else jobs
+
+    def count_by_session_statuses(
+        self,
+        *,
+        user_id: str,
+        session_id: str,
+        statuses: Collection[JobStatus],
+        module: str | None = None,
+    ) -> int:
+        wanted_statuses = set(statuses)
+        if not wanted_statuses:
+            return 0
+        with self._lock:
+            return sum(
+                1
+                for job in self.jobs.values()
+                if job.user_id == user_id
+                and job.session_id == session_id
+                and job.status in wanted_statuses
+                and (module is None or job.module == module)
+            )

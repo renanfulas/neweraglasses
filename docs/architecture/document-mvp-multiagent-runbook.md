@@ -12,6 +12,19 @@ The core rule is simple:
 
 > parallelize by ownership boundary, then integrate through one coordinator.
 
+Architecture model:
+
+```text
+Contextual Attention Pyramid
+
+raw signal rises
+session boundary protects it
+policy decides
+only safe minimal responses return to the PWA or glasses
+```
+
+In this runbook, quotas, idempotency, retention, and policy rejections belong to the session protection boundary. No worker should implement a client-only version of these rules.
+
 ## Current Risk Snapshot
 
 The repository already has uncommitted changes in central files such as:
@@ -39,9 +52,11 @@ Allowed write scope:
 
 - `docs/specs/0003-document-mvp-hardening.md`
 - `docs/architecture/document-mvp-multiagent-runbook.md`
+- `src/new_era/application/use_cases/policy_rejection.py`
 - `src/new_era/application/services/simulation_runtime.py`
 - `src/new_era/application/use_cases/__init__.py`
 - `src/new_era/infrastructure/http/app.py`
+- `src/new_era/infrastructure/http/document_routes.py`
 - cross-cutting smoke tests and README updates
 
 ### Agent 1: Upload Lifecycle And Local Security
@@ -64,6 +79,7 @@ Preferred write scope:
 Must not edit:
 
 - `src/new_era/infrastructure/http/app.py`
+- `src/new_era/infrastructure/http/document_routes.py`
 - `src/new_era/infrastructure/http/static/app.js`
 
 ### Agent 2: Feedback Metrics Read Model
@@ -86,6 +102,7 @@ Must not edit:
 - attention policy
 - `src/new_era/infrastructure/http/static/app.js`
 - `src/new_era/infrastructure/http/app.py`
+- `src/new_era/infrastructure/http/document_routes.py`
 
 ### Agent 3: OCR / Analysis Eval Harness
 
@@ -106,6 +123,7 @@ Must not edit:
 
 - runtime HTTP files
 - service worker or manifest
+- persisted runtime contracts outside document analysis/eval fixtures
 
 ### Agent 4: PWA Document Flow UX
 
@@ -126,6 +144,7 @@ Must not edit:
 
 - backend contracts
 - `src/new_era/infrastructure/http/app.py`
+- `src/new_era/infrastructure/http/document_routes.py`
 
 ### Agent 5: PWA Install / Offline
 
@@ -147,6 +166,7 @@ Must not edit:
 
 - document UX logic in `app.js`
 - backend contracts
+- `src/new_era/infrastructure/http/document_routes.py`
 
 ## Sequence
 
@@ -160,6 +180,11 @@ The coordinator completes:
 - retention defaults
 - quota defaults
 - ownership map
+- `PolicyRejection` contract
+- idempotency fingerprint semantics
+- raw text persistence rule
+- terminal retention path rule
+- error matrix
 
 No worker should implement against a moving contract.
 
@@ -244,6 +269,56 @@ ocr_quality_evaluated
 rate_limit_exceeded
 ```
 
+Frozen rejection contract:
+
+```text
+PolicyRejection
+  code: stable machine-readable string
+  message: user-safe display message
+  reason: category such as quota_exceeded or payload_too_large
+  scope: session, upload, job, artifact, or idempotency
+  limit: optional integer
+  current: optional integer
+  retryable: boolean
+  metadata: safe references only
+```
+
+HTTP adapters must return this object as `detail`. The PWA must display `detail.message` when present and fall back to `detail.code` or status text only when needed.
+
+Frozen idempotency rule:
+
+```text
+same idempotency_key + same payload_fingerprint -> return existing job
+same idempotency_key + different payload_fingerprint -> 409 idempotency_payload_mismatch
+```
+
+Frozen persistence rule:
+
+```text
+Persist summary, findings, finding excerpts, confidence, parsing notes, and references.
+Do not persist full OCR text or full submitted document text as durable history.
+Do not place full text in event metadata, including nested analysis dictionaries.
+```
+
+Frozen terminal retention rule:
+
+```text
+Every transition to succeeded or failed must attempt retention expiration for the linked artifact.
+This applies to worker-driven execution and manual status transitions.
+Artifact expiration must be idempotent and emit document_retention_expired only for a real active -> expired transition.
+```
+
+Frozen error matrix:
+
+| Case | HTTP | Code | Event |
+| --- | ---: | --- | --- |
+| Unsupported MIME type | 415 | `unsupported_upload_content_type` | `upload_rejected` |
+| Empty upload | 422 | `upload_file_empty` | `upload_rejected` |
+| Payload above policy | 413 | `upload_payload_too_large` | `upload_rejected` |
+| Session upload quota full | 429 | `session_upload_quota_exceeded` | `rate_limit_exceeded` |
+| Session active jobs full | 429 | `session_active_job_limit_exceeded` | `rate_limit_exceeded` |
+| Idempotency payload mismatch | 409 | `idempotency_payload_mismatch` | `upload_rejected` |
+
 Frozen local defaults:
 
 ```text
@@ -280,6 +355,7 @@ Use this order:
 These files are integration choke points and should not be edited by multiple workers in parallel:
 
 - `src/new_era/infrastructure/http/app.py`
+- `src/new_era/infrastructure/http/document_routes.py`
 - `src/new_era/application/services/simulation_runtime.py`
 - `src/new_era/application/use_cases/__init__.py`
 - `src/new_era/infrastructure/http/static/app.js`

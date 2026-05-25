@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Collection
 import json
 import sqlite3
 from contextlib import closing
@@ -203,6 +204,36 @@ class SQLiteJobStore(JobStore):
         with closing(self._connect()) as connection:
             rows = connection.execute(query, tuple(values)).fetchall()
         return [self._row_to_job(row) for row in rows]
+
+    def count_by_session_statuses(
+        self,
+        *,
+        user_id: str,
+        session_id: str,
+        statuses: Collection[JobStatus],
+        module: str | None = None,
+    ) -> int:
+        status_values = [status.value for status in statuses]
+        if not status_values:
+            return 0
+
+        clauses = ["user_id = ?", "session_id = ?"]
+        values: list[object] = [user_id, session_id]
+        if module is not None:
+            clauses.append("module = ?")
+            values.append(module)
+
+        placeholders = ", ".join("?" for _ in status_values)
+        clauses.append(f"status IN ({placeholders})")
+        values.extend(status_values)
+
+        query = f"""
+            SELECT COUNT(*)
+            FROM jobs
+            WHERE {" AND ".join(clauses)}
+        """
+        with closing(self._connect()) as connection:
+            return int(connection.execute(query, tuple(values)).fetchone()[0])
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.database_path, timeout=30)

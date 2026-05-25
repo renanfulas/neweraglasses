@@ -1,4 +1,8 @@
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from threading import Event
 from time import sleep
 from unittest import TestCase
 
@@ -8,13 +12,29 @@ from new_era.application.use_cases import (
     EnqueueDocumentAnalysisJob,
     GetJobStatus,
     ListJobsBySession,
+    PolicyRejectedError,
     RunDocumentAnalysisJob,
 )
+from new_era.application.use_cases.document_artifact_lifecycle import (
+    ExpireDocumentArtifact,
+    RegisterLocalDocumentArtifact,
+)
+from new_era.application.use_cases.document_analysis_jobs import SessionActiveJobQuota
 from new_era.domain.attention import AttentionMode
-from new_era.domain.documents import ContractReviewAnalysis, DocumentAnalysisRecord
+from new_era.domain.documents import (
+    ContractReviewAnalysis,
+    DocumentAnalysisRecord,
+    DocumentArtifactStatus,
+)
 from new_era.domain.events import EventType
-from new_era.domain.jobs import JobExecutionPolicy, JobStatus
+from new_era.domain.jobs import JobExecutionPolicy, JobRecord, JobStatus, JobType
 from new_era.infrastructure.documents import InMemoryDocumentAnalysisStore
+from new_era.infrastructure.documents.filesystem_document_artifact_storage import (
+    FilesystemDocumentArtifactStorage,
+)
+from new_era.infrastructure.documents.in_memory_document_artifact_store import (
+    InMemoryDocumentArtifactStore,
+)
 from new_era.infrastructure.events import InMemoryEventStore
 from new_era.infrastructure.jobs import (
     InMemoryDocumentAnalysisJobPayloadStore,
@@ -77,6 +97,21 @@ class FakeDocumentProcessor:
         )
         self.analysis_store.save(record)
         return FakeDocumentReviewResult(analysis_record=record)
+
+
+class BlockingSaveJobStore(InMemoryJobStore):
+    def __init__(self) -> None:
+        super().__init__()
+        self.save_started = Event()
+        self.release_save = Event()
+        self._blocked_once = False
+
+    def save(self, job: JobRecord) -> None:
+        if not self._blocked_once:
+            self._blocked_once = True
+            self.save_started.set()
+            self.release_save.wait(timeout=2)
+        super().save(job)
 
 
 class DocumentAnalysisJobsTest(TestCase):
@@ -165,50 +200,246 @@ class DocumentAnalysisJobsTest(TestCase):
         self.assertEqual(first_job.job_id, second_job.job_id)
         self.assertEqual(len(event_store.events), 1)
 
-    def test_runner_processes_document_job_and_persists_result(self) -> None:
+    def test_reuses_job_for_same_idempotency_key_and_same_payload_fingerprint(self) -> None:
         job_store = InMemoryJobStore()
         event_store = InMemoryEventStore()
-        payload_store = InMemoryDocumentAnalysisJobPayloadStore()
-        analysis_store = self._build_analysis_store()
-        enqueue = EnqueueDocumentAnalysisJob(
+        payload_store = self._build_payload_store()
+        use_case = EnqueueDocumentAnalysisJob(
             job_store=job_store,
             event_store=event_store,
             payload_store=payload_store,
         )
-        processor = FakeDocumentProcessor(analysis_store=analysis_store)
-        runner = RunDocumentAnalysisJob(
-            job_store=job_store,
-            event_store=event_store,
-            payload_store=payload_store,
-            document_processor=processor,
-        )
-        job = enqueue.execute(
+
+        first_job = use_case.execute(
             user_id="user_1",
             session_id="session_1",
-            idempotency_key="idem_real_worker",
+            idempotency_key="idem_same_payload",
             correlation_id="corr_1",
             trace_id="trace_1",
             artifact_label="gym-contract.pdf",
             source_type="pwa_upload",
-            document_text="Contrato com renovacao automatica e multa de cancelamento.",
+            document_text="Clausula de renovacao automatica.",
+        )
+        second_job = use_case.execute(
+            user_id="user_1",
+            session_id="session_1",
+            idempotency_key="idem_same_payload",
+            correlation_id="corr_2",
+            trace_id="trace_2",
+            artifact_label="gym-contract.pdf",
+            source_type="pwa_upload",
+            document_text="Clausula de renovacao automatica.",
         )
 
-        completed_job = runner.execute(job_id=job.job_id)
+        self.assertEqual(first_job.job_id, second_job.job_id)
+        self.assertEqual(first_job.metadata["payload_fingerprint"], second_job.metadata["payload_fingerprint"])
+        self.assertEqual(len(event_store.events), 1)
+        self.assertIsNotNone(payload_store.get(first_job.job_id))
 
-        self.assertEqual(completed_job.status, JobStatus.SUCCEEDED)
-        self.assertEqual(completed_job.attempts, 1)
-        self.assertIsNotNone(completed_job.result_id)
-        self.assertEqual(completed_job.metadata["analysis_id"], completed_job.result_id)
-        self.assertIsNotNone(analysis_store.get(completed_job.result_id))
-        self.assertIsNone(payload_store.get(job.job_id))
+    def test_rejects_same_idempotency_key_with_different_payload_fingerprint(self) -> None:
+        job_store = InMemoryJobStore()
+        event_store = InMemoryEventStore()
+        use_case = EnqueueDocumentAnalysisJob(job_store=job_store, event_store=event_store)
+
+        use_case.execute(
+            user_id="user_1",
+            session_id="session_1",
+            idempotency_key="idem_payload_conflict",
+            correlation_id="corr_1",
+            trace_id="trace_1",
+            artifact_label="gym-contract.pdf",
+            source_type="pwa_upload",
+            document_text="Clausula de renovacao automatica.",
+        )
+
+        with self.assertRaises(PolicyRejectedError) as raised:
+            use_case.execute(
+                user_id="user_1",
+                session_id="session_1",
+                idempotency_key="idem_payload_conflict",
+                correlation_id="corr_2",
+                trace_id="trace_2",
+                artifact_label="gym-contract.pdf",
+                source_type="pwa_upload",
+                document_text="Clausula de multa por cancelamento.",
+            )
+
+        self.assertEqual(raised.exception.rejection.code, "idempotency_payload_mismatch")
+        self.assertEqual(raised.exception.rejection.reason, "idempotency_mismatch")
+        self.assertEqual(len(event_store.events), 1)
+
+    def test_rejects_when_session_active_job_quota_is_full(self) -> None:
+        job_store = InMemoryJobStore()
+        event_store = InMemoryEventStore()
+        use_case = EnqueueDocumentAnalysisJob(
+            job_store=job_store,
+            event_store=event_store,
+            active_job_quota=SessionActiveJobQuota(max_active_jobs=2),
+        )
+        job_store.save(
+            JobRecord(
+                job_id="job_queued",
+                job_type=JobType.DOCUMENT_CONTRACT_ANALYSIS,
+                status=JobStatus.QUEUED,
+                user_id="user_1",
+                session_id="session_1",
+                module="documents",
+                idempotency_key="idem_existing_queued",
+            )
+        )
+        job_store.save(
+            JobRecord(
+                job_id="job_running",
+                job_type=JobType.DOCUMENT_CONTRACT_ANALYSIS,
+                status=JobStatus.RUNNING,
+                user_id="user_1",
+                session_id="session_1",
+                module="documents",
+                idempotency_key="idem_existing_running",
+            )
+        )
+        job_store.save(
+            JobRecord(
+                job_id="job_succeeded",
+                job_type=JobType.DOCUMENT_CONTRACT_ANALYSIS,
+                status=JobStatus.SUCCEEDED,
+                user_id="user_1",
+                session_id="session_1",
+                module="documents",
+                idempotency_key="idem_existing_succeeded",
+            )
+        )
+
+        with self.assertRaises(PolicyRejectedError) as raised:
+            use_case.execute(
+                user_id="user_1",
+                session_id="session_1",
+                idempotency_key="idem_new_job",
+                correlation_id="corr_1",
+                trace_id="trace_1",
+                artifact_label="gym-contract.pdf",
+                source_type="pwa_upload",
+                document_text="Contrato com fidelidade de 12 meses.",
+            )
+
+        self.assertEqual(raised.exception.rejection.code, "session_active_job_limit_exceeded")
+        self.assertEqual(raised.exception.rejection.current, 2)
+        self.assertEqual(raised.exception.rejection.limit, 2)
+        self.assertEqual(event_store.events[-1].event_type, EventType.RATE_LIMIT_EXCEEDED)
+
+    def test_enforces_active_job_quota_atomically_per_session(self) -> None:
+        job_store = BlockingSaveJobStore()
+        event_store = InMemoryEventStore()
+        use_case = EnqueueDocumentAnalysisJob(
+            job_store=job_store,
+            event_store=event_store,
+            active_job_quota=SessionActiveJobQuota(max_active_jobs=1),
+        )
+
+        def enqueue(suffix: str):
+            return use_case.execute(
+                user_id="user_atomic",
+                session_id="session_atomic",
+                idempotency_key=f"idem_atomic_{suffix}",
+                correlation_id=f"corr_atomic_{suffix}",
+                trace_id=f"trace_atomic_{suffix}",
+                artifact_label=f"contract-{suffix}.pdf",
+                source_type="pwa_upload",
+                document_text="Contrato com fidelidade de 12 meses.",
+            )
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            first_future = executor.submit(enqueue, "one")
+            self.assertTrue(job_store.save_started.wait(timeout=1))
+            second_future = executor.submit(enqueue, "two")
+            sleep(0.05)
+            job_store.release_save.set()
+            first_job = first_future.result(timeout=1)
+            with self.assertRaises(PolicyRejectedError) as raised:
+                second_future.result(timeout=1)
+
+        self.assertEqual(first_job.session_id, "session_atomic")
+        self.assertEqual(raised.exception.rejection.code, "session_active_job_limit_exceeded")
         self.assertEqual(
-            [event.event_type for event in event_store.events],
-            [
-                EventType.JOB_STARTED,
-                EventType.JOB_STATUS_UPDATED,
-                EventType.JOB_COMPLETED,
-            ],
+            job_store.count_by_session_statuses(
+                user_id="user_atomic",
+                session_id="session_atomic",
+                module="documents",
+                statuses=(JobStatus.QUEUED, JobStatus.RUNNING),
+            ),
+            1,
         )
+
+    def test_runner_processes_document_job_and_persists_result(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            job_store = InMemoryJobStore()
+            event_store = InMemoryEventStore()
+            payload_store = InMemoryDocumentAnalysisJobPayloadStore()
+            analysis_store = self._build_analysis_store()
+            artifact_store = InMemoryDocumentArtifactStore()
+            storage = FilesystemDocumentArtifactStorage(Path(temp_dir) / "uploads")
+            artifact_record = RegisterLocalDocumentArtifact(
+                artifact_store=artifact_store,
+                storage=storage,
+            ).execute(
+                user_id="user_1",
+                session_id="session_1",
+                artifact_label="gym-contract.pdf",
+                source_type="pwa_upload",
+                content_type="application/pdf",
+                payload=b"pdf-bytes",
+            )
+            enqueue = EnqueueDocumentAnalysisJob(
+                job_store=job_store,
+                event_store=event_store,
+                payload_store=payload_store,
+            )
+            processor = FakeDocumentProcessor(analysis_store=analysis_store)
+            runner = RunDocumentAnalysisJob(
+                job_store=job_store,
+                event_store=event_store,
+                payload_store=payload_store,
+                document_processor=processor,
+                artifact_expirer=ExpireDocumentArtifact(
+                    artifact_store=artifact_store,
+                    storage=storage,
+                    event_store=event_store,
+                ),
+            )
+            job = enqueue.execute(
+                user_id="user_1",
+                session_id="session_1",
+                idempotency_key="idem_real_worker",
+                correlation_id="corr_1",
+                trace_id="trace_1",
+                artifact_label="gym-contract.pdf",
+                source_type="pwa_upload",
+                artifact_id=artifact_record.artifact_id,
+                document_text="Contrato com renovacao automatica e multa de cancelamento.",
+            )
+
+            completed_job = runner.execute(job_id=job.job_id)
+
+            self.assertEqual(completed_job.status, JobStatus.SUCCEEDED)
+            self.assertEqual(completed_job.attempts, 1)
+            self.assertIsNotNone(completed_job.result_id)
+            self.assertEqual(completed_job.metadata["analysis_id"], completed_job.result_id)
+            self.assertIsNotNone(analysis_store.get(completed_job.result_id))
+            self.assertIsNone(payload_store.get(job.job_id))
+            self.assertEqual(
+                [event.event_type for event in event_store.events],
+                [
+                    EventType.JOB_STARTED,
+                    EventType.JOB_STATUS_UPDATED,
+                    EventType.JOB_COMPLETED,
+                    EventType.DOCUMENT_RETENTION_EXPIRED,
+                ],
+            )
+            self.assertEqual(
+                artifact_store.get(artifact_record.artifact_id).status,
+                DocumentArtifactStatus.EXPIRED,
+            )
+            self.assertFalse(Path(artifact_record.local_path).exists())
 
     def test_runner_retries_transient_failures_before_succeeding(self) -> None:
         job_store = InMemoryJobStore()
@@ -251,44 +482,73 @@ class DocumentAnalysisJobsTest(TestCase):
         self.assertEqual(event_store.events[-1].event_type, EventType.JOB_COMPLETED)
 
     def test_runner_fails_after_exhausting_attempts(self) -> None:
-        job_store = InMemoryJobStore()
-        event_store = InMemoryEventStore()
-        payload_store = InMemoryDocumentAnalysisJobPayloadStore()
-        analysis_store = self._build_analysis_store()
-        enqueue = EnqueueDocumentAnalysisJob(
-            job_store=job_store,
-            event_store=event_store,
-            payload_store=payload_store,
-            execution_policy=JobExecutionPolicy(max_attempts=2, timeout_seconds=1.0),
-        )
-        processor = FakeDocumentProcessor(
-            analysis_store=analysis_store,
-            failures_before_success=10,
-        )
-        runner = RunDocumentAnalysisJob(
-            job_store=job_store,
-            event_store=event_store,
-            payload_store=payload_store,
-            document_processor=processor,
-        )
-        job = enqueue.execute(
-            user_id="user_1",
-            session_id="session_1",
-            idempotency_key="idem_fail_worker",
-            correlation_id="corr_1",
-            trace_id="trace_1",
-            artifact_label="gym-contract.pdf",
-            source_type="pwa_upload",
-            document_text="Contrato com renovacao automatica e multa de cancelamento.",
-        )
+        with TemporaryDirectory() as temp_dir:
+            job_store = InMemoryJobStore()
+            event_store = InMemoryEventStore()
+            payload_store = InMemoryDocumentAnalysisJobPayloadStore()
+            analysis_store = self._build_analysis_store()
+            artifact_store = InMemoryDocumentArtifactStore()
+            storage = FilesystemDocumentArtifactStorage(Path(temp_dir) / "uploads")
+            artifact_record = RegisterLocalDocumentArtifact(
+                artifact_store=artifact_store,
+                storage=storage,
+            ).execute(
+                user_id="user_1",
+                session_id="session_1",
+                artifact_label="gym-contract.pdf",
+                source_type="pwa_upload",
+                content_type="application/pdf",
+                payload=b"pdf-bytes",
+            )
+            enqueue = EnqueueDocumentAnalysisJob(
+                job_store=job_store,
+                event_store=event_store,
+                payload_store=payload_store,
+                execution_policy=JobExecutionPolicy(max_attempts=2, timeout_seconds=1.0),
+            )
+            processor = FakeDocumentProcessor(
+                analysis_store=analysis_store,
+                failures_before_success=10,
+            )
+            runner = RunDocumentAnalysisJob(
+                job_store=job_store,
+                event_store=event_store,
+                payload_store=payload_store,
+                document_processor=processor,
+                artifact_expirer=ExpireDocumentArtifact(
+                    artifact_store=artifact_store,
+                    storage=storage,
+                    event_store=event_store,
+                ),
+            )
+            job = enqueue.execute(
+                user_id="user_1",
+                session_id="session_1",
+                idempotency_key="idem_fail_worker",
+                correlation_id="corr_1",
+                trace_id="trace_1",
+                artifact_label="gym-contract.pdf",
+                source_type="pwa_upload",
+                artifact_id=artifact_record.artifact_id,
+                document_text="Contrato com renovacao automatica e multa de cancelamento.",
+            )
 
-        failed_job = runner.execute(job_id=job.job_id)
+            failed_job = runner.execute(job_id=job.job_id)
 
-        self.assertEqual(failed_job.status, JobStatus.FAILED)
-        self.assertEqual(failed_job.attempts, 2)
-        self.assertEqual(failed_job.error_code, "execution_error")
-        self.assertIsNone(payload_store.get(job.job_id))
-        self.assertEqual(event_store.events[-1].event_type, EventType.JOB_FAILED)
+            self.assertEqual(failed_job.status, JobStatus.FAILED)
+            self.assertEqual(failed_job.attempts, 2)
+            self.assertEqual(failed_job.error_code, "execution_error")
+            self.assertIsNone(payload_store.get(job.job_id))
+            self.assertEqual(event_store.events[-2].event_type, EventType.JOB_FAILED)
+            self.assertEqual(
+                event_store.events[-1].event_type,
+                EventType.DOCUMENT_RETENTION_EXPIRED,
+            )
+            self.assertEqual(
+                artifact_store.get(artifact_record.artifact_id).status,
+                DocumentArtifactStatus.EXPIRED,
+            )
+            self.assertFalse(Path(artifact_record.local_path).exists())
 
     def test_runner_applies_timeout_policy(self) -> None:
         job_store = InMemoryJobStore()

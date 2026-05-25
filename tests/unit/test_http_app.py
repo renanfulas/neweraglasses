@@ -6,6 +6,7 @@ from unittest import TestCase
 from fastapi.testclient import TestClient
 from PIL import Image, ImageDraw, ImageFont
 
+from new_era.domain.jobs import JobStatus
 from new_era.infrastructure.http.app import create_app
 
 
@@ -162,6 +163,7 @@ class HttpAppTest(TestCase):
         self.assertEqual(payload["command"]["title"], "Contract clause needs attention")
         self.assertIsNotNone(payload["analysis_id"])
         self.assertGreaterEqual(payload["analysis"]["review_confidence"], 0.6)
+        self.assertNotIn("extracted_text", payload["analysis"])
         self.assertIn("automatic_renewal", str(payload["analysis"]["findings"][0]["finding_type"]))
         self.assertEqual(
             [entry["step"] for entry in payload["session_trace"]],
@@ -300,7 +302,10 @@ class HttpAppTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 415)
-        self.assertEqual(response.json()["detail"], "unsupported_camera_content_type")
+        self.assertEqual(
+            response.json()["detail"]["code"],
+            "unsupported_camera_content_type",
+        )
 
     def test_document_analysis_read_model_endpoints_return_persisted_analysis(self) -> None:
         client = TestClient(create_app(), headers=self._auth_headers("user_1"))
@@ -341,6 +346,7 @@ class HttpAppTest(TestCase):
             detail_payload["analysis"]["summary_title"],
             "Contract clause needs attention",
         )
+        self.assertNotIn("extracted_text", detail_payload["analysis"])
         self.assertIsNone(detail_payload["feedback"])
 
     def test_document_analysis_feedback_endpoint_persists_feedback_and_enriches_read_models(self) -> None:
@@ -696,6 +702,110 @@ class HttpAppTest(TestCase):
         self.assertEqual(other_user_response.status_code, 404)
         self.assertEqual(other_user_response.json()["detail"], "session_not_found")
 
+    def test_session_jobs_endpoint_includes_recent_blocked_reason(self) -> None:
+        app = create_app()
+        client = TestClient(app, headers=self._auth_headers("user_jobs_blocked"))
+
+        for index in range(5):
+            app.state.runtime.document_job_enqueuer.execute(
+                user_id="user_jobs_blocked",
+                session_id="session_jobs_blocked",
+                artifact_label=f"contract-{index}.pdf",
+                source_type="pwa_upload",
+                idempotency_key=f"idem_jobs_blocked_{index}",
+                document_text=(
+                    "Contrato com renovacao automatica, multa de cancelamento "
+                    "e fidelidade de 12 meses."
+                ),
+                correlation_id=f"corr_jobs_blocked_{index}",
+                trace_id=f"trace_jobs_blocked_{index}",
+            )
+
+        blocked_response = client.post(
+            "/api/jobs/documents/contract-analysis",
+            json={
+                "user_id": "user_jobs_blocked",
+                "session_id": "session_jobs_blocked",
+                "artifact_label": "contract-overflow.pdf",
+                "source_type": "pwa_upload",
+                "idempotency_key": "idem_jobs_blocked_overflow",
+                "document_text": (
+                    "Contrato com renovacao automatica, multa de cancelamento "
+                    "e fidelidade de 12 meses."
+                ),
+                "correlation_id": "corr_jobs_blocked_overflow",
+                "trace_id": "trace_jobs_blocked_overflow",
+            },
+        )
+        jobs_response = client.get(
+            "/api/users/user_jobs_blocked/sessions/session_jobs_blocked/jobs?module=documents&limit=10"
+        )
+
+        self.assertEqual(blocked_response.status_code, 429)
+        self.assertEqual(jobs_response.status_code, 200)
+        payload = jobs_response.json()
+        self.assertEqual(payload["job_count"], 5)
+        self.assertEqual(
+            payload["blocked_reason"]["code"],
+            "session_active_job_limit_exceeded",
+        )
+        self.assertEqual(payload["blocked_reason"]["reason"], "quota_exceeded")
+
+    def test_session_jobs_endpoint_clears_blocked_reason_after_session_recovers(self) -> None:
+        app = create_app()
+        client = TestClient(app, headers=self._auth_headers("user_jobs_recovered"))
+
+        queued_jobs: list[str] = []
+        for index in range(5):
+            job = app.state.runtime.document_job_enqueuer.execute(
+                user_id="user_jobs_recovered",
+                session_id="session_jobs_recovered",
+                artifact_label=f"contract-{index}.pdf",
+                source_type="pwa_upload",
+                idempotency_key=f"idem_jobs_recovered_{index}",
+                document_text=(
+                    "Contrato com renovacao automatica, multa de cancelamento "
+                    "e fidelidade de 12 meses."
+                ),
+                correlation_id=f"corr_jobs_recovered_{index}",
+                trace_id=f"trace_jobs_recovered_{index}",
+            )
+            queued_jobs.append(job.job_id)
+
+        blocked_response = client.post(
+            "/api/jobs/documents/contract-analysis",
+            json={
+                "user_id": "user_jobs_recovered",
+                "session_id": "session_jobs_recovered",
+                "artifact_label": "contract-overflow.pdf",
+                "source_type": "pwa_upload",
+                "idempotency_key": "idem_jobs_recovered_overflow",
+                "document_text": (
+                    "Contrato com renovacao automatica, multa de cancelamento "
+                    "e fidelidade de 12 meses."
+                ),
+                "correlation_id": "corr_jobs_recovered_overflow",
+                "trace_id": "trace_jobs_recovered_overflow",
+            },
+        )
+        app.state.runtime.document_job_advancer.execute(
+            job_id=queued_jobs[0],
+            target_status=JobStatus.FAILED,
+            correlation_id="corr_jobs_recovered_clear",
+            trace_id="trace_jobs_recovered_clear",
+            error_code="manual_failure",
+            error_message="operator cleared queue",
+        )
+        jobs_response = client.get(
+            "/api/users/user_jobs_recovered/sessions/session_jobs_recovered/jobs?module=documents&limit=10"
+        )
+
+        self.assertEqual(blocked_response.status_code, 429)
+        self.assertEqual(jobs_response.status_code, 200)
+        payload = jobs_response.json()
+        self.assertEqual(payload["job_count"], 5)
+        self.assertIsNone(payload["blocked_reason"])
+
     def test_document_analysis_job_worker_completes_and_result_endpoint_returns_analysis(self) -> None:
         app = create_app()
         client = TestClient(app, headers=self._auth_headers("user_1"))
@@ -731,6 +841,7 @@ class HttpAppTest(TestCase):
         self.assertEqual(status_payload["status"], "succeeded")
         self.assertEqual(status_payload["result_id"], result_payload["analysis_id"])
         self.assertEqual(result_payload["analysis"]["summary_title"], "Contract clause needs attention")
+        self.assertNotIn("extracted_text", result_payload["analysis"])
         self.assertEqual(trace_response.status_code, 200)
         self.assertEqual(
             [entry["event_type"] for entry in trace_response.json()["session_trace"]],
@@ -872,11 +983,21 @@ class HttpAppTest(TestCase):
         artifact_id = upload_response.json()["metadata"]["artifact_id"]
 
         delete_response = client.delete(f"/api/document-artifacts/{artifact_id}")
+        trace_response = client.get("/api/sessions/session_delete_artifact/trace")
 
         self.assertEqual(delete_response.status_code, 200)
         self.assertEqual(delete_response.json()["artifact_id"], artifact_id)
         self.assertEqual(delete_response.json()["status"], "deleted")
         self.assertFalse(any(app.state.upload_dir.rglob(f"{artifact_id}_*")))
+        self.assertEqual(trace_response.status_code, 200)
+        self.assertIn(
+            "document_uploaded",
+            [entry["event_type"] for entry in trace_response.json()["session_trace"]],
+        )
+        self.assertIn(
+            "document_deleted",
+            [entry["event_type"] for entry in trace_response.json()["session_trace"]],
+        )
 
     def test_multipart_document_upload_rejects_unsupported_content_type(self) -> None:
         client = TestClient(create_app(), headers=self._auth_headers("user_upload_job"))
@@ -893,7 +1014,99 @@ class HttpAppTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 415)
-        self.assertEqual(response.json()["detail"], "unsupported_upload_content_type")
+        self.assertEqual(
+            response.json()["detail"]["code"],
+            "unsupported_upload_content_type",
+        )
+
+    def test_multipart_document_upload_count_quota_persists_blocked_reason_after_refresh(self) -> None:
+        app = create_app()
+        client = TestClient(app, headers=self._auth_headers("user_upload_limit"))
+
+        for index in range(20):
+            app.state.runtime.document_artifact_registrar.execute(
+                user_id="user_upload_limit",
+                session_id="session_upload_limit",
+                artifact_label=f"contract-{index}.png",
+                source_type="seed_upload",
+                content_type="image/png",
+                payload=b"png-bytes",
+                correlation_id=f"corr_upload_limit_seed_{index}",
+                trace_id=f"trace_upload_limit_seed_{index}",
+            )
+
+        response = client.post(
+            "/api/uploads/documents/contract-analysis",
+            data={
+                "user_id": "user_upload_limit",
+                "session_id": "session_upload_limit",
+                "idempotency_key": "idem_upload_limit_overflow",
+            },
+            files={
+                "artifact": ("overflow.png", b"new-upload", "image/png"),
+            },
+        )
+        jobs_response = client.get(
+            "/api/users/user_upload_limit/sessions/session_upload_limit/jobs?module=documents&limit=10"
+        )
+
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(
+            response.json()["detail"]["code"],
+            "session_active_artifact_limit_exceeded",
+        )
+        self.assertEqual(response.json()["detail"]["limit"], 20)
+        self.assertEqual(response.json()["detail"]["current"], 20)
+        self.assertEqual(jobs_response.status_code, 200)
+        self.assertEqual(
+            jobs_response.json()["blocked_reason"]["code"],
+            "session_active_artifact_limit_exceeded",
+        )
+
+    def test_multipart_document_upload_storage_quota_returns_byte_budget_policy_rejection(self) -> None:
+        app = create_app()
+        client = TestClient(app, headers=self._auth_headers("user_upload_storage_limit"))
+
+        app.state.runtime.document_artifact_registrar.execute(
+            user_id="user_upload_storage_limit",
+            session_id="session_upload_storage_limit",
+            artifact_label="existing-large.png",
+            source_type="seed_upload",
+            content_type="image/png",
+            payload=b"x" * 25_000_000,
+            correlation_id="corr_upload_storage_seed",
+            trace_id="trace_upload_storage_seed",
+        )
+
+        response = client.post(
+            "/api/uploads/documents/contract-analysis",
+            data={
+                "user_id": "user_upload_storage_limit",
+                "session_id": "session_upload_storage_limit",
+                "idempotency_key": "idem_upload_storage_limit_overflow",
+            },
+            files={
+                "artifact": ("overflow.png", b"0", "image/png"),
+            },
+        )
+        jobs_response = client.get(
+            "/api/users/user_upload_storage_limit/sessions/session_upload_storage_limit/jobs?module=documents&limit=10"
+        )
+
+        self.assertEqual(response.status_code, 429)
+        detail = response.json()["detail"]
+        self.assertEqual(detail["code"], "session_artifact_storage_limit_exceeded")
+        self.assertEqual(
+            detail["message"],
+            "This session reached the local document storage limit.",
+        )
+        self.assertEqual(detail["limit"], 25_000_000)
+        self.assertEqual(detail["current"], 25_000_001)
+        self.assertEqual(jobs_response.status_code, 200)
+        self.assertEqual(
+            jobs_response.json()["blocked_reason"]["code"],
+            "session_artifact_storage_limit_exceeded",
+        )
 
     def test_document_analysis_job_success_requires_persisted_analysis_id(self) -> None:
         app = create_app()
@@ -950,7 +1163,7 @@ class HttpAppTest(TestCase):
 
         self.assertEqual(response.status_code, 422)
         self.assertEqual(
-            response.json()["detail"],
+            response.json()["detail"]["code"],
             "document_text_or_document_image_base64_required",
         )
 
