@@ -116,7 +116,7 @@ These are the docs that should be treated as current:
 Run tests:
 
 ```powershell
-$env:PYTHONPATH='src'; python -m unittest discover
+$env:PYTHONPATH='src'; python -m pytest
 ```
 
 Run the app:
@@ -144,7 +144,7 @@ $env:PYTHONPATH='src'; python .\tools\evaluate_document_analysis.py
 The maintained baseline is the code plus the unit suite:
 
 ```powershell
-$env:PYTHONPATH='src'; python -m unittest discover
+$env:PYTHONPATH='src'; python -m pytest
 ```
 
 The suite currently covers:

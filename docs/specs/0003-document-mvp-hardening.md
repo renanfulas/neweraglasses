@@ -486,7 +486,7 @@ Eval cases: safe contract, automatic renewal, cancellation fee, minimum commitme
 - AC-DOC-009: the PWA performs automatic polling and opens the result view when a document job succeeds
 - AC-DOC-010: the document history remains readable after refresh when persistence is enabled
 - AC-DOC-011: the service worker does not cache API POSTs, uploads, or sensitive document reads
-- AC-DOC-012: `python -m unittest discover` and `python .\tools\validate_local.py` continue to pass
+- AC-DOC-012: `python -m pytest` and `python .\tools\validate_local.py` continue to pass
 
 ## 17. Test and Eval Plan
 
@@ -502,7 +502,7 @@ Eval cases: safe contract, automatic renewal, cancellation fee, minimum commitme
 Validation commands:
 
 ```powershell
-$env:PYTHONPATH='src'; python -m unittest discover
+$env:PYTHONPATH='src'; python -m pytest
 $env:PYTHONPATH='src'; python .\tools\validate_local.py
 $env:PYTHONPATH='src'; python .\tools\evaluate_document_analysis.py
 ```
