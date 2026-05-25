@@ -1,0 +1,1628 @@
+# pyc_path: C:/Users/renan/OneDrive/Documents/New Era Glasses/src/new_era/application/services/__pycache__/simulation_runtime.cpython-312.pyc
+# embedded_filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py
+# module_name: new_era.application.services.simulation_runtime
+# first_line: 1
+# compiled_at: 2026-05-24T15:02:24+00:00
+# source_size: 7945
+
+## code_object: <module>
+filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py
+first_line: 1
+argcount: 0
+locals: 0
+stacksize: 5
+flags: 16777216
+names: ['__future__', 'annotations', 'dataclasses', 'dataclass', 'os', 'environ', 'pathlib', 'Path', 'new_era.application.ports', 'DeviceGateway', 'DocumentAnalysisJobPayloadStore', 'DocumentAnalysisStore', 'EventStore', 'JobStore', 'ObservationInterpreter', 'SessionStore', 'new_era.application.services.document_session', 'DocumentSessionService', 'new_era.application.services.grocery_session', 'GrocerySessionService', 'new_era.application.use_cases', 'AdvanceDocumentAnalysisJob', 'DeliverLensCommand', 'EnqueueDocumentAnalysisJob', 'EvaluateAlertCandidate', 'GetDocumentAnalysis', 'GetJobStatus', 'GetSessionTrace', 'GetUserSession', 'ListDocumentAnalysesBySession', 'ListUserSessions', 'ProcessAlertCandidate', 'ProcessObservation', 'RecordLensFeedback', 'RunDocumentAnalysisJob', 'StartUserSession', 'new_era.domain.attention', 'AttentionPolicy', 'new_era.domain.documents', 'DeterministicContractAnalyzer', 'new_era.domain.jobs', 'JobExecutionPolicy', 'new_era.infrastructure.device', 'BrowserSimulationAdapter', 'HttpDeviceBridgeAdapter', 'new_era.infrastructure.documents', 'InMemoryDocumentAnalysisStore', 'new_era.infrastructure.events', 'InMemoryEventStore', 'SQLiteEventStore', 'new_era.infrastructure.jobs', 'InMemoryDocumentAnalysisJobPayloadStore', 'InMemoryJobStore', 'ThreadedDocumentAnalysisJobWorker', 'new_era.infrastructure.observations', 'SimpleSimulationObservationAdapter', 'new_era.infrastructure.ocr', 'RapidOCRAdapter', 'new_era.infrastructure.sessions', 'InMemorySessionStore', 'SQLiteSessionStore', 'SimulationRuntime', 'build_device_gateway_from_environment']
+varnames: []
+cellvars: []
+freevars: []
+disassembly:
+  0           0 RESUME                   0
+
+  1           2 LOAD_CONST               0 (0)
+              4 LOAD_CONST               1 (('annotations',))
+              6 IMPORT_NAME              0 (__future__)
+              8 IMPORT_FROM              1 (annotations)
+             10 STORE_NAME               1 (annotations)
+             12 POP_TOP
+
+  3          14 LOAD_CONST               0 (0)
+             16 LOAD_CONST               2 (('dataclass',))
+             18 IMPORT_NAME              2 (dataclasses)
+             20 IMPORT_FROM              3 (dataclass)
+             22 STORE_NAME               3 (dataclass)
+             24 POP_TOP
+
+  4          26 LOAD_CONST               0 (0)
+             28 LOAD_CONST               3 (('environ',))
+             30 IMPORT_NAME              4 (os)
+             32 IMPORT_FROM              5 (environ)
+             34 STORE_NAME               5 (environ)
+             36 POP_TOP
+
+  5          38 LOAD_CONST               0 (0)
+             40 LOAD_CONST               4 (('Path',))
+             42 IMPORT_NAME              6 (pathlib)
+             44 IMPORT_FROM              7 (Path)
+             46 STORE_NAME               7 (Path)
+             48 POP_TOP
+
+  7          50 LOAD_CONST               0 (0)
+             52 LOAD_CONST               5 (('DeviceGateway', 'DocumentAnalysisJobPayloadStore', 'DocumentAnalysisStore', 'EventStore', 'JobStore', 'ObservationInterpreter', 'SessionStore'))
+             54 IMPORT_NAME              8 (new_era.application.ports)
+             56 IMPORT_FROM              9 (DeviceGateway)
+             58 STORE_NAME               9 (DeviceGateway)
+             60 IMPORT_FROM             10 (DocumentAnalysisJobPayloadStore)
+             62 STORE_NAME              10 (DocumentAnalysisJobPayloadStore)
+             64 IMPORT_FROM             11 (DocumentAnalysisStore)
+             66 STORE_NAME              11 (DocumentAnalysisStore)
+             68 IMPORT_FROM             12 (EventStore)
+             70 STORE_NAME              12 (EventStore)
+             72 IMPORT_FROM             13 (JobStore)
+             74 STORE_NAME              13 (JobStore)
+             76 IMPORT_FROM             14 (ObservationInterpreter)
+             78 STORE_NAME              14 (ObservationInterpreter)
+             80 IMPORT_FROM             15 (SessionStore)
+             82 STORE_NAME              15 (SessionStore)
+             84 POP_TOP
+
+ 16          86 LOAD_CONST               0 (0)
+             88 LOAD_CONST               6 (('DocumentSessionService',))
+             90 IMPORT_NAME             16 (new_era.application.services.document_session)
+             92 IMPORT_FROM             17 (DocumentSessionService)
+             94 STORE_NAME              17 (DocumentSessionService)
+             96 POP_TOP
+
+ 17          98 LOAD_CONST               0 (0)
+            100 LOAD_CONST               7 (('GrocerySessionService',))
+            102 IMPORT_NAME             18 (new_era.application.services.grocery_session)
+            104 IMPORT_FROM             19 (GrocerySessionService)
+            106 STORE_NAME              19 (GrocerySessionService)
+            108 POP_TOP
+
+ 18         110 LOAD_CONST               0 (0)
+            112 LOAD_CONST               8 (('AdvanceDocumentAnalysisJob', 'DeliverLensCommand', 'EnqueueDocumentAnalysisJob', 'EvaluateAlertCandidate', 'GetDocumentAnalysis', 'GetJobStatus', 'GetSessionTrace', 'GetUserSession', 'ListDocumentAnalysesBySession', 'ListUserSessions', 'ProcessAlertCandidate', 'ProcessObservation', 'RecordLensFeedback', 'RunDocumentAnalysisJob', 'StartUserSession'))
+            114 IMPORT_NAME             20 (new_era.application.use_cases)
+            116 IMPORT_FROM             21 (AdvanceDocumentAnalysisJob)
+            118 STORE_NAME              21 (AdvanceDocumentAnalysisJob)
+            120 IMPORT_FROM             22 (DeliverLensCommand)
+            122 STORE_NAME              22 (DeliverLensCommand)
+            124 IMPORT_FROM             23 (EnqueueDocumentAnalysisJob)
+            126 STORE_NAME              23 (EnqueueDocumentAnalysisJob)
+            128 IMPORT_FROM             24 (EvaluateAlertCandidate)
+            130 STORE_NAME              24 (EvaluateAlertCandidate)
+            132 IMPORT_FROM             25 (GetDocumentAnalysis)
+            134 STORE_NAME              25 (GetDocumentAnalysis)
+            136 IMPORT_FROM             26 (GetJobStatus)
+            138 STORE_NAME              26 (GetJobStatus)
+            140 IMPORT_FROM             27 (GetSessionTrace)
+            142 STORE_NAME              27 (GetSessionTrace)
+            144 IMPORT_FROM             28 (GetUserSession)
+            146 STORE_NAME              28 (GetUserSession)
+            148 IMPORT_FROM             29 (ListDocumentAnalysesBySession)
+            150 STORE_NAME              29 (ListDocumentAnalysesBySession)
+            152 IMPORT_FROM             30 (ListUserSessions)
+            154 STORE_NAME              30 (ListUserSessions)
+            156 IMPORT_FROM             31 (ProcessAlertCandidate)
+            158 STORE_NAME              31 (ProcessAlertCandidate)
+            160 IMPORT_FROM             32 (ProcessObservation)
+            162 STORE_NAME              32 (ProcessObservation)
+            164 IMPORT_FROM             33 (RecordLensFeedback)
+            166 STORE_NAME              33 (RecordLensFeedback)
+            168 IMPORT_FROM             34 (RunDocumentAnalysisJob)
+            170 STORE_NAME              34 (RunDocumentAnalysisJob)
+            172 IMPORT_FROM             35 (StartUserSession)
+            174 STORE_NAME              35 (StartUserSession)
+            176 POP_TOP
+
+ 35         178 LOAD_CONST               0 (0)
+            180 LOAD_CONST               9 (('AttentionPolicy',))
+            182 IMPORT_NAME             36 (new_era.domain.attention)
+            184 IMPORT_FROM             37 (AttentionPolicy)
+            186 STORE_NAME              37 (AttentionPolicy)
+            188 POP_TOP
+
+ 36         190 LOAD_CONST               0 (0)
+            192 LOAD_CONST              10 (('DeterministicContractAnalyzer',))
+            194 IMPORT_NAME             38 (new_era.domain.documents)
+            196 IMPORT_FROM             39 (DeterministicContractAnalyzer)
+            198 STORE_NAME              39 (DeterministicContractAnalyzer)
+            200 POP_TOP
+
+ 37         202 LOAD_CONST               0 (0)
+            204 LOAD_CONST              11 (('JobExecutionPolicy',))
+            206 IMPORT_NAME             40 (new_era.domain.jobs)
+            208 IMPORT_FROM             41 (JobExecutionPolicy)
+            210 STORE_NAME              41 (JobExecutionPolicy)
+            212 POP_TOP
+
+ 38         214 LOAD_CONST               0 (0)
+            216 LOAD_CONST              12 (('BrowserSimulationAdapter', 'HttpDeviceBridgeAdapter'))
+            218 IMPORT_NAME             42 (new_era.infrastructure.device)
+            220 IMPORT_FROM             43 (BrowserSimulationAdapter)
+            222 STORE_NAME              43 (BrowserSimulationAdapter)
+            224 IMPORT_FROM             44 (HttpDeviceBridgeAdapter)
+            226 STORE_NAME              44 (HttpDeviceBridgeAdapter)
+            228 POP_TOP
+
+ 39         230 LOAD_CONST               0 (0)
+            232 LOAD_CONST              13 (('InMemoryDocumentAnalysisStore',))
+            234 IMPORT_NAME             45 (new_era.infrastructure.documents)
+            236 IMPORT_FROM             46 (InMemoryDocumentAnalysisStore)
+            238 STORE_NAME              46 (InMemoryDocumentAnalysisStore)
+            240 POP_TOP
+
+ 40         242 LOAD_CONST               0 (0)
+            244 LOAD_CONST              14 (('InMemoryEventStore', 'SQLiteEventStore'))
+            246 IMPORT_NAME             47 (new_era.infrastructure.events)
+            248 IMPORT_FROM             48 (InMemoryEventStore)
+            250 STORE_NAME              48 (InMemoryEventStore)
+            252 IMPORT_FROM             49 (SQLiteEventStore)
+            254 STORE_NAME              49 (SQLiteEventStore)
+            256 POP_TOP
+
+ 41         258 LOAD_CONST               0 (0)
+            260 LOAD_CONST              15 (('InMemoryDocumentAnalysisJobPayloadStore', 'InMemoryJobStore', 'ThreadedDocumentAnalysisJobWorker'))
+            262 IMPORT_NAME             50 (new_era.infrastructure.jobs)
+            264 IMPORT_FROM             51 (InMemoryDocumentAnalysisJobPayloadStore)
+            266 STORE_NAME              51 (InMemoryDocumentAnalysisJobPayloadStore)
+            268 IMPORT_FROM             52 (InMemoryJobStore)
+            270 STORE_NAME              52 (InMemoryJobStore)
+            272 IMPORT_FROM             53 (ThreadedDocumentAnalysisJobWorker)
+            274 STORE_NAME              53 (ThreadedDocumentAnalysisJobWorker)
+            276 POP_TOP
+
+ 46         278 LOAD_CONST               0 (0)
+            280 LOAD_CONST              16 (('SimpleSimulationObservationAdapter',))
+            282 IMPORT_NAME             54 (new_era.infrastructure.observations)
+            284 IMPORT_FROM             55 (SimpleSimulationObservationAdapter)
+            286 STORE_NAME              55 (SimpleSimulationObservationAdapter)
+            288 POP_TOP
+
+ 47         290 LOAD_CONST               0 (0)
+            292 LOAD_CONST              17 (('RapidOCRAdapter',))
+            294 IMPORT_NAME             56 (new_era.infrastructure.ocr)
+            296 IMPORT_FROM             57 (RapidOCRAdapter)
+            298 STORE_NAME              57 (RapidOCRAdapter)
+            300 POP_TOP
+
+ 48         302 LOAD_CONST               0 (0)
+            304 LOAD_CONST              18 (('InMemorySessionStore', 'SQLiteSessionStore'))
+            306 IMPORT_NAME             58 (new_era.infrastructure.sessions)
+            308 IMPORT_FROM             59 (InMemorySessionStore)
+            310 STORE_NAME              59 (InMemorySessionStore)
+            312 IMPORT_FROM             60 (SQLiteSessionStore)
+            314 STORE_NAME              60 (SQLiteSessionStore)
+            316 POP_TOP
+
+ 51         318 PUSH_NULL
+            320 LOAD_NAME                3 (dataclass)
+            322 LOAD_CONST              19 (True)
+            324 LOAD_CONST              19 (True)
+            326 KW_NAMES                20 (('frozen', 'slots'))
+            328 CALL                     2
+
+ 52         336 PUSH_NULL
+            338 LOAD_BUILD_CLASS
+            340 LOAD_CONST              21 (<code object SimulationRuntime at 0x0000024F2649E3A0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py", line 51>)
+            342 MAKE_FUNCTION            0
+            344 LOAD_CONST              22 ('SimulationRuntime')
+            346 CALL                     2
+
+ 51         354 CALL                     0
+
+ 52         362 STORE_NAME              61 (SimulationRuntime)
+
+177         364 LOAD_CONST              25 (('return', 'DeviceGateway'))
+            366 LOAD_CONST              23 (<code object build_device_gateway_from_environment at 0x0000024F268F4030, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py", line 177>)
+            368 MAKE_FUNCTION            4 (annotations)
+            370 STORE_NAME              62 (build_device_gateway_from_environment)
+            372 RETURN_CONST            24 (None)
+
+Disassembly of <code object SimulationRuntime at 0x0000024F2649E3A0, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py", line 51>:
+ 51           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('SimulationRuntime')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 53          12 LOAD_CONST               1 ('GrocerySessionService')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('grocery_service')
+             18 STORE_SUBSCR
+
+ 54          22 LOAD_CONST               3 ('DocumentSessionService')
+             24 LOAD_NAME                3 (__annotations__)
+             26 LOAD_CONST               4 ('document_service')
+             28 STORE_SUBSCR
+
+ 55          32 LOAD_CONST               5 ('GetSessionTrace')
+             34 LOAD_NAME                3 (__annotations__)
+             36 LOAD_CONST               6 ('session_trace_reader')
+             38 STORE_SUBSCR
+
+ 56          42 LOAD_CONST               7 ('EnqueueDocumentAnalysisJob')
+             44 LOAD_NAME                3 (__annotations__)
+             46 LOAD_CONST               8 ('document_job_enqueuer')
+             48 STORE_SUBSCR
+
+ 57          52 LOAD_CONST               9 ('AdvanceDocumentAnalysisJob')
+             54 LOAD_NAME                3 (__annotations__)
+             56 LOAD_CONST              10 ('document_job_advancer')
+             58 STORE_SUBSCR
+
+ 58          62 LOAD_CONST              11 ('GetJobStatus')
+             64 LOAD_NAME                3 (__annotations__)
+             66 LOAD_CONST              12 ('job_status_reader')
+             68 STORE_SUBSCR
+
+ 59          72 LOAD_CONST              13 ('GetDocumentAnalysis')
+             74 LOAD_NAME                3 (__annotations__)
+             76 LOAD_CONST              14 ('document_analysis_reader')
+             78 STORE_SUBSCR
+
+ 60          82 LOAD_CONST              15 ('ListDocumentAnalysesBySession')
+             84 LOAD_NAME                3 (__annotations__)
+             86 LOAD_CONST              16 ('document_analyses_by_session_reader')
+             88 STORE_SUBSCR
+
+ 61          92 LOAD_CONST              17 ('RecordLensFeedback')
+             94 LOAD_NAME                3 (__annotations__)
+             96 LOAD_CONST              18 ('lens_feedback_recorder')
+             98 STORE_SUBSCR
+
+ 62         102 LOAD_CONST              19 ('StartUserSession')
+            104 LOAD_NAME                3 (__annotations__)
+            106 LOAD_CONST              20 ('user_session_starter')
+            108 STORE_SUBSCR
+
+ 63         112 LOAD_CONST              21 ('GetUserSession')
+            114 LOAD_NAME                3 (__annotations__)
+            116 LOAD_CONST              22 ('user_session_reader')
+            118 STORE_SUBSCR
+
+ 64         122 LOAD_CONST              23 ('ListUserSessions')
+            124 LOAD_NAME                3 (__annotations__)
+            126 LOAD_CONST              24 ('user_sessions_lister')
+            128 STORE_SUBSCR
+
+ 65         132 LOAD_CONST              25 ('ThreadedDocumentAnalysisJobWorker')
+            134 LOAD_NAME                3 (__annotations__)
+            136 LOAD_CONST              26 ('document_job_worker')
+            138 STORE_SUBSCR
+
+ 66         142 LOAD_CONST              27 ('EventStore')
+            144 LOAD_NAME                3 (__annotations__)
+            146 LOAD_CONST              28 ('event_store')
+            148 STORE_SUBSCR
+
+ 67         152 LOAD_CONST              29 ('SessionStore')
+            154 LOAD_NAME                3 (__annotations__)
+            156 LOAD_CONST              30 ('session_store')
+            158 STORE_SUBSCR
+
+ 68         162 LOAD_CONST              31 ('JobStore')
+            164 LOAD_NAME                3 (__annotations__)
+            166 LOAD_CONST              32 ('job_store')
+            168 STORE_SUBSCR
+
+ 69         172 LOAD_CONST              33 ('DocumentAnalysisJobPayloadStore')
+            174 LOAD_NAME                3 (__annotations__)
+            176 LOAD_CONST              34 ('document_job_payload_store')
+            178 STORE_SUBSCR
+
+ 70         182 LOAD_CONST              35 ('DocumentAnalysisStore')
+            184 LOAD_NAME                3 (__annotations__)
+            186 LOAD_CONST              36 ('document_analysis_store')
+            188 STORE_SUBSCR
+
+ 71         192 LOAD_CONST              37 ('DeviceGateway')
+            194 LOAD_NAME                3 (__annotations__)
+            196 LOAD_CONST              38 ('device_gateway')
+            198 STORE_SUBSCR
+
+ 73         202 LOAD_NAME                4 (classmethod)
+
+ 77         204 LOAD_CONST              39 (None)
+
+ 78         206 LOAD_CONST              39 (None)
+
+ 74         208 LOAD_CONST              40 (('storage_path', 'device_gateway'))
+            210 BUILD_CONST_KEY_MAP      2
+
+ 77         212 NOP
+
+ 74         214 NOP
+
+ 78         216 NOP
+
+ 74         218 NOP
+
+ 79         220 NOP
+
+ 74         222 LOAD_CONST              42 (('storage_path', 'str | Path | None', 'device_gateway', 'DeviceGateway | None', 'return', "'SimulationRuntime'"))
+            224 LOAD_CONST              41 (<code object build_default at 0x0000024F269DD260, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py", line 73>)
+            226 MAKE_FUNCTION            6 (kwdefaults, annotations)
+
+ 73         228 CALL                     0
+
+ 74         236 STORE_NAME               5 (build_default)
+            238 RETURN_CONST            39 (None)
+
+Disassembly of <code object build_default at 0x0000024F269DD260, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py", line 73>:
+ 73           0 RESUME                   0
+
+ 80           2 LOAD_FAST                1 (storage_path)
+              4 COPY                     1
+              6 POP_JUMP_IF_TRUE        21 (to 50)
+              8 POP_TOP
+             10 LOAD_GLOBAL              1 (NULL + environ)
+             20 LOAD_ATTR                2 (get)
+             40 LOAD_CONST               1 ('NEW_ERA_SQLITE_PATH')
+             42 CALL                     1
+        >>   50 STORE_FAST               3 (configured_storage_path)
+
+ 81          52 LOAD_FAST                3 (configured_storage_path)
+             54 POP_JUMP_IF_FALSE       23 (to 102)
+
+ 82          56 LOAD_GLOBAL              5 (NULL + SQLiteEventStore)
+             66 LOAD_FAST                3 (configured_storage_path)
+             68 CALL                     1
+             76 STORE_FAST               4 (event_store)
+
+ 83          78 LOAD_GLOBAL              7 (NULL + SQLiteSessionStore)
+             88 LOAD_FAST                3 (configured_storage_path)
+             90 CALL                     1
+             98 STORE_FAST               5 (session_store)
+            100 JUMP_FORWARD            20 (to 142)
+
+ 85     >>  102 LOAD_GLOBAL              9 (NULL + InMemoryEventStore)
+            112 CALL                     0
+            120 STORE_FAST               4 (event_store)
+
+ 86         122 LOAD_GLOBAL             11 (NULL + InMemorySessionStore)
+            132 CALL                     0
+            140 STORE_FAST               5 (session_store)
+
+ 87     >>  142 LOAD_GLOBAL             13 (NULL + InMemoryJobStore)
+            152 CALL                     0
+            160 STORE_FAST               6 (job_store)
+
+ 88         162 LOAD_GLOBAL             15 (NULL + InMemoryDocumentAnalysisJobPayloadStore)
+            172 CALL                     0
+            180 STORE_FAST               7 (document_job_payload_store)
+
+ 89         182 LOAD_GLOBAL             17 (NULL + InMemoryDocumentAnalysisStore)
+            192 CALL                     0
+            200 STORE_FAST               8 (document_analysis_store)
+
+ 90         202 LOAD_FAST                2 (device_gateway)
+            204 COPY                     1
+            206 POP_JUMP_IF_TRUE        10 (to 228)
+            208 POP_TOP
+            210 LOAD_GLOBAL             19 (NULL + build_device_gateway_from_environment)
+            220 CALL                     0
+        >>  228 STORE_FAST               2 (device_gateway)
+
+ 91         230 LOAD_GLOBAL             21 (NULL + SimpleSimulationObservationAdapter)
+            240 CALL                     0
+            248 STORE_FAST               9 (observation_interpreter)
+
+ 92         250 LOAD_GLOBAL             23 (NULL + AttentionPolicy)
+            260 CALL                     0
+            268 STORE_FAST              10 (attention_policy)
+
+ 93         270 LOAD_GLOBAL             25 (NULL + DeterministicContractAnalyzer)
+            280 CALL                     0
+            288 STORE_FAST              11 (contract_analyzer)
+
+ 94         290 LOAD_GLOBAL             27 (NULL + RapidOCRAdapter)
+            300 CALL                     0
+            308 STORE_FAST              12 (ocr_engine)
+
+ 95         310 LOAD_GLOBAL             29 (NULL + JobExecutionPolicy)
+
+ 96         320 LOAD_CONST               2 (3)
+
+ 97         322 LOAD_CONST               3 (10.0)
+
+ 98         324 LOAD_CONST               4 (0.0)
+
+ 95         326 KW_NAMES                 5 (('max_attempts', 'timeout_seconds', 'retry_backoff_seconds'))
+            328 CALL                     3
+            336 STORE_FAST              13 (job_execution_policy)
+
+101         338 LOAD_GLOBAL             31 (NULL + ProcessObservation)
+
+102         348 LOAD_FAST                9 (observation_interpreter)
+
+103         350 LOAD_GLOBAL             33 (NULL + ProcessAlertCandidate)
+
+104         360 LOAD_GLOBAL             35 (NULL + EvaluateAlertCandidate)
+
+105         370 LOAD_FAST               10 (attention_policy)
+
+106         372 LOAD_FAST                4 (event_store)
+
+104         374 KW_NAMES                 6 (('attention_policy', 'event_store'))
+            376 CALL                     2
+
+108         384 LOAD_GLOBAL             37 (NULL + DeliverLensCommand)
+
+109         394 LOAD_FAST                2 (device_gateway)
+
+110         396 LOAD_FAST                4 (event_store)
+
+108         398 KW_NAMES                 7 (('device_gateway', 'event_store'))
+            400 CALL                     2
+
+103         408 KW_NAMES                 8 (('evaluator', 'delivery'))
+            410 CALL                     2
+
+113         418 LOAD_FAST                4 (event_store)
+
+101         420 KW_NAMES                 9 (('observation_interpreter', 'alert_processor', 'event_store'))
+            422 CALL                     3
+            430 STORE_FAST              14 (observation_processor)
+
+116         432 PUSH_NULL
+            434 LOAD_FAST                0 (cls)
+            436 LOAD_CONST              39 (())
+            438 BUILD_MAP                0
+            440 LOAD_CONST              10 ('grocery_service')
+
+117         442 LOAD_GLOBAL             39 (NULL + GrocerySessionService)
+            452 LOAD_ATTR               40 (build_simulation)
+
+118         472 LOAD_FAST               14 (observation_processor)
+
+119         474 LOAD_FAST                4 (event_store)
+
+120         476 LOAD_FAST                2 (device_gateway)
+
+117         478 KW_NAMES                11 (('observation_processor', 'event_store', 'device_gateway'))
+            480 CALL                     3
+            488 MAP_ADD                  1
+
+116         490 LOAD_CONST              12 ('document_service')
+
+122         492 LOAD_GLOBAL             43 (NULL + DocumentSessionService)
+            502 LOAD_ATTR               40 (build_simulation)
+
+123         522 LOAD_FAST               14 (observation_processor)
+
+124         524 LOAD_FAST                4 (event_store)
+
+125         526 LOAD_FAST                2 (device_gateway)
+
+126         528 LOAD_FAST               11 (contract_analyzer)
+
+127         530 LOAD_FAST               12 (ocr_engine)
+
+128         532 LOAD_FAST                8 (document_analysis_store)
+
+122         534 KW_NAMES                13 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+            536 CALL                     6
+            544 MAP_ADD                  1
+
+116         546 LOAD_CONST              14 ('session_trace_reader')
+
+130         548 LOAD_GLOBAL             45 (NULL + GetSessionTrace)
+            558 LOAD_FAST                4 (event_store)
+            560 KW_NAMES                15 (('event_store',))
+            562 CALL                     1
+            570 MAP_ADD                  1
+
+116         572 LOAD_CONST              16 ('document_job_enqueuer')
+
+131         574 LOAD_GLOBAL             47 (NULL + EnqueueDocumentAnalysisJob)
+
+132         584 LOAD_FAST                6 (job_store)
+
+133         586 LOAD_FAST                4 (event_store)
+
+134         588 LOAD_FAST                7 (document_job_payload_store)
+
+135         590 LOAD_FAST               13 (job_execution_policy)
+
+131         592 KW_NAMES                17 (('job_store', 'event_store', 'payload_store', 'execution_policy'))
+            594 CALL                     4
+            602 MAP_ADD                  1
+
+116         604 LOAD_CONST              18 ('document_job_advancer')
+
+137         606 LOAD_GLOBAL             49 (NULL + AdvanceDocumentAnalysisJob)
+
+138         616 LOAD_FAST                6 (job_store)
+
+139         618 LOAD_FAST                4 (event_store)
+
+140         620 LOAD_FAST                8 (document_analysis_store)
+
+137         622 KW_NAMES                19 (('job_store', 'event_store', 'document_analysis_store'))
+            624 CALL                     3
+            632 MAP_ADD                  1
+
+116         634 LOAD_CONST              20 ('job_status_reader')
+
+142         636 LOAD_GLOBAL             51 (NULL + GetJobStatus)
+            646 LOAD_FAST                6 (job_store)
+            648 KW_NAMES                21 (('job_store',))
+            650 CALL                     1
+            658 MAP_ADD                  1
+
+116         660 LOAD_CONST              22 ('document_analysis_reader')
+
+143         662 LOAD_GLOBAL             53 (NULL + GetDocumentAnalysis)
+
+144         672 LOAD_FAST                8 (document_analysis_store)
+
+143         674 KW_NAMES                23 (('analysis_store',))
+            676 CALL                     1
+            684 MAP_ADD                  1
+
+116         686 LOAD_CONST              24 ('document_analyses_by_session_reader')
+
+146         688 LOAD_GLOBAL             55 (NULL + ListDocumentAnalysesBySession)
+
+147         698 LOAD_FAST                8 (document_analysis_store)
+
+146         700 KW_NAMES                23 (('analysis_store',))
+            702 CALL                     1
+            710 MAP_ADD                  1
+
+116         712 LOAD_CONST              25 ('lens_feedback_recorder')
+
+149         714 LOAD_GLOBAL             57 (NULL + RecordLensFeedback)
+            724 LOAD_FAST                4 (event_store)
+            726 KW_NAMES                15 (('event_store',))
+            728 CALL                     1
+            736 MAP_ADD                  1
+
+116         738 LOAD_CONST              26 ('user_session_starter')
+
+150         740 LOAD_GLOBAL             59 (NULL + StartUserSession)
+            750 LOAD_FAST                5 (session_store)
+            752 KW_NAMES                27 (('session_store',))
+            754 CALL                     1
+            762 MAP_ADD                  1
+
+116         764 LOAD_CONST              28 ('user_session_reader')
+
+151         766 LOAD_GLOBAL             61 (NULL + GetUserSession)
+            776 LOAD_FAST                5 (session_store)
+            778 KW_NAMES                27 (('session_store',))
+            780 CALL                     1
+            788 MAP_ADD                  1
+
+116         790 LOAD_CONST              29 ('user_sessions_lister')
+
+152         792 LOAD_GLOBAL             63 (NULL + ListUserSessions)
+            802 LOAD_FAST                5 (session_store)
+            804 KW_NAMES                27 (('session_store',))
+            806 CALL                     1
+            814 MAP_ADD                  1
+
+116         816 LOAD_CONST              30 ('document_job_worker')
+
+153         818 LOAD_GLOBAL             65 (NULL + ThreadedDocumentAnalysisJobWorker)
+
+154         828 LOAD_GLOBAL             67 (NULL + RunDocumentAnalysisJob)
+
+155         838 LOAD_FAST                6 (job_store)
+
+156         840 LOAD_FAST                4 (event_store)
+
+157         842 LOAD_FAST                7 (document_job_payload_store)
+
+158         844 LOAD_GLOBAL             43 (NULL + DocumentSessionService)
+            854 LOAD_ATTR               40 (build_simulation)
+
+159         874 LOAD_FAST               14 (observation_processor)
+
+160         876 LOAD_FAST                4 (event_store)
+
+161         878 LOAD_FAST                2 (device_gateway)
+
+162         880 LOAD_FAST               11 (contract_analyzer)
+
+163         882 LOAD_FAST               12 (ocr_engine)
+
+164         884 LOAD_FAST                8 (document_analysis_store)
+
+158         886 KW_NAMES                13 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+            888 CALL                     6
+
+154         896 KW_NAMES                31 (('job_store', 'event_store', 'payload_store', 'document_processor'))
+            898 CALL                     4
+
+153         906 KW_NAMES                32 (('runner',))
+            908 CALL                     1
+            916 MAP_ADD                  1
+
+116         918 LOAD_CONST              33 ('event_store')
+
+168         920 LOAD_FAST                4 (event_store)
+            922 MAP_ADD                  1
+
+116         924 LOAD_CONST              34 ('session_store')
+
+169         926 LOAD_FAST                5 (session_store)
+            928 MAP_ADD                  1
+
+116         930 LOAD_CONST              35 ('job_store')
+
+170         932 LOAD_FAST                6 (job_store)
+            934 MAP_ADD                  1
+
+116         936 LOAD_CONST              36 ('document_job_payload_store')
+
+171         938 LOAD_FAST                7 (document_job_payload_store)
+            940 MAP_ADD                  1
+
+116         942 LOAD_CONST              37 ('document_analysis_store')
+
+172         944 LOAD_FAST                8 (document_analysis_store)
+            946 MAP_ADD                  1
+
+116         948 LOAD_CONST              38 ('device_gateway')
+
+173         950 LOAD_FAST                2 (device_gateway)
+            952 MAP_ADD                  1
+
+116         954 CALL_FUNCTION_EX         1
+            956 RETURN_VALUE
+
+Disassembly of <code object build_device_gateway_from_environment at 0x0000024F268F4030, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py", line 177>:
+177           0 RESUME                   0
+
+178           2 LOAD_GLOBAL              1 (NULL + environ)
+             12 LOAD_ATTR                2 (get)
+             32 LOAD_CONST               1 ('NEW_ERA_DEVICE_BRIDGE_URL')
+             34 CALL                     1
+             42 STORE_FAST               0 (bridge_url)
+
+179          44 LOAD_FAST                0 (bridge_url)
+             46 POP_JUMP_IF_TRUE        10 (to 68)
+
+180          48 LOAD_GLOBAL              5 (NULL + BrowserSimulationAdapter)
+             58 CALL                     0
+             66 RETURN_VALUE
+
+182     >>   68 LOAD_CONST               2 (2.0)
+             70 STORE_FAST               1 (timeout_seconds)
+
+183          72 LOAD_GLOBAL              1 (NULL + environ)
+             82 LOAD_ATTR                2 (get)
+            102 LOAD_CONST               3 ('NEW_ERA_DEVICE_BRIDGE_TIMEOUT_SECONDS')
+            104 CALL                     1
+            112 STORE_FAST               2 (timeout_value)
+
+184         114 LOAD_FAST                2 (timeout_value)
+            116 POP_JUMP_IF_FALSE       12 (to 142)
+
+185         118 NOP
+
+186         120 LOAD_GLOBAL              7 (NULL + float)
+            130 LOAD_FAST                2 (timeout_value)
+            132 CALL                     1
+            140 STORE_FAST               1 (timeout_seconds)
+
+190     >>  142 LOAD_GLOBAL             11 (NULL + HttpDeviceBridgeAdapter)
+
+191         152 LOAD_FAST                0 (bridge_url)
+
+192         154 LOAD_GLOBAL              1 (NULL + environ)
+            164 LOAD_ATTR                2 (get)
+            184 LOAD_CONST               4 ('NEW_ERA_DEVICE_BRIDGE_TOKEN')
+            186 CALL                     1
+
+193         194 LOAD_FAST                1 (timeout_seconds)
+
+190         196 KW_NAMES                 5 (('bridge_url', 'api_token', 'timeout_seconds'))
+            198 CALL                     3
+            206 RETURN_VALUE
+        >>  208 PUSH_EXC_INFO
+
+187         210 LOAD_GLOBAL              8 (ValueError)
+            220 CHECK_EXC_MATCH
+            222 POP_JUMP_IF_FALSE        5 (to 234)
+            224 POP_TOP
+
+188         226 LOAD_CONST               2 (2.0)
+            228 STORE_FAST               1 (timeout_seconds)
+            230 POP_EXCEPT
+            232 JUMP_BACKWARD           46 (to 142)
+
+187     >>  234 RERAISE                  0
+        >>  236 COPY                     3
+            238 POP_EXCEPT
+            240 RERAISE                  1
+ExceptionTable:
+  120 to 140 -> 208 [0]
+  208 to 228 -> 236 [1] lasti
+  234 to 234 -> 236 [1] lasti
+
+  ## code_object: SimulationRuntime
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py
+  first_line: 51
+  argcount: 0
+  locals: 0
+  stacksize: 4
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__', 'classmethod', 'build_default']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   51           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('SimulationRuntime')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   53          12 LOAD_CONST               1 ('GrocerySessionService')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('grocery_service')
+               18 STORE_SUBSCR
+  
+   54          22 LOAD_CONST               3 ('DocumentSessionService')
+               24 LOAD_NAME                3 (__annotations__)
+               26 LOAD_CONST               4 ('document_service')
+               28 STORE_SUBSCR
+  
+   55          32 LOAD_CONST               5 ('GetSessionTrace')
+               34 LOAD_NAME                3 (__annotations__)
+               36 LOAD_CONST               6 ('session_trace_reader')
+               38 STORE_SUBSCR
+  
+   56          42 LOAD_CONST               7 ('EnqueueDocumentAnalysisJob')
+               44 LOAD_NAME                3 (__annotations__)
+               46 LOAD_CONST               8 ('document_job_enqueuer')
+               48 STORE_SUBSCR
+  
+   57          52 LOAD_CONST               9 ('AdvanceDocumentAnalysisJob')
+               54 LOAD_NAME                3 (__annotations__)
+               56 LOAD_CONST              10 ('document_job_advancer')
+               58 STORE_SUBSCR
+  
+   58          62 LOAD_CONST              11 ('GetJobStatus')
+               64 LOAD_NAME                3 (__annotations__)
+               66 LOAD_CONST              12 ('job_status_reader')
+               68 STORE_SUBSCR
+  
+   59          72 LOAD_CONST              13 ('GetDocumentAnalysis')
+               74 LOAD_NAME                3 (__annotations__)
+               76 LOAD_CONST              14 ('document_analysis_reader')
+               78 STORE_SUBSCR
+  
+   60          82 LOAD_CONST              15 ('ListDocumentAnalysesBySession')
+               84 LOAD_NAME                3 (__annotations__)
+               86 LOAD_CONST              16 ('document_analyses_by_session_reader')
+               88 STORE_SUBSCR
+  
+   61          92 LOAD_CONST              17 ('RecordLensFeedback')
+               94 LOAD_NAME                3 (__annotations__)
+               96 LOAD_CONST              18 ('lens_feedback_recorder')
+               98 STORE_SUBSCR
+  
+   62         102 LOAD_CONST              19 ('StartUserSession')
+              104 LOAD_NAME                3 (__annotations__)
+              106 LOAD_CONST              20 ('user_session_starter')
+              108 STORE_SUBSCR
+  
+   63         112 LOAD_CONST              21 ('GetUserSession')
+              114 LOAD_NAME                3 (__annotations__)
+              116 LOAD_CONST              22 ('user_session_reader')
+              118 STORE_SUBSCR
+  
+   64         122 LOAD_CONST              23 ('ListUserSessions')
+              124 LOAD_NAME                3 (__annotations__)
+              126 LOAD_CONST              24 ('user_sessions_lister')
+              128 STORE_SUBSCR
+  
+   65         132 LOAD_CONST              25 ('ThreadedDocumentAnalysisJobWorker')
+              134 LOAD_NAME                3 (__annotations__)
+              136 LOAD_CONST              26 ('document_job_worker')
+              138 STORE_SUBSCR
+  
+   66         142 LOAD_CONST              27 ('EventStore')
+              144 LOAD_NAME                3 (__annotations__)
+              146 LOAD_CONST              28 ('event_store')
+              148 STORE_SUBSCR
+  
+   67         152 LOAD_CONST              29 ('SessionStore')
+              154 LOAD_NAME                3 (__annotations__)
+              156 LOAD_CONST              30 ('session_store')
+              158 STORE_SUBSCR
+  
+   68         162 LOAD_CONST              31 ('JobStore')
+              164 LOAD_NAME                3 (__annotations__)
+              166 LOAD_CONST              32 ('job_store')
+              168 STORE_SUBSCR
+  
+   69         172 LOAD_CONST              33 ('DocumentAnalysisJobPayloadStore')
+              174 LOAD_NAME                3 (__annotations__)
+              176 LOAD_CONST              34 ('document_job_payload_store')
+              178 STORE_SUBSCR
+  
+   70         182 LOAD_CONST              35 ('DocumentAnalysisStore')
+              184 LOAD_NAME                3 (__annotations__)
+              186 LOAD_CONST              36 ('document_analysis_store')
+              188 STORE_SUBSCR
+  
+   71         192 LOAD_CONST              37 ('DeviceGateway')
+              194 LOAD_NAME                3 (__annotations__)
+              196 LOAD_CONST              38 ('device_gateway')
+              198 STORE_SUBSCR
+  
+   73         202 LOAD_NAME                4 (classmethod)
+  
+   77         204 LOAD_CONST              39 (None)
+  
+   78         206 LOAD_CONST              39 (None)
+  
+   74         208 LOAD_CONST              40 (('storage_path', 'device_gateway'))
+              210 BUILD_CONST_KEY_MAP      2
+  
+   77         212 NOP
+  
+   74         214 NOP
+  
+   78         216 NOP
+  
+   74         218 NOP
+  
+   79         220 NOP
+  
+   74         222 LOAD_CONST              42 (('storage_path', 'str | Path | None', 'device_gateway', 'DeviceGateway | None', 'return', "'SimulationRuntime'"))
+              224 LOAD_CONST              41 (<code object build_default at 0x0000024F269DD260, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py", line 73>)
+              226 MAKE_FUNCTION            6 (kwdefaults, annotations)
+  
+   73         228 CALL                     0
+  
+   74         236 STORE_NAME               5 (build_default)
+              238 RETURN_CONST            39 (None)
+  
+  Disassembly of <code object build_default at 0x0000024F269DD260, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py", line 73>:
+   73           0 RESUME                   0
+  
+   80           2 LOAD_FAST                1 (storage_path)
+                4 COPY                     1
+                6 POP_JUMP_IF_TRUE        21 (to 50)
+                8 POP_TOP
+               10 LOAD_GLOBAL              1 (NULL + environ)
+               20 LOAD_ATTR                2 (get)
+               40 LOAD_CONST               1 ('NEW_ERA_SQLITE_PATH')
+               42 CALL                     1
+          >>   50 STORE_FAST               3 (configured_storage_path)
+  
+   81          52 LOAD_FAST                3 (configured_storage_path)
+               54 POP_JUMP_IF_FALSE       23 (to 102)
+  
+   82          56 LOAD_GLOBAL              5 (NULL + SQLiteEventStore)
+               66 LOAD_FAST                3 (configured_storage_path)
+               68 CALL                     1
+               76 STORE_FAST               4 (event_store)
+  
+   83          78 LOAD_GLOBAL              7 (NULL + SQLiteSessionStore)
+               88 LOAD_FAST                3 (configured_storage_path)
+               90 CALL                     1
+               98 STORE_FAST               5 (session_store)
+              100 JUMP_FORWARD            20 (to 142)
+  
+   85     >>  102 LOAD_GLOBAL              9 (NULL + InMemoryEventStore)
+              112 CALL                     0
+              120 STORE_FAST               4 (event_store)
+  
+   86         122 LOAD_GLOBAL             11 (NULL + InMemorySessionStore)
+              132 CALL                     0
+              140 STORE_FAST               5 (session_store)
+  
+   87     >>  142 LOAD_GLOBAL             13 (NULL + InMemoryJobStore)
+              152 CALL                     0
+              160 STORE_FAST               6 (job_store)
+  
+   88         162 LOAD_GLOBAL             15 (NULL + InMemoryDocumentAnalysisJobPayloadStore)
+              172 CALL                     0
+              180 STORE_FAST               7 (document_job_payload_store)
+  
+   89         182 LOAD_GLOBAL             17 (NULL + InMemoryDocumentAnalysisStore)
+              192 CALL                     0
+              200 STORE_FAST               8 (document_analysis_store)
+  
+   90         202 LOAD_FAST                2 (device_gateway)
+              204 COPY                     1
+              206 POP_JUMP_IF_TRUE        10 (to 228)
+              208 POP_TOP
+              210 LOAD_GLOBAL             19 (NULL + build_device_gateway_from_environment)
+              220 CALL                     0
+          >>  228 STORE_FAST               2 (device_gateway)
+  
+   91         230 LOAD_GLOBAL             21 (NULL + SimpleSimulationObservationAdapter)
+              240 CALL                     0
+              248 STORE_FAST               9 (observation_interpreter)
+  
+   92         250 LOAD_GLOBAL             23 (NULL + AttentionPolicy)
+              260 CALL                     0
+              268 STORE_FAST              10 (attention_policy)
+  
+   93         270 LOAD_GLOBAL             25 (NULL + DeterministicContractAnalyzer)
+              280 CALL                     0
+              288 STORE_FAST              11 (contract_analyzer)
+  
+   94         290 LOAD_GLOBAL             27 (NULL + RapidOCRAdapter)
+              300 CALL                     0
+              308 STORE_FAST              12 (ocr_engine)
+  
+   95         310 LOAD_GLOBAL             29 (NULL + JobExecutionPolicy)
+  
+   96         320 LOAD_CONST               2 (3)
+  
+   97         322 LOAD_CONST               3 (10.0)
+  
+   98         324 LOAD_CONST               4 (0.0)
+  
+   95         326 KW_NAMES                 5 (('max_attempts', 'timeout_seconds', 'retry_backoff_seconds'))
+              328 CALL                     3
+              336 STORE_FAST              13 (job_execution_policy)
+  
+  101         338 LOAD_GLOBAL             31 (NULL + ProcessObservation)
+  
+  102         348 LOAD_FAST                9 (observation_interpreter)
+  
+  103         350 LOAD_GLOBAL             33 (NULL + ProcessAlertCandidate)
+  
+  104         360 LOAD_GLOBAL             35 (NULL + EvaluateAlertCandidate)
+  
+  105         370 LOAD_FAST               10 (attention_policy)
+  
+  106         372 LOAD_FAST                4 (event_store)
+  
+  104         374 KW_NAMES                 6 (('attention_policy', 'event_store'))
+              376 CALL                     2
+  
+  108         384 LOAD_GLOBAL             37 (NULL + DeliverLensCommand)
+  
+  109         394 LOAD_FAST                2 (device_gateway)
+  
+  110         396 LOAD_FAST                4 (event_store)
+  
+  108         398 KW_NAMES                 7 (('device_gateway', 'event_store'))
+              400 CALL                     2
+  
+  103         408 KW_NAMES                 8 (('evaluator', 'delivery'))
+              410 CALL                     2
+  
+  113         418 LOAD_FAST                4 (event_store)
+  
+  101         420 KW_NAMES                 9 (('observation_interpreter', 'alert_processor', 'event_store'))
+              422 CALL                     3
+              430 STORE_FAST              14 (observation_processor)
+  
+  116         432 PUSH_NULL
+              434 LOAD_FAST                0 (cls)
+              436 LOAD_CONST              39 (())
+              438 BUILD_MAP                0
+              440 LOAD_CONST              10 ('grocery_service')
+  
+  117         442 LOAD_GLOBAL             39 (NULL + GrocerySessionService)
+              452 LOAD_ATTR               40 (build_simulation)
+  
+  118         472 LOAD_FAST               14 (observation_processor)
+  
+  119         474 LOAD_FAST                4 (event_store)
+  
+  120         476 LOAD_FAST                2 (device_gateway)
+  
+  117         478 KW_NAMES                11 (('observation_processor', 'event_store', 'device_gateway'))
+              480 CALL                     3
+              488 MAP_ADD                  1
+  
+  116         490 LOAD_CONST              12 ('document_service')
+  
+  122         492 LOAD_GLOBAL             43 (NULL + DocumentSessionService)
+              502 LOAD_ATTR               40 (build_simulation)
+  
+  123         522 LOAD_FAST               14 (observation_processor)
+  
+  124         524 LOAD_FAST                4 (event_store)
+  
+  125         526 LOAD_FAST                2 (device_gateway)
+  
+  126         528 LOAD_FAST               11 (contract_analyzer)
+  
+  127         530 LOAD_FAST               12 (ocr_engine)
+  
+  128         532 LOAD_FAST                8 (document_analysis_store)
+  
+  122         534 KW_NAMES                13 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+              536 CALL                     6
+              544 MAP_ADD                  1
+  
+  116         546 LOAD_CONST              14 ('session_trace_reader')
+  
+  130         548 LOAD_GLOBAL             45 (NULL + GetSessionTrace)
+              558 LOAD_FAST                4 (event_store)
+              560 KW_NAMES                15 (('event_store',))
+              562 CALL                     1
+              570 MAP_ADD                  1
+  
+  116         572 LOAD_CONST              16 ('document_job_enqueuer')
+  
+  131         574 LOAD_GLOBAL             47 (NULL + EnqueueDocumentAnalysisJob)
+  
+  132         584 LOAD_FAST                6 (job_store)
+  
+  133         586 LOAD_FAST                4 (event_store)
+  
+  134         588 LOAD_FAST                7 (document_job_payload_store)
+  
+  135         590 LOAD_FAST               13 (job_execution_policy)
+  
+  131         592 KW_NAMES                17 (('job_store', 'event_store', 'payload_store', 'execution_policy'))
+              594 CALL                     4
+              602 MAP_ADD                  1
+  
+  116         604 LOAD_CONST              18 ('document_job_advancer')
+  
+  137         606 LOAD_GLOBAL             49 (NULL + AdvanceDocumentAnalysisJob)
+  
+  138         616 LOAD_FAST                6 (job_store)
+  
+  139         618 LOAD_FAST                4 (event_store)
+  
+  140         620 LOAD_FAST                8 (document_analysis_store)
+  
+  137         622 KW_NAMES                19 (('job_store', 'event_store', 'document_analysis_store'))
+              624 CALL                     3
+              632 MAP_ADD                  1
+  
+  116         634 LOAD_CONST              20 ('job_status_reader')
+  
+  142         636 LOAD_GLOBAL             51 (NULL + GetJobStatus)
+              646 LOAD_FAST                6 (job_store)
+              648 KW_NAMES                21 (('job_store',))
+              650 CALL                     1
+              658 MAP_ADD                  1
+  
+  116         660 LOAD_CONST              22 ('document_analysis_reader')
+  
+  143         662 LOAD_GLOBAL             53 (NULL + GetDocumentAnalysis)
+  
+  144         672 LOAD_FAST                8 (document_analysis_store)
+  
+  143         674 KW_NAMES                23 (('analysis_store',))
+              676 CALL                     1
+              684 MAP_ADD                  1
+  
+  116         686 LOAD_CONST              24 ('document_analyses_by_session_reader')
+  
+  146         688 LOAD_GLOBAL             55 (NULL + ListDocumentAnalysesBySession)
+  
+  147         698 LOAD_FAST                8 (document_analysis_store)
+  
+  146         700 KW_NAMES                23 (('analysis_store',))
+              702 CALL                     1
+              710 MAP_ADD                  1
+  
+  116         712 LOAD_CONST              25 ('lens_feedback_recorder')
+  
+  149         714 LOAD_GLOBAL             57 (NULL + RecordLensFeedback)
+              724 LOAD_FAST                4 (event_store)
+              726 KW_NAMES                15 (('event_store',))
+              728 CALL                     1
+              736 MAP_ADD                  1
+  
+  116         738 LOAD_CONST              26 ('user_session_starter')
+  
+  150         740 LOAD_GLOBAL             59 (NULL + StartUserSession)
+              750 LOAD_FAST                5 (session_store)
+              752 KW_NAMES                27 (('session_store',))
+              754 CALL                     1
+              762 MAP_ADD                  1
+  
+  116         764 LOAD_CONST              28 ('user_session_reader')
+  
+  151         766 LOAD_GLOBAL             61 (NULL + GetUserSession)
+              776 LOAD_FAST                5 (session_store)
+              778 KW_NAMES                27 (('session_store',))
+              780 CALL                     1
+              788 MAP_ADD                  1
+  
+  116         790 LOAD_CONST              29 ('user_sessions_lister')
+  
+  152         792 LOAD_GLOBAL             63 (NULL + ListUserSessions)
+              802 LOAD_FAST                5 (session_store)
+              804 KW_NAMES                27 (('session_store',))
+              806 CALL                     1
+              814 MAP_ADD                  1
+  
+  116         816 LOAD_CONST              30 ('document_job_worker')
+  
+  153         818 LOAD_GLOBAL             65 (NULL + ThreadedDocumentAnalysisJobWorker)
+  
+  154         828 LOAD_GLOBAL             67 (NULL + RunDocumentAnalysisJob)
+  
+  155         838 LOAD_FAST                6 (job_store)
+  
+  156         840 LOAD_FAST                4 (event_store)
+  
+  157         842 LOAD_FAST                7 (document_job_payload_store)
+  
+  158         844 LOAD_GLOBAL             43 (NULL + DocumentSessionService)
+              854 LOAD_ATTR               40 (build_simulation)
+  
+  159         874 LOAD_FAST               14 (observation_processor)
+  
+  160         876 LOAD_FAST                4 (event_store)
+  
+  161         878 LOAD_FAST                2 (device_gateway)
+  
+  162         880 LOAD_FAST               11 (contract_analyzer)
+  
+  163         882 LOAD_FAST               12 (ocr_engine)
+  
+  164         884 LOAD_FAST                8 (document_analysis_store)
+  
+  158         886 KW_NAMES                13 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+              888 CALL                     6
+  
+  154         896 KW_NAMES                31 (('job_store', 'event_store', 'payload_store', 'document_processor'))
+              898 CALL                     4
+  
+  153         906 KW_NAMES                32 (('runner',))
+              908 CALL                     1
+              916 MAP_ADD                  1
+  
+  116         918 LOAD_CONST              33 ('event_store')
+  
+  168         920 LOAD_FAST                4 (event_store)
+              922 MAP_ADD                  1
+  
+  116         924 LOAD_CONST              34 ('session_store')
+  
+  169         926 LOAD_FAST                5 (session_store)
+              928 MAP_ADD                  1
+  
+  116         930 LOAD_CONST              35 ('job_store')
+  
+  170         932 LOAD_FAST                6 (job_store)
+              934 MAP_ADD                  1
+  
+  116         936 LOAD_CONST              36 ('document_job_payload_store')
+  
+  171         938 LOAD_FAST                7 (document_job_payload_store)
+              940 MAP_ADD                  1
+  
+  116         942 LOAD_CONST              37 ('document_analysis_store')
+  
+  172         944 LOAD_FAST                8 (document_analysis_store)
+              946 MAP_ADD                  1
+  
+  116         948 LOAD_CONST              38 ('device_gateway')
+  
+  173         950 LOAD_FAST                2 (device_gateway)
+              952 MAP_ADD                  1
+  
+  116         954 CALL_FUNCTION_EX         1
+              956 RETURN_VALUE
+
+    ## code_object: build_default
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py
+    first_line: 73
+    argcount: 1
+    locals: 15
+    stacksize: 20
+    flags: 16777219
+    names: ['environ', 'get', 'SQLiteEventStore', 'SQLiteSessionStore', 'InMemoryEventStore', 'InMemorySessionStore', 'InMemoryJobStore', 'InMemoryDocumentAnalysisJobPayloadStore', 'InMemoryDocumentAnalysisStore', 'build_device_gateway_from_environment', 'SimpleSimulationObservationAdapter', 'AttentionPolicy', 'DeterministicContractAnalyzer', 'RapidOCRAdapter', 'JobExecutionPolicy', 'ProcessObservation', 'ProcessAlertCandidate', 'EvaluateAlertCandidate', 'DeliverLensCommand', 'GrocerySessionService', 'build_simulation', 'DocumentSessionService', 'GetSessionTrace', 'EnqueueDocumentAnalysisJob', 'AdvanceDocumentAnalysisJob', 'GetJobStatus', 'GetDocumentAnalysis', 'ListDocumentAnalysesBySession', 'RecordLensFeedback', 'StartUserSession', 'GetUserSession', 'ListUserSessions', 'ThreadedDocumentAnalysisJobWorker', 'RunDocumentAnalysisJob']
+    varnames: ['cls', 'storage_path', 'device_gateway', 'configured_storage_path', 'event_store', 'session_store', 'job_store', 'document_job_payload_store', 'document_analysis_store', 'observation_interpreter', 'attention_policy', 'contract_analyzer', 'ocr_engine', 'job_execution_policy', 'observation_processor']
+    cellvars: []
+    freevars: []
+    disassembly:
+     73           0 RESUME                   0
+    
+     80           2 LOAD_FAST                1 (storage_path)
+                  4 COPY                     1
+                  6 POP_JUMP_IF_TRUE        21 (to 50)
+                  8 POP_TOP
+                 10 LOAD_GLOBAL              1 (NULL + environ)
+                 20 LOAD_ATTR                2 (get)
+                 40 LOAD_CONST               1 ('NEW_ERA_SQLITE_PATH')
+                 42 CALL                     1
+            >>   50 STORE_FAST               3 (configured_storage_path)
+    
+     81          52 LOAD_FAST                3 (configured_storage_path)
+                 54 POP_JUMP_IF_FALSE       23 (to 102)
+    
+     82          56 LOAD_GLOBAL              5 (NULL + SQLiteEventStore)
+                 66 LOAD_FAST                3 (configured_storage_path)
+                 68 CALL                     1
+                 76 STORE_FAST               4 (event_store)
+    
+     83          78 LOAD_GLOBAL              7 (NULL + SQLiteSessionStore)
+                 88 LOAD_FAST                3 (configured_storage_path)
+                 90 CALL                     1
+                 98 STORE_FAST               5 (session_store)
+                100 JUMP_FORWARD            20 (to 142)
+    
+     85     >>  102 LOAD_GLOBAL              9 (NULL + InMemoryEventStore)
+                112 CALL                     0
+                120 STORE_FAST               4 (event_store)
+    
+     86         122 LOAD_GLOBAL             11 (NULL + InMemorySessionStore)
+                132 CALL                     0
+                140 STORE_FAST               5 (session_store)
+    
+     87     >>  142 LOAD_GLOBAL             13 (NULL + InMemoryJobStore)
+                152 CALL                     0
+                160 STORE_FAST               6 (job_store)
+    
+     88         162 LOAD_GLOBAL             15 (NULL + InMemoryDocumentAnalysisJobPayloadStore)
+                172 CALL                     0
+                180 STORE_FAST               7 (document_job_payload_store)
+    
+     89         182 LOAD_GLOBAL             17 (NULL + InMemoryDocumentAnalysisStore)
+                192 CALL                     0
+                200 STORE_FAST               8 (document_analysis_store)
+    
+     90         202 LOAD_FAST                2 (device_gateway)
+                204 COPY                     1
+                206 POP_JUMP_IF_TRUE        10 (to 228)
+                208 POP_TOP
+                210 LOAD_GLOBAL             19 (NULL + build_device_gateway_from_environment)
+                220 CALL                     0
+            >>  228 STORE_FAST               2 (device_gateway)
+    
+     91         230 LOAD_GLOBAL             21 (NULL + SimpleSimulationObservationAdapter)
+                240 CALL                     0
+                248 STORE_FAST               9 (observation_interpreter)
+    
+     92         250 LOAD_GLOBAL             23 (NULL + AttentionPolicy)
+                260 CALL                     0
+                268 STORE_FAST              10 (attention_policy)
+    
+     93         270 LOAD_GLOBAL             25 (NULL + DeterministicContractAnalyzer)
+                280 CALL                     0
+                288 STORE_FAST              11 (contract_analyzer)
+    
+     94         290 LOAD_GLOBAL             27 (NULL + RapidOCRAdapter)
+                300 CALL                     0
+                308 STORE_FAST              12 (ocr_engine)
+    
+     95         310 LOAD_GLOBAL             29 (NULL + JobExecutionPolicy)
+    
+     96         320 LOAD_CONST               2 (3)
+    
+     97         322 LOAD_CONST               3 (10.0)
+    
+     98         324 LOAD_CONST               4 (0.0)
+    
+     95         326 KW_NAMES                 5 (('max_attempts', 'timeout_seconds', 'retry_backoff_seconds'))
+                328 CALL                     3
+                336 STORE_FAST              13 (job_execution_policy)
+    
+    101         338 LOAD_GLOBAL             31 (NULL + ProcessObservation)
+    
+    102         348 LOAD_FAST                9 (observation_interpreter)
+    
+    103         350 LOAD_GLOBAL             33 (NULL + ProcessAlertCandidate)
+    
+    104         360 LOAD_GLOBAL             35 (NULL + EvaluateAlertCandidate)
+    
+    105         370 LOAD_FAST               10 (attention_policy)
+    
+    106         372 LOAD_FAST                4 (event_store)
+    
+    104         374 KW_NAMES                 6 (('attention_policy', 'event_store'))
+                376 CALL                     2
+    
+    108         384 LOAD_GLOBAL             37 (NULL + DeliverLensCommand)
+    
+    109         394 LOAD_FAST                2 (device_gateway)
+    
+    110         396 LOAD_FAST                4 (event_store)
+    
+    108         398 KW_NAMES                 7 (('device_gateway', 'event_store'))
+                400 CALL                     2
+    
+    103         408 KW_NAMES                 8 (('evaluator', 'delivery'))
+                410 CALL                     2
+    
+    113         418 LOAD_FAST                4 (event_store)
+    
+    101         420 KW_NAMES                 9 (('observation_interpreter', 'alert_processor', 'event_store'))
+                422 CALL                     3
+                430 STORE_FAST              14 (observation_processor)
+    
+    116         432 PUSH_NULL
+                434 LOAD_FAST                0 (cls)
+                436 LOAD_CONST              39 (())
+                438 BUILD_MAP                0
+                440 LOAD_CONST              10 ('grocery_service')
+    
+    117         442 LOAD_GLOBAL             39 (NULL + GrocerySessionService)
+                452 LOAD_ATTR               40 (build_simulation)
+    
+    118         472 LOAD_FAST               14 (observation_processor)
+    
+    119         474 LOAD_FAST                4 (event_store)
+    
+    120         476 LOAD_FAST                2 (device_gateway)
+    
+    117         478 KW_NAMES                11 (('observation_processor', 'event_store', 'device_gateway'))
+                480 CALL                     3
+                488 MAP_ADD                  1
+    
+    116         490 LOAD_CONST              12 ('document_service')
+    
+    122         492 LOAD_GLOBAL             43 (NULL + DocumentSessionService)
+                502 LOAD_ATTR               40 (build_simulation)
+    
+    123         522 LOAD_FAST               14 (observation_processor)
+    
+    124         524 LOAD_FAST                4 (event_store)
+    
+    125         526 LOAD_FAST                2 (device_gateway)
+    
+    126         528 LOAD_FAST               11 (contract_analyzer)
+    
+    127         530 LOAD_FAST               12 (ocr_engine)
+    
+    128         532 LOAD_FAST                8 (document_analysis_store)
+    
+    122         534 KW_NAMES                13 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+                536 CALL                     6
+                544 MAP_ADD                  1
+    
+    116         546 LOAD_CONST              14 ('session_trace_reader')
+    
+    130         548 LOAD_GLOBAL             45 (NULL + GetSessionTrace)
+                558 LOAD_FAST                4 (event_store)
+                560 KW_NAMES                15 (('event_store',))
+                562 CALL                     1
+                570 MAP_ADD                  1
+    
+    116         572 LOAD_CONST              16 ('document_job_enqueuer')
+    
+    131         574 LOAD_GLOBAL             47 (NULL + EnqueueDocumentAnalysisJob)
+    
+    132         584 LOAD_FAST                6 (job_store)
+    
+    133         586 LOAD_FAST                4 (event_store)
+    
+    134         588 LOAD_FAST                7 (document_job_payload_store)
+    
+    135         590 LOAD_FAST               13 (job_execution_policy)
+    
+    131         592 KW_NAMES                17 (('job_store', 'event_store', 'payload_store', 'execution_policy'))
+                594 CALL                     4
+                602 MAP_ADD                  1
+    
+    116         604 LOAD_CONST              18 ('document_job_advancer')
+    
+    137         606 LOAD_GLOBAL             49 (NULL + AdvanceDocumentAnalysisJob)
+    
+    138         616 LOAD_FAST                6 (job_store)
+    
+    139         618 LOAD_FAST                4 (event_store)
+    
+    140         620 LOAD_FAST                8 (document_analysis_store)
+    
+    137         622 KW_NAMES                19 (('job_store', 'event_store', 'document_analysis_store'))
+                624 CALL                     3
+                632 MAP_ADD                  1
+    
+    116         634 LOAD_CONST              20 ('job_status_reader')
+    
+    142         636 LOAD_GLOBAL             51 (NULL + GetJobStatus)
+                646 LOAD_FAST                6 (job_store)
+                648 KW_NAMES                21 (('job_store',))
+                650 CALL                     1
+                658 MAP_ADD                  1
+    
+    116         660 LOAD_CONST              22 ('document_analysis_reader')
+    
+    143         662 LOAD_GLOBAL             53 (NULL + GetDocumentAnalysis)
+    
+    144         672 LOAD_FAST                8 (document_analysis_store)
+    
+    143         674 KW_NAMES                23 (('analysis_store',))
+                676 CALL                     1
+                684 MAP_ADD                  1
+    
+    116         686 LOAD_CONST              24 ('document_analyses_by_session_reader')
+    
+    146         688 LOAD_GLOBAL             55 (NULL + ListDocumentAnalysesBySession)
+    
+    147         698 LOAD_FAST                8 (document_analysis_store)
+    
+    146         700 KW_NAMES                23 (('analysis_store',))
+                702 CALL                     1
+                710 MAP_ADD                  1
+    
+    116         712 LOAD_CONST              25 ('lens_feedback_recorder')
+    
+    149         714 LOAD_GLOBAL             57 (NULL + RecordLensFeedback)
+                724 LOAD_FAST                4 (event_store)
+                726 KW_NAMES                15 (('event_store',))
+                728 CALL                     1
+                736 MAP_ADD                  1
+    
+    116         738 LOAD_CONST              26 ('user_session_starter')
+    
+    150         740 LOAD_GLOBAL             59 (NULL + StartUserSession)
+                750 LOAD_FAST                5 (session_store)
+                752 KW_NAMES                27 (('session_store',))
+                754 CALL                     1
+                762 MAP_ADD                  1
+    
+    116         764 LOAD_CONST              28 ('user_session_reader')
+    
+    151         766 LOAD_GLOBAL             61 (NULL + GetUserSession)
+                776 LOAD_FAST                5 (session_store)
+                778 KW_NAMES                27 (('session_store',))
+                780 CALL                     1
+                788 MAP_ADD                  1
+    
+    116         790 LOAD_CONST              29 ('user_sessions_lister')
+    
+    152         792 LOAD_GLOBAL             63 (NULL + ListUserSessions)
+                802 LOAD_FAST                5 (session_store)
+                804 KW_NAMES                27 (('session_store',))
+                806 CALL                     1
+                814 MAP_ADD                  1
+    
+    116         816 LOAD_CONST              30 ('document_job_worker')
+    
+    153         818 LOAD_GLOBAL             65 (NULL + ThreadedDocumentAnalysisJobWorker)
+    
+    154         828 LOAD_GLOBAL             67 (NULL + RunDocumentAnalysisJob)
+    
+    155         838 LOAD_FAST                6 (job_store)
+    
+    156         840 LOAD_FAST                4 (event_store)
+    
+    157         842 LOAD_FAST                7 (document_job_payload_store)
+    
+    158         844 LOAD_GLOBAL             43 (NULL + DocumentSessionService)
+                854 LOAD_ATTR               40 (build_simulation)
+    
+    159         874 LOAD_FAST               14 (observation_processor)
+    
+    160         876 LOAD_FAST                4 (event_store)
+    
+    161         878 LOAD_FAST                2 (device_gateway)
+    
+    162         880 LOAD_FAST               11 (contract_analyzer)
+    
+    163         882 LOAD_FAST               12 (ocr_engine)
+    
+    164         884 LOAD_FAST                8 (document_analysis_store)
+    
+    158         886 KW_NAMES                13 (('observation_processor', 'event_store', 'device_gateway', 'contract_analyzer', 'ocr_engine', 'analysis_store'))
+                888 CALL                     6
+    
+    154         896 KW_NAMES                31 (('job_store', 'event_store', 'payload_store', 'document_processor'))
+                898 CALL                     4
+    
+    153         906 KW_NAMES                32 (('runner',))
+                908 CALL                     1
+                916 MAP_ADD                  1
+    
+    116         918 LOAD_CONST              33 ('event_store')
+    
+    168         920 LOAD_FAST                4 (event_store)
+                922 MAP_ADD                  1
+    
+    116         924 LOAD_CONST              34 ('session_store')
+    
+    169         926 LOAD_FAST                5 (session_store)
+                928 MAP_ADD                  1
+    
+    116         930 LOAD_CONST              35 ('job_store')
+    
+    170         932 LOAD_FAST                6 (job_store)
+                934 MAP_ADD                  1
+    
+    116         936 LOAD_CONST              36 ('document_job_payload_store')
+    
+    171         938 LOAD_FAST                7 (document_job_payload_store)
+                940 MAP_ADD                  1
+    
+    116         942 LOAD_CONST              37 ('document_analysis_store')
+    
+    172         944 LOAD_FAST                8 (document_analysis_store)
+                946 MAP_ADD                  1
+    
+    116         948 LOAD_CONST              38 ('device_gateway')
+    
+    173         950 LOAD_FAST                2 (device_gateway)
+                952 MAP_ADD                  1
+    
+    116         954 CALL_FUNCTION_EX         1
+                956 RETURN_VALUE
+
+  ## code_object: build_device_gateway_from_environment
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\services\simulation_runtime.py
+  first_line: 177
+  argcount: 0
+  locals: 3
+  stacksize: 6
+  flags: 16777219
+  names: ['environ', 'get', 'BrowserSimulationAdapter', 'float', 'ValueError', 'HttpDeviceBridgeAdapter']
+  varnames: ['bridge_url', 'timeout_seconds', 'timeout_value']
+  cellvars: []
+  freevars: []
+  disassembly:
+  177           0 RESUME                   0
+  
+  178           2 LOAD_GLOBAL              1 (NULL + environ)
+               12 LOAD_ATTR                2 (get)
+               32 LOAD_CONST               1 ('NEW_ERA_DEVICE_BRIDGE_URL')
+               34 CALL                     1
+               42 STORE_FAST               0 (bridge_url)
+  
+  179          44 LOAD_FAST                0 (bridge_url)
+               46 POP_JUMP_IF_TRUE        10 (to 68)
+  
+  180          48 LOAD_GLOBAL              5 (NULL + BrowserSimulationAdapter)
+               58 CALL                     0
+               66 RETURN_VALUE
+  
+  182     >>   68 LOAD_CONST               2 (2.0)
+               70 STORE_FAST               1 (timeout_seconds)
+  
+  183          72 LOAD_GLOBAL              1 (NULL + environ)
+               82 LOAD_ATTR                2 (get)
+              102 LOAD_CONST               3 ('NEW_ERA_DEVICE_BRIDGE_TIMEOUT_SECONDS')
+              104 CALL                     1
+              112 STORE_FAST               2 (timeout_value)
+  
+  184         114 LOAD_FAST                2 (timeout_value)
+              116 POP_JUMP_IF_FALSE       12 (to 142)
+  
+  185         118 NOP
+  
+  186         120 LOAD_GLOBAL              7 (NULL + float)
+              130 LOAD_FAST                2 (timeout_value)
+              132 CALL                     1
+              140 STORE_FAST               1 (timeout_seconds)
+  
+  190     >>  142 LOAD_GLOBAL             11 (NULL + HttpDeviceBridgeAdapter)
+  
+  191         152 LOAD_FAST                0 (bridge_url)
+  
+  192         154 LOAD_GLOBAL              1 (NULL + environ)
+              164 LOAD_ATTR                2 (get)
+              184 LOAD_CONST               4 ('NEW_ERA_DEVICE_BRIDGE_TOKEN')
+              186 CALL                     1
+  
+  193         194 LOAD_FAST                1 (timeout_seconds)
+  
+  190         196 KW_NAMES                 5 (('bridge_url', 'api_token', 'timeout_seconds'))
+              198 CALL                     3
+              206 RETURN_VALUE
+          >>  208 PUSH_EXC_INFO
+  
+  187         210 LOAD_GLOBAL              8 (ValueError)
+              220 CHECK_EXC_MATCH
+              222 POP_JUMP_IF_FALSE        5 (to 234)
+              224 POP_TOP
+  
+  188         226 LOAD_CONST               2 (2.0)
+              228 STORE_FAST               1 (timeout_seconds)
+              230 POP_EXCEPT
+              232 JUMP_BACKWARD           46 (to 142)
+  
+  187     >>  234 RERAISE                  0
+          >>  236 COPY                     3
+              238 POP_EXCEPT
+              240 RERAISE                  1
+  ExceptionTable:
+    120 to 140 -> 208 [0]
+    208 to 228 -> 236 [1] lasti
+    234 to 234 -> 236 [1] lasti
+

@@ -1,0 +1,579 @@
+# pyc_path: C:/Users/renan/OneDrive/Documents/New Era Glasses/src/new_era/application/use_cases/__pycache__/process_alert_candidate.cpython-312.pyc
+# embedded_filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py
+# module_name: new_era.application.use_cases.process_alert_candidate
+# first_line: 1
+# compiled_at: 2026-05-24T15:01:41+00:00
+# source_size: 2008
+
+## code_object: <module>
+filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py
+first_line: 1
+argcount: 0
+locals: 0
+stacksize: 5
+flags: 16777216
+names: ['__future__', 'annotations', 'dataclasses', 'dataclass', 'enum', 'StrEnum', 'new_era.application.use_cases.deliver_lens_command', 'DeliverLensCommand', 'new_era.application.use_cases.evaluate_alert_candidate', 'EvaluateAlertCandidate', 'new_era.domain.attention', 'AlertCandidate', 'AttentionMode', 'new_era.domain.lens', 'LensCommand', 'AlertProcessingOutcome', 'AlertProcessingResult', 'ProcessAlertCandidate']
+varnames: []
+cellvars: []
+freevars: []
+disassembly:
+  0           0 RESUME                   0
+
+  1           2 LOAD_CONST               0 (0)
+              4 LOAD_CONST               1 (('annotations',))
+              6 IMPORT_NAME              0 (__future__)
+              8 IMPORT_FROM              1 (annotations)
+             10 STORE_NAME               1 (annotations)
+             12 POP_TOP
+
+  3          14 LOAD_CONST               0 (0)
+             16 LOAD_CONST               2 (('dataclass',))
+             18 IMPORT_NAME              2 (dataclasses)
+             20 IMPORT_FROM              3 (dataclass)
+             22 STORE_NAME               3 (dataclass)
+             24 POP_TOP
+
+  4          26 LOAD_CONST               0 (0)
+             28 LOAD_CONST               3 (('StrEnum',))
+             30 IMPORT_NAME              4 (enum)
+             32 IMPORT_FROM              5 (StrEnum)
+             34 STORE_NAME               5 (StrEnum)
+             36 POP_TOP
+
+  6          38 LOAD_CONST               0 (0)
+             40 LOAD_CONST               4 (('DeliverLensCommand',))
+             42 IMPORT_NAME              6 (new_era.application.use_cases.deliver_lens_command)
+             44 IMPORT_FROM              7 (DeliverLensCommand)
+             46 STORE_NAME               7 (DeliverLensCommand)
+             48 POP_TOP
+
+  7          50 LOAD_CONST               0 (0)
+             52 LOAD_CONST               5 (('EvaluateAlertCandidate',))
+             54 IMPORT_NAME              8 (new_era.application.use_cases.evaluate_alert_candidate)
+             56 IMPORT_FROM              9 (EvaluateAlertCandidate)
+             58 STORE_NAME               9 (EvaluateAlertCandidate)
+             60 POP_TOP
+
+  8          62 LOAD_CONST               0 (0)
+             64 LOAD_CONST               6 (('AlertCandidate', 'AttentionMode'))
+             66 IMPORT_NAME             10 (new_era.domain.attention)
+             68 IMPORT_FROM             11 (AlertCandidate)
+             70 STORE_NAME              11 (AlertCandidate)
+             72 IMPORT_FROM             12 (AttentionMode)
+             74 STORE_NAME              12 (AttentionMode)
+             76 POP_TOP
+
+  9          78 LOAD_CONST               0 (0)
+             80 LOAD_CONST               7 (('LensCommand',))
+             82 IMPORT_NAME             13 (new_era.domain.lens)
+             84 IMPORT_FROM             14 (LensCommand)
+             86 STORE_NAME              14 (LensCommand)
+             88 POP_TOP
+
+ 12          90 PUSH_NULL
+             92 LOAD_BUILD_CLASS
+             94 LOAD_CONST               8 (<code object AlertProcessingOutcome at 0x00000238AB64A330, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py", line 12>)
+             96 MAKE_FUNCTION            0
+             98 LOAD_CONST               9 ('AlertProcessingOutcome')
+            100 LOAD_NAME                5 (StrEnum)
+            102 CALL                     3
+            110 STORE_NAME              15 (AlertProcessingOutcome)
+
+ 18         112 PUSH_NULL
+            114 LOAD_NAME                3 (dataclass)
+            116 LOAD_CONST              10 (True)
+            118 LOAD_CONST              10 (True)
+            120 KW_NAMES                11 (('frozen', 'slots'))
+            122 CALL                     2
+
+ 19         130 PUSH_NULL
+            132 LOAD_BUILD_CLASS
+            134 LOAD_CONST              12 (<code object AlertProcessingResult at 0x00000238AB74C030, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py", line 18>)
+            136 MAKE_FUNCTION            0
+            138 LOAD_CONST              13 ('AlertProcessingResult')
+            140 CALL                     2
+
+ 18         148 CALL                     0
+
+ 19         156 STORE_NAME              16 (AlertProcessingResult)
+
+ 24         158 PUSH_NULL
+            160 LOAD_NAME                3 (dataclass)
+            162 LOAD_CONST              10 (True)
+            164 LOAD_CONST              10 (True)
+            166 KW_NAMES                11 (('frozen', 'slots'))
+            168 CALL                     2
+
+ 25         176 PUSH_NULL
+            178 LOAD_BUILD_CLASS
+            180 LOAD_CONST              14 (<code object ProcessAlertCandidate at 0x00000238AB66A780, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py", line 24>)
+            182 MAKE_FUNCTION            0
+            184 LOAD_CONST              15 ('ProcessAlertCandidate')
+            186 CALL                     2
+
+ 24         194 CALL                     0
+
+ 25         202 STORE_NAME              17 (ProcessAlertCandidate)
+            204 RETURN_CONST            16 (None)
+
+Disassembly of <code object AlertProcessingOutcome at 0x00000238AB64A330, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py", line 12>:
+ 12           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('AlertProcessingOutcome')
+              8 STORE_NAME               2 (__qualname__)
+
+ 13          10 LOAD_CONST               1 ('delivered')
+             12 STORE_NAME               3 (DELIVERED)
+
+ 14          14 LOAD_CONST               2 ('suppressed')
+             16 STORE_NAME               4 (SUPPRESSED)
+
+ 15          18 LOAD_CONST               3 ('delivery_skipped')
+             20 STORE_NAME               5 (DELIVERY_SKIPPED)
+             22 RETURN_CONST             4 (None)
+
+Disassembly of <code object AlertProcessingResult at 0x00000238AB74C030, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py", line 18>:
+ 18           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('AlertProcessingResult')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 20          12 LOAD_CONST               1 ('AlertProcessingOutcome')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('outcome')
+             18 STORE_SUBSCR
+
+ 21          22 LOAD_CONST               3 ('LensCommand | None')
+             24 LOAD_NAME                3 (__annotations__)
+             26 LOAD_CONST               4 ('command')
+             28 STORE_SUBSCR
+             32 RETURN_CONST             5 (None)
+
+Disassembly of <code object ProcessAlertCandidate at 0x00000238AB66A780, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py", line 24>:
+ 24           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('ProcessAlertCandidate')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 26          12 LOAD_CONST               1 ('EvaluateAlertCandidate')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('evaluator')
+             18 STORE_SUBSCR
+
+ 27          22 LOAD_CONST               3 ('DeliverLensCommand')
+             24 LOAD_NAME                3 (__annotations__)
+             26 LOAD_CONST               4 ('delivery')
+             28 STORE_SUBSCR
+
+ 29          32 NOP
+
+ 31          34 NOP
+
+ 29          36 NOP
+
+ 32          38 NOP
+
+ 29          40 NOP
+
+ 33          42 NOP
+
+ 29          44 NOP
+
+ 34          46 NOP
+
+ 29          48 NOP
+
+ 35          50 NOP
+
+ 29          52 NOP
+
+ 36          54 NOP
+
+ 29          56 LOAD_CONST               7 (('candidate', 'AlertCandidate', 'mode', 'AttentionMode', 'recent_category_count', 'int', 'correlation_id', 'str', 'trace_id', 'str', 'return', 'AlertProcessingResult'))
+             58 LOAD_CONST               5 (<code object execute at 0x00000238AB4DDE20, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py", line 29>)
+             60 MAKE_FUNCTION            4 (annotations)
+             62 STORE_NAME               4 (execute)
+             64 RETURN_CONST             6 (None)
+
+Disassembly of <code object execute at 0x00000238AB4DDE20, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py", line 29>:
+ 29           0 RESUME                   0
+
+ 37           2 LOAD_FAST                0 (self)
+              4 LOAD_ATTR                0 (evaluator)
+             24 LOAD_ATTR                3 (NULL|self + execute)
+
+ 38          44 LOAD_FAST                1 (candidate)
+
+ 39          46 LOAD_FAST                2 (mode)
+
+ 40          48 LOAD_FAST                3 (recent_category_count)
+
+ 41          50 LOAD_FAST                4 (correlation_id)
+
+ 42          52 LOAD_FAST                5 (trace_id)
+
+ 37          54 KW_NAMES                 1 (('candidate', 'mode', 'recent_category_count', 'correlation_id', 'trace_id'))
+             56 CALL                     5
+             64 STORE_FAST               6 (command)
+
+ 45          66 LOAD_FAST                6 (command)
+             68 POP_JUMP_IF_NOT_NONE    27 (to 124)
+
+ 46          70 LOAD_GLOBAL              5 (NULL + AlertProcessingResult)
+
+ 47          80 LOAD_GLOBAL              6 (AlertProcessingOutcome)
+             90 LOAD_ATTR                8 (SUPPRESSED)
+
+ 48         110 LOAD_CONST               0 (None)
+
+ 46         112 KW_NAMES                 2 (('outcome', 'command'))
+            114 CALL                     2
+            122 RETURN_VALUE
+
+ 51     >>  124 LOAD_FAST                0 (self)
+            126 LOAD_ATTR               10 (delivery)
+            146 LOAD_ATTR                3 (NULL|self + execute)
+
+ 52         166 LOAD_FAST                6 (command)
+
+ 53         168 LOAD_FAST                1 (candidate)
+            170 LOAD_ATTR               12 (user_id)
+
+ 54         190 LOAD_FAST                1 (candidate)
+            192 LOAD_ATTR               14 (session_id)
+
+ 55         212 LOAD_FAST                1 (candidate)
+            214 LOAD_ATTR               16 (module)
+
+ 56         234 LOAD_FAST                4 (correlation_id)
+
+ 57         236 LOAD_FAST                5 (trace_id)
+
+ 51         238 KW_NAMES                 3 (('command', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id'))
+            240 CALL                     6
+            248 STORE_FAST               7 (delivered)
+
+ 59         250 LOAD_FAST                7 (delivered)
+            252 POP_JUMP_IF_FALSE       27 (to 308)
+
+ 60         254 LOAD_GLOBAL              5 (NULL + AlertProcessingResult)
+
+ 61         264 LOAD_GLOBAL              6 (AlertProcessingOutcome)
+            274 LOAD_ATTR               18 (DELIVERED)
+
+ 62         294 LOAD_FAST                6 (command)
+
+ 60         296 KW_NAMES                 2 (('outcome', 'command'))
+            298 CALL                     2
+            306 RETURN_VALUE
+
+ 65     >>  308 LOAD_GLOBAL              5 (NULL + AlertProcessingResult)
+
+ 66         318 LOAD_GLOBAL              6 (AlertProcessingOutcome)
+            328 LOAD_ATTR               20 (DELIVERY_SKIPPED)
+
+ 67         348 LOAD_FAST                6 (command)
+
+ 65         350 KW_NAMES                 2 (('outcome', 'command'))
+            352 CALL                     2
+            360 RETURN_VALUE
+
+  ## code_object: AlertProcessingOutcome
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py
+  first_line: 12
+  argcount: 0
+  locals: 0
+  stacksize: 1
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', 'DELIVERED', 'SUPPRESSED', 'DELIVERY_SKIPPED']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   12           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('AlertProcessingOutcome')
+                8 STORE_NAME               2 (__qualname__)
+  
+   13          10 LOAD_CONST               1 ('delivered')
+               12 STORE_NAME               3 (DELIVERED)
+  
+   14          14 LOAD_CONST               2 ('suppressed')
+               16 STORE_NAME               4 (SUPPRESSED)
+  
+   15          18 LOAD_CONST               3 ('delivery_skipped')
+               20 STORE_NAME               5 (DELIVERY_SKIPPED)
+               22 RETURN_CONST             4 (None)
+
+  ## code_object: AlertProcessingResult
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py
+  first_line: 18
+  argcount: 0
+  locals: 0
+  stacksize: 3
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   18           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('AlertProcessingResult')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   20          12 LOAD_CONST               1 ('AlertProcessingOutcome')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('outcome')
+               18 STORE_SUBSCR
+  
+   21          22 LOAD_CONST               3 ('LensCommand | None')
+               24 LOAD_NAME                3 (__annotations__)
+               26 LOAD_CONST               4 ('command')
+               28 STORE_SUBSCR
+               32 RETURN_CONST             5 (None)
+
+  ## code_object: ProcessAlertCandidate
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py
+  first_line: 24
+  argcount: 0
+  locals: 0
+  stacksize: 3
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__', 'execute']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   24           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('ProcessAlertCandidate')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   26          12 LOAD_CONST               1 ('EvaluateAlertCandidate')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('evaluator')
+               18 STORE_SUBSCR
+  
+   27          22 LOAD_CONST               3 ('DeliverLensCommand')
+               24 LOAD_NAME                3 (__annotations__)
+               26 LOAD_CONST               4 ('delivery')
+               28 STORE_SUBSCR
+  
+   29          32 NOP
+  
+   31          34 NOP
+  
+   29          36 NOP
+  
+   32          38 NOP
+  
+   29          40 NOP
+  
+   33          42 NOP
+  
+   29          44 NOP
+  
+   34          46 NOP
+  
+   29          48 NOP
+  
+   35          50 NOP
+  
+   29          52 NOP
+  
+   36          54 NOP
+  
+   29          56 LOAD_CONST               7 (('candidate', 'AlertCandidate', 'mode', 'AttentionMode', 'recent_category_count', 'int', 'correlation_id', 'str', 'trace_id', 'str', 'return', 'AlertProcessingResult'))
+               58 LOAD_CONST               5 (<code object execute at 0x00000238AB4DDE20, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py", line 29>)
+               60 MAKE_FUNCTION            4 (annotations)
+               62 STORE_NAME               4 (execute)
+               64 RETURN_CONST             6 (None)
+  
+  Disassembly of <code object execute at 0x00000238AB4DDE20, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py", line 29>:
+   29           0 RESUME                   0
+  
+   37           2 LOAD_FAST                0 (self)
+                4 LOAD_ATTR                0 (evaluator)
+               24 LOAD_ATTR                3 (NULL|self + execute)
+  
+   38          44 LOAD_FAST                1 (candidate)
+  
+   39          46 LOAD_FAST                2 (mode)
+  
+   40          48 LOAD_FAST                3 (recent_category_count)
+  
+   41          50 LOAD_FAST                4 (correlation_id)
+  
+   42          52 LOAD_FAST                5 (trace_id)
+  
+   37          54 KW_NAMES                 1 (('candidate', 'mode', 'recent_category_count', 'correlation_id', 'trace_id'))
+               56 CALL                     5
+               64 STORE_FAST               6 (command)
+  
+   45          66 LOAD_FAST                6 (command)
+               68 POP_JUMP_IF_NOT_NONE    27 (to 124)
+  
+   46          70 LOAD_GLOBAL              5 (NULL + AlertProcessingResult)
+  
+   47          80 LOAD_GLOBAL              6 (AlertProcessingOutcome)
+               90 LOAD_ATTR                8 (SUPPRESSED)
+  
+   48         110 LOAD_CONST               0 (None)
+  
+   46         112 KW_NAMES                 2 (('outcome', 'command'))
+              114 CALL                     2
+              122 RETURN_VALUE
+  
+   51     >>  124 LOAD_FAST                0 (self)
+              126 LOAD_ATTR               10 (delivery)
+              146 LOAD_ATTR                3 (NULL|self + execute)
+  
+   52         166 LOAD_FAST                6 (command)
+  
+   53         168 LOAD_FAST                1 (candidate)
+              170 LOAD_ATTR               12 (user_id)
+  
+   54         190 LOAD_FAST                1 (candidate)
+              192 LOAD_ATTR               14 (session_id)
+  
+   55         212 LOAD_FAST                1 (candidate)
+              214 LOAD_ATTR               16 (module)
+  
+   56         234 LOAD_FAST                4 (correlation_id)
+  
+   57         236 LOAD_FAST                5 (trace_id)
+  
+   51         238 KW_NAMES                 3 (('command', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id'))
+              240 CALL                     6
+              248 STORE_FAST               7 (delivered)
+  
+   59         250 LOAD_FAST                7 (delivered)
+              252 POP_JUMP_IF_FALSE       27 (to 308)
+  
+   60         254 LOAD_GLOBAL              5 (NULL + AlertProcessingResult)
+  
+   61         264 LOAD_GLOBAL              6 (AlertProcessingOutcome)
+              274 LOAD_ATTR               18 (DELIVERED)
+  
+   62         294 LOAD_FAST                6 (command)
+  
+   60         296 KW_NAMES                 2 (('outcome', 'command'))
+              298 CALL                     2
+              306 RETURN_VALUE
+  
+   65     >>  308 LOAD_GLOBAL              5 (NULL + AlertProcessingResult)
+  
+   66         318 LOAD_GLOBAL              6 (AlertProcessingOutcome)
+              328 LOAD_ATTR               20 (DELIVERY_SKIPPED)
+  
+   67         348 LOAD_FAST                6 (command)
+  
+   65         350 KW_NAMES                 2 (('outcome', 'command'))
+              352 CALL                     2
+              360 RETURN_VALUE
+
+    ## code_object: execute
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\process_alert_candidate.py
+    first_line: 29
+    argcount: 6
+    locals: 8
+    stacksize: 8
+    flags: 16777219
+    names: ['evaluator', 'execute', 'AlertProcessingResult', 'AlertProcessingOutcome', 'SUPPRESSED', 'delivery', 'user_id', 'session_id', 'module', 'DELIVERED', 'DELIVERY_SKIPPED']
+    varnames: ['self', 'candidate', 'mode', 'recent_category_count', 'correlation_id', 'trace_id', 'command', 'delivered']
+    cellvars: []
+    freevars: []
+    disassembly:
+     29           0 RESUME                   0
+    
+     37           2 LOAD_FAST                0 (self)
+                  4 LOAD_ATTR                0 (evaluator)
+                 24 LOAD_ATTR                3 (NULL|self + execute)
+    
+     38          44 LOAD_FAST                1 (candidate)
+    
+     39          46 LOAD_FAST                2 (mode)
+    
+     40          48 LOAD_FAST                3 (recent_category_count)
+    
+     41          50 LOAD_FAST                4 (correlation_id)
+    
+     42          52 LOAD_FAST                5 (trace_id)
+    
+     37          54 KW_NAMES                 1 (('candidate', 'mode', 'recent_category_count', 'correlation_id', 'trace_id'))
+                 56 CALL                     5
+                 64 STORE_FAST               6 (command)
+    
+     45          66 LOAD_FAST                6 (command)
+                 68 POP_JUMP_IF_NOT_NONE    27 (to 124)
+    
+     46          70 LOAD_GLOBAL              5 (NULL + AlertProcessingResult)
+    
+     47          80 LOAD_GLOBAL              6 (AlertProcessingOutcome)
+                 90 LOAD_ATTR                8 (SUPPRESSED)
+    
+     48         110 LOAD_CONST               0 (None)
+    
+     46         112 KW_NAMES                 2 (('outcome', 'command'))
+                114 CALL                     2
+                122 RETURN_VALUE
+    
+     51     >>  124 LOAD_FAST                0 (self)
+                126 LOAD_ATTR               10 (delivery)
+                146 LOAD_ATTR                3 (NULL|self + execute)
+    
+     52         166 LOAD_FAST                6 (command)
+    
+     53         168 LOAD_FAST                1 (candidate)
+                170 LOAD_ATTR               12 (user_id)
+    
+     54         190 LOAD_FAST                1 (candidate)
+                192 LOAD_ATTR               14 (session_id)
+    
+     55         212 LOAD_FAST                1 (candidate)
+                214 LOAD_ATTR               16 (module)
+    
+     56         234 LOAD_FAST                4 (correlation_id)
+    
+     57         236 LOAD_FAST                5 (trace_id)
+    
+     51         238 KW_NAMES                 3 (('command', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id'))
+                240 CALL                     6
+                248 STORE_FAST               7 (delivered)
+    
+     59         250 LOAD_FAST                7 (delivered)
+                252 POP_JUMP_IF_FALSE       27 (to 308)
+    
+     60         254 LOAD_GLOBAL              5 (NULL + AlertProcessingResult)
+    
+     61         264 LOAD_GLOBAL              6 (AlertProcessingOutcome)
+                274 LOAD_ATTR               18 (DELIVERED)
+    
+     62         294 LOAD_FAST                6 (command)
+    
+     60         296 KW_NAMES                 2 (('outcome', 'command'))
+                298 CALL                     2
+                306 RETURN_VALUE
+    
+     65     >>  308 LOAD_GLOBAL              5 (NULL + AlertProcessingResult)
+    
+     66         318 LOAD_GLOBAL              6 (AlertProcessingOutcome)
+                328 LOAD_ATTR               20 (DELIVERY_SKIPPED)
+    
+     67         348 LOAD_FAST                6 (command)
+    
+     65         350 KW_NAMES                 2 (('outcome', 'command'))
+                352 CALL                     2
+                360 RETURN_VALUE
+

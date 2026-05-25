@@ -1,0 +1,699 @@
+# pyc_path: C:/Users/renan/OneDrive/Documents/New Era Glasses/src/new_era/application/use_cases/__pycache__/deliver_lens_command.cpython-312.pyc
+# embedded_filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\deliver_lens_command.py
+# module_name: new_era.application.use_cases.deliver_lens_command
+# first_line: 1
+# compiled_at: 2026-05-24T15:01:29+00:00
+# source_size: 2607
+
+## code_object: <module>
+filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\deliver_lens_command.py
+first_line: 1
+argcount: 0
+locals: 0
+stacksize: 5
+flags: 16777216
+names: ['__future__', 'annotations', 'dataclasses', 'dataclass', 'new_era.application.ports', 'DeviceGateway', 'DeviceGatewayError', 'EventStore', 'new_era.domain.events', 'Event', 'EventType', 'new_era.domain.lens', 'LensCommand', 'DeliverLensCommand']
+varnames: []
+cellvars: []
+freevars: []
+disassembly:
+  0           0 RESUME                   0
+
+  1           2 LOAD_CONST               0 (0)
+              4 LOAD_CONST               1 (('annotations',))
+              6 IMPORT_NAME              0 (__future__)
+              8 IMPORT_FROM              1 (annotations)
+             10 STORE_NAME               1 (annotations)
+             12 POP_TOP
+
+  3          14 LOAD_CONST               0 (0)
+             16 LOAD_CONST               2 (('dataclass',))
+             18 IMPORT_NAME              2 (dataclasses)
+             20 IMPORT_FROM              3 (dataclass)
+             22 STORE_NAME               3 (dataclass)
+             24 POP_TOP
+
+  5          26 LOAD_CONST               0 (0)
+             28 LOAD_CONST               3 (('DeviceGateway', 'DeviceGatewayError', 'EventStore'))
+             30 IMPORT_NAME              4 (new_era.application.ports)
+             32 IMPORT_FROM              5 (DeviceGateway)
+             34 STORE_NAME               5 (DeviceGateway)
+             36 IMPORT_FROM              6 (DeviceGatewayError)
+             38 STORE_NAME               6 (DeviceGatewayError)
+             40 IMPORT_FROM              7 (EventStore)
+             42 STORE_NAME               7 (EventStore)
+             44 POP_TOP
+
+  6          46 LOAD_CONST               0 (0)
+             48 LOAD_CONST               4 (('Event', 'EventType'))
+             50 IMPORT_NAME              8 (new_era.domain.events)
+             52 IMPORT_FROM              9 (Event)
+             54 STORE_NAME               9 (Event)
+             56 IMPORT_FROM             10 (EventType)
+             58 STORE_NAME              10 (EventType)
+             60 POP_TOP
+
+  7          62 LOAD_CONST               0 (0)
+             64 LOAD_CONST               5 (('LensCommand',))
+             66 IMPORT_NAME             11 (new_era.domain.lens)
+             68 IMPORT_FROM             12 (LensCommand)
+             70 STORE_NAME              12 (LensCommand)
+             72 POP_TOP
+
+ 10          74 PUSH_NULL
+             76 LOAD_NAME                3 (dataclass)
+             78 LOAD_CONST               6 (True)
+             80 LOAD_CONST               6 (True)
+             82 KW_NAMES                 7 (('frozen', 'slots'))
+             84 CALL                     2
+
+ 11          92 PUSH_NULL
+             94 LOAD_BUILD_CLASS
+             96 LOAD_CONST               8 (<code object DeliverLensCommand at 0x000002A7163BA780, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\deliver_lens_command.py", line 10>)
+             98 MAKE_FUNCTION            0
+            100 LOAD_CONST               9 ('DeliverLensCommand')
+            102 CALL                     2
+
+ 10         110 CALL                     0
+
+ 11         118 STORE_NAME              13 (DeliverLensCommand)
+            120 RETURN_CONST            10 (None)
+
+Disassembly of <code object DeliverLensCommand at 0x000002A7163BA780, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\deliver_lens_command.py", line 10>:
+ 10           0 RESUME                   0
+              2 LOAD_NAME                0 (__name__)
+              4 STORE_NAME               1 (__module__)
+              6 LOAD_CONST               0 ('DeliverLensCommand')
+              8 STORE_NAME               2 (__qualname__)
+             10 SETUP_ANNOTATIONS
+
+ 12          12 LOAD_CONST               1 ('DeviceGateway')
+             14 LOAD_NAME                3 (__annotations__)
+             16 LOAD_CONST               2 ('device_gateway')
+             18 STORE_SUBSCR
+
+ 13          22 LOAD_CONST               3 ('EventStore')
+             24 LOAD_NAME                3 (__annotations__)
+             26 LOAD_CONST               4 ('event_store')
+             28 STORE_SUBSCR
+
+ 15          32 NOP
+
+ 17          34 NOP
+
+ 15          36 NOP
+
+ 18          38 NOP
+
+ 15          40 NOP
+
+ 19          42 NOP
+
+ 15          44 NOP
+
+ 20          46 NOP
+
+ 15          48 NOP
+
+ 21          50 NOP
+
+ 15          52 NOP
+
+ 22          54 NOP
+
+ 15          56 NOP
+
+ 23          58 NOP
+
+ 15          60 LOAD_CONST               7 (('command', 'LensCommand', 'user_id', 'str', 'session_id', 'str', 'module', 'str', 'correlation_id', 'str', 'trace_id', 'str', 'return', 'bool'))
+             62 LOAD_CONST               5 (<code object execute at 0x000002A716507D00, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\deliver_lens_command.py", line 15>)
+             64 MAKE_FUNCTION            4 (annotations)
+             66 STORE_NAME               4 (execute)
+             68 RETURN_CONST             6 (None)
+
+Disassembly of <code object execute at 0x000002A716507D00, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\deliver_lens_command.py", line 15>:
+ 15           0 RESUME                   0
+
+ 24           2 LOAD_FAST                0 (self)
+              4 LOAD_ATTR                0 (device_gateway)
+             24 LOAD_ATTR                3 (NULL|self + capabilities)
+             44 CALL                     0
+             52 STORE_FAST               7 (capabilities)
+
+ 26          54 LOAD_FAST                7 (capabilities)
+             56 LOAD_ATTR                4 (supports_display)
+             76 POP_JUMP_IF_TRUE        82 (to 242)
+
+ 27          78 LOAD_FAST                0 (self)
+             80 LOAD_ATTR                6 (event_store)
+            100 LOAD_ATTR                9 (NULL|self + append)
+
+ 28         120 LOAD_GLOBAL             11 (NULL + Event)
+
+ 29         130 LOAD_GLOBAL             12 (EventType)
+            140 LOAD_ATTR               14 (DEVICE_CAPABILITY_MISSING)
+
+ 30         160 LOAD_FAST                2 (user_id)
+
+ 31         162 LOAD_FAST                3 (session_id)
+
+ 32         164 LOAD_FAST                4 (module)
+
+ 33         166 LOAD_FAST                5 (correlation_id)
+
+ 34         168 LOAD_FAST                6 (trace_id)
+
+ 36         170 LOAD_FAST                7 (capabilities)
+            172 LOAD_ATTR               16 (adapter_name)
+
+ 37         192 LOAD_CONST               1 ('display')
+
+ 38         194 LOAD_FAST                1 (command)
+            196 LOAD_ATTR               18 (command_id)
+
+ 35         216 LOAD_CONST               2 (('adapter_name', 'missing_capability', 'command_id'))
+            218 BUILD_CONST_KEY_MAP      3
+
+ 28         220 KW_NAMES                 3 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+            222 CALL                     7
+
+ 27         230 CALL                     1
+            238 POP_TOP
+
+ 42         240 RETURN_CONST             4 (False)
+
+ 44     >>  242 NOP
+
+ 45         244 LOAD_FAST                0 (self)
+            246 LOAD_ATTR                0 (device_gateway)
+            266 LOAD_ATTR               21 (NULL|self + deliver)
+            286 LOAD_FAST                1 (command)
+            288 CALL                     1
+            296 POP_TOP
+
+ 64         298 LOAD_FAST                0 (self)
+            300 LOAD_ATTR                6 (event_store)
+            320 LOAD_ATTR                9 (NULL|self + append)
+
+ 65         340 LOAD_GLOBAL             11 (NULL + Event)
+
+ 66         350 LOAD_GLOBAL             12 (EventType)
+            360 LOAD_ATTR               30 (LENS_COMMAND_DELIVERED)
+
+ 67         380 LOAD_FAST                2 (user_id)
+
+ 68         382 LOAD_FAST                3 (session_id)
+
+ 69         384 LOAD_FAST                4 (module)
+
+ 70         386 LOAD_FAST                5 (correlation_id)
+
+ 71         388 LOAD_FAST                6 (trace_id)
+
+ 73         390 LOAD_FAST                7 (capabilities)
+            392 LOAD_ATTR               16 (adapter_name)
+
+ 74         412 LOAD_FAST                1 (command)
+            414 LOAD_ATTR               18 (command_id)
+
+ 75         434 LOAD_FAST                1 (command)
+            436 LOAD_ATTR               32 (command_type)
+            456 LOAD_ATTR               34 (value)
+
+ 72         476 LOAD_CONST               6 (('adapter_name', 'command_id', 'command_type'))
+            478 BUILD_CONST_KEY_MAP      3
+
+ 65         480 KW_NAMES                 3 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+            482 CALL                     7
+
+ 64         490 CALL                     1
+            498 POP_TOP
+
+ 79         500 RETURN_CONST             7 (True)
+        >>  502 PUSH_EXC_INFO
+
+ 46         504 LOAD_GLOBAL             22 (DeviceGatewayError)
+            514 CHECK_EXC_MATCH
+            516 POP_JUMP_IF_FALSE      111 (to 740)
+            518 STORE_FAST               8 (exc)
+
+ 47         520 LOAD_FAST                0 (self)
+            522 LOAD_ATTR                6 (event_store)
+            542 LOAD_ATTR                9 (NULL|self + append)
+
+ 48         562 LOAD_GLOBAL             11 (NULL + Event)
+
+ 49         572 LOAD_GLOBAL             12 (EventType)
+            582 LOAD_ATTR               24 (DEVICE_DELIVERY_FAILED)
+
+ 50         602 LOAD_FAST                2 (user_id)
+
+ 51         604 LOAD_FAST                3 (session_id)
+
+ 52         606 LOAD_FAST                4 (module)
+
+ 53         608 LOAD_FAST                5 (correlation_id)
+
+ 54         610 LOAD_FAST                6 (trace_id)
+
+ 56         612 LOAD_FAST                7 (capabilities)
+            614 LOAD_ATTR               16 (adapter_name)
+
+ 57         634 LOAD_FAST                1 (command)
+            636 LOAD_ATTR               18 (command_id)
+
+ 58         656 LOAD_FAST                8 (exc)
+            658 LOAD_ATTR               26 (__class__)
+            678 LOAD_ATTR               28 (__name__)
+
+ 55         698 LOAD_CONST               5 (('adapter_name', 'command_id', 'error_type'))
+            700 BUILD_CONST_KEY_MAP      3
+
+ 48         702 KW_NAMES                 3 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+            704 CALL                     7
+
+ 47         712 CALL                     1
+            720 POP_TOP
+
+ 62         722 POP_EXCEPT
+            724 LOAD_CONST               0 (None)
+            726 STORE_FAST               8 (exc)
+            728 DELETE_FAST              8 (exc)
+            730 RETURN_CONST             4 (False)
+        >>  732 LOAD_CONST               0 (None)
+            734 STORE_FAST               8 (exc)
+            736 DELETE_FAST              8 (exc)
+            738 RERAISE                  1
+
+ 46     >>  740 RERAISE                  0
+        >>  742 COPY                     3
+            744 POP_EXCEPT
+            746 RERAISE                  1
+ExceptionTable:
+  244 to 296 -> 502 [0]
+  502 to 518 -> 742 [1] lasti
+  520 to 720 -> 732 [1] lasti
+  732 to 740 -> 742 [1] lasti
+
+  ## code_object: DeliverLensCommand
+  filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\deliver_lens_command.py
+  first_line: 10
+  argcount: 0
+  locals: 0
+  stacksize: 3
+  flags: 16777216
+  names: ['__name__', '__module__', '__qualname__', '__annotations__', 'execute']
+  varnames: []
+  cellvars: []
+  freevars: []
+  disassembly:
+   10           0 RESUME                   0
+                2 LOAD_NAME                0 (__name__)
+                4 STORE_NAME               1 (__module__)
+                6 LOAD_CONST               0 ('DeliverLensCommand')
+                8 STORE_NAME               2 (__qualname__)
+               10 SETUP_ANNOTATIONS
+  
+   12          12 LOAD_CONST               1 ('DeviceGateway')
+               14 LOAD_NAME                3 (__annotations__)
+               16 LOAD_CONST               2 ('device_gateway')
+               18 STORE_SUBSCR
+  
+   13          22 LOAD_CONST               3 ('EventStore')
+               24 LOAD_NAME                3 (__annotations__)
+               26 LOAD_CONST               4 ('event_store')
+               28 STORE_SUBSCR
+  
+   15          32 NOP
+  
+   17          34 NOP
+  
+   15          36 NOP
+  
+   18          38 NOP
+  
+   15          40 NOP
+  
+   19          42 NOP
+  
+   15          44 NOP
+  
+   20          46 NOP
+  
+   15          48 NOP
+  
+   21          50 NOP
+  
+   15          52 NOP
+  
+   22          54 NOP
+  
+   15          56 NOP
+  
+   23          58 NOP
+  
+   15          60 LOAD_CONST               7 (('command', 'LensCommand', 'user_id', 'str', 'session_id', 'str', 'module', 'str', 'correlation_id', 'str', 'trace_id', 'str', 'return', 'bool'))
+               62 LOAD_CONST               5 (<code object execute at 0x000002A716507D00, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\deliver_lens_command.py", line 15>)
+               64 MAKE_FUNCTION            4 (annotations)
+               66 STORE_NAME               4 (execute)
+               68 RETURN_CONST             6 (None)
+  
+  Disassembly of <code object execute at 0x000002A716507D00, file "C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\deliver_lens_command.py", line 15>:
+   15           0 RESUME                   0
+  
+   24           2 LOAD_FAST                0 (self)
+                4 LOAD_ATTR                0 (device_gateway)
+               24 LOAD_ATTR                3 (NULL|self + capabilities)
+               44 CALL                     0
+               52 STORE_FAST               7 (capabilities)
+  
+   26          54 LOAD_FAST                7 (capabilities)
+               56 LOAD_ATTR                4 (supports_display)
+               76 POP_JUMP_IF_TRUE        82 (to 242)
+  
+   27          78 LOAD_FAST                0 (self)
+               80 LOAD_ATTR                6 (event_store)
+              100 LOAD_ATTR                9 (NULL|self + append)
+  
+   28         120 LOAD_GLOBAL             11 (NULL + Event)
+  
+   29         130 LOAD_GLOBAL             12 (EventType)
+              140 LOAD_ATTR               14 (DEVICE_CAPABILITY_MISSING)
+  
+   30         160 LOAD_FAST                2 (user_id)
+  
+   31         162 LOAD_FAST                3 (session_id)
+  
+   32         164 LOAD_FAST                4 (module)
+  
+   33         166 LOAD_FAST                5 (correlation_id)
+  
+   34         168 LOAD_FAST                6 (trace_id)
+  
+   36         170 LOAD_FAST                7 (capabilities)
+              172 LOAD_ATTR               16 (adapter_name)
+  
+   37         192 LOAD_CONST               1 ('display')
+  
+   38         194 LOAD_FAST                1 (command)
+              196 LOAD_ATTR               18 (command_id)
+  
+   35         216 LOAD_CONST               2 (('adapter_name', 'missing_capability', 'command_id'))
+              218 BUILD_CONST_KEY_MAP      3
+  
+   28         220 KW_NAMES                 3 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+              222 CALL                     7
+  
+   27         230 CALL                     1
+              238 POP_TOP
+  
+   42         240 RETURN_CONST             4 (False)
+  
+   44     >>  242 NOP
+  
+   45         244 LOAD_FAST                0 (self)
+              246 LOAD_ATTR                0 (device_gateway)
+              266 LOAD_ATTR               21 (NULL|self + deliver)
+              286 LOAD_FAST                1 (command)
+              288 CALL                     1
+              296 POP_TOP
+  
+   64         298 LOAD_FAST                0 (self)
+              300 LOAD_ATTR                6 (event_store)
+              320 LOAD_ATTR                9 (NULL|self + append)
+  
+   65         340 LOAD_GLOBAL             11 (NULL + Event)
+  
+   66         350 LOAD_GLOBAL             12 (EventType)
+              360 LOAD_ATTR               30 (LENS_COMMAND_DELIVERED)
+  
+   67         380 LOAD_FAST                2 (user_id)
+  
+   68         382 LOAD_FAST                3 (session_id)
+  
+   69         384 LOAD_FAST                4 (module)
+  
+   70         386 LOAD_FAST                5 (correlation_id)
+  
+   71         388 LOAD_FAST                6 (trace_id)
+  
+   73         390 LOAD_FAST                7 (capabilities)
+              392 LOAD_ATTR               16 (adapter_name)
+  
+   74         412 LOAD_FAST                1 (command)
+              414 LOAD_ATTR               18 (command_id)
+  
+   75         434 LOAD_FAST                1 (command)
+              436 LOAD_ATTR               32 (command_type)
+              456 LOAD_ATTR               34 (value)
+  
+   72         476 LOAD_CONST               6 (('adapter_name', 'command_id', 'command_type'))
+              478 BUILD_CONST_KEY_MAP      3
+  
+   65         480 KW_NAMES                 3 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+              482 CALL                     7
+  
+   64         490 CALL                     1
+              498 POP_TOP
+  
+   79         500 RETURN_CONST             7 (True)
+          >>  502 PUSH_EXC_INFO
+  
+   46         504 LOAD_GLOBAL             22 (DeviceGatewayError)
+              514 CHECK_EXC_MATCH
+              516 POP_JUMP_IF_FALSE      111 (to 740)
+              518 STORE_FAST               8 (exc)
+  
+   47         520 LOAD_FAST                0 (self)
+              522 LOAD_ATTR                6 (event_store)
+              542 LOAD_ATTR                9 (NULL|self + append)
+  
+   48         562 LOAD_GLOBAL             11 (NULL + Event)
+  
+   49         572 LOAD_GLOBAL             12 (EventType)
+              582 LOAD_ATTR               24 (DEVICE_DELIVERY_FAILED)
+  
+   50         602 LOAD_FAST                2 (user_id)
+  
+   51         604 LOAD_FAST                3 (session_id)
+  
+   52         606 LOAD_FAST                4 (module)
+  
+   53         608 LOAD_FAST                5 (correlation_id)
+  
+   54         610 LOAD_FAST                6 (trace_id)
+  
+   56         612 LOAD_FAST                7 (capabilities)
+              614 LOAD_ATTR               16 (adapter_name)
+  
+   57         634 LOAD_FAST                1 (command)
+              636 LOAD_ATTR               18 (command_id)
+  
+   58         656 LOAD_FAST                8 (exc)
+              658 LOAD_ATTR               26 (__class__)
+              678 LOAD_ATTR               28 (__name__)
+  
+   55         698 LOAD_CONST               5 (('adapter_name', 'command_id', 'error_type'))
+              700 BUILD_CONST_KEY_MAP      3
+  
+   48         702 KW_NAMES                 3 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+              704 CALL                     7
+  
+   47         712 CALL                     1
+              720 POP_TOP
+  
+   62         722 POP_EXCEPT
+              724 LOAD_CONST               0 (None)
+              726 STORE_FAST               8 (exc)
+              728 DELETE_FAST              8 (exc)
+              730 RETURN_CONST             4 (False)
+          >>  732 LOAD_CONST               0 (None)
+              734 STORE_FAST               8 (exc)
+              736 DELETE_FAST              8 (exc)
+              738 RERAISE                  1
+  
+   46     >>  740 RERAISE                  0
+          >>  742 COPY                     3
+              744 POP_EXCEPT
+              746 RERAISE                  1
+  ExceptionTable:
+    244 to 296 -> 502 [0]
+    502 to 518 -> 742 [1] lasti
+    520 to 720 -> 732 [1] lasti
+    732 to 740 -> 742 [1] lasti
+
+    ## code_object: execute
+    filename: C:\Users\renan\OneDrive\Documents\New Era Glasses\src\new_era\application\use_cases\deliver_lens_command.py
+    first_line: 15
+    argcount: 7
+    locals: 9
+    stacksize: 15
+    flags: 16777219
+    names: ['device_gateway', 'capabilities', 'supports_display', 'event_store', 'append', 'Event', 'EventType', 'DEVICE_CAPABILITY_MISSING', 'adapter_name', 'command_id', 'deliver', 'DeviceGatewayError', 'DEVICE_DELIVERY_FAILED', '__class__', '__name__', 'LENS_COMMAND_DELIVERED', 'command_type', 'value']
+    varnames: ['self', 'command', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'capabilities', 'exc']
+    cellvars: []
+    freevars: []
+    disassembly:
+     15           0 RESUME                   0
+    
+     24           2 LOAD_FAST                0 (self)
+                  4 LOAD_ATTR                0 (device_gateway)
+                 24 LOAD_ATTR                3 (NULL|self + capabilities)
+                 44 CALL                     0
+                 52 STORE_FAST               7 (capabilities)
+    
+     26          54 LOAD_FAST                7 (capabilities)
+                 56 LOAD_ATTR                4 (supports_display)
+                 76 POP_JUMP_IF_TRUE        82 (to 242)
+    
+     27          78 LOAD_FAST                0 (self)
+                 80 LOAD_ATTR                6 (event_store)
+                100 LOAD_ATTR                9 (NULL|self + append)
+    
+     28         120 LOAD_GLOBAL             11 (NULL + Event)
+    
+     29         130 LOAD_GLOBAL             12 (EventType)
+                140 LOAD_ATTR               14 (DEVICE_CAPABILITY_MISSING)
+    
+     30         160 LOAD_FAST                2 (user_id)
+    
+     31         162 LOAD_FAST                3 (session_id)
+    
+     32         164 LOAD_FAST                4 (module)
+    
+     33         166 LOAD_FAST                5 (correlation_id)
+    
+     34         168 LOAD_FAST                6 (trace_id)
+    
+     36         170 LOAD_FAST                7 (capabilities)
+                172 LOAD_ATTR               16 (adapter_name)
+    
+     37         192 LOAD_CONST               1 ('display')
+    
+     38         194 LOAD_FAST                1 (command)
+                196 LOAD_ATTR               18 (command_id)
+    
+     35         216 LOAD_CONST               2 (('adapter_name', 'missing_capability', 'command_id'))
+                218 BUILD_CONST_KEY_MAP      3
+    
+     28         220 KW_NAMES                 3 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+                222 CALL                     7
+    
+     27         230 CALL                     1
+                238 POP_TOP
+    
+     42         240 RETURN_CONST             4 (False)
+    
+     44     >>  242 NOP
+    
+     45         244 LOAD_FAST                0 (self)
+                246 LOAD_ATTR                0 (device_gateway)
+                266 LOAD_ATTR               21 (NULL|self + deliver)
+                286 LOAD_FAST                1 (command)
+                288 CALL                     1
+                296 POP_TOP
+    
+     64         298 LOAD_FAST                0 (self)
+                300 LOAD_ATTR                6 (event_store)
+                320 LOAD_ATTR                9 (NULL|self + append)
+    
+     65         340 LOAD_GLOBAL             11 (NULL + Event)
+    
+     66         350 LOAD_GLOBAL             12 (EventType)
+                360 LOAD_ATTR               30 (LENS_COMMAND_DELIVERED)
+    
+     67         380 LOAD_FAST                2 (user_id)
+    
+     68         382 LOAD_FAST                3 (session_id)
+    
+     69         384 LOAD_FAST                4 (module)
+    
+     70         386 LOAD_FAST                5 (correlation_id)
+    
+     71         388 LOAD_FAST                6 (trace_id)
+    
+     73         390 LOAD_FAST                7 (capabilities)
+                392 LOAD_ATTR               16 (adapter_name)
+    
+     74         412 LOAD_FAST                1 (command)
+                414 LOAD_ATTR               18 (command_id)
+    
+     75         434 LOAD_FAST                1 (command)
+                436 LOAD_ATTR               32 (command_type)
+                456 LOAD_ATTR               34 (value)
+    
+     72         476 LOAD_CONST               6 (('adapter_name', 'command_id', 'command_type'))
+                478 BUILD_CONST_KEY_MAP      3
+    
+     65         480 KW_NAMES                 3 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+                482 CALL                     7
+    
+     64         490 CALL                     1
+                498 POP_TOP
+    
+     79         500 RETURN_CONST             7 (True)
+            >>  502 PUSH_EXC_INFO
+    
+     46         504 LOAD_GLOBAL             22 (DeviceGatewayError)
+                514 CHECK_EXC_MATCH
+                516 POP_JUMP_IF_FALSE      111 (to 740)
+                518 STORE_FAST               8 (exc)
+    
+     47         520 LOAD_FAST                0 (self)
+                522 LOAD_ATTR                6 (event_store)
+                542 LOAD_ATTR                9 (NULL|self + append)
+    
+     48         562 LOAD_GLOBAL             11 (NULL + Event)
+    
+     49         572 LOAD_GLOBAL             12 (EventType)
+                582 LOAD_ATTR               24 (DEVICE_DELIVERY_FAILED)
+    
+     50         602 LOAD_FAST                2 (user_id)
+    
+     51         604 LOAD_FAST                3 (session_id)
+    
+     52         606 LOAD_FAST                4 (module)
+    
+     53         608 LOAD_FAST                5 (correlation_id)
+    
+     54         610 LOAD_FAST                6 (trace_id)
+    
+     56         612 LOAD_FAST                7 (capabilities)
+                614 LOAD_ATTR               16 (adapter_name)
+    
+     57         634 LOAD_FAST                1 (command)
+                636 LOAD_ATTR               18 (command_id)
+    
+     58         656 LOAD_FAST                8 (exc)
+                658 LOAD_ATTR               26 (__class__)
+                678 LOAD_ATTR               28 (__name__)
+    
+     55         698 LOAD_CONST               5 (('adapter_name', 'command_id', 'error_type'))
+                700 BUILD_CONST_KEY_MAP      3
+    
+     48         702 KW_NAMES                 3 (('event_type', 'user_id', 'session_id', 'module', 'correlation_id', 'trace_id', 'metadata'))
+                704 CALL                     7
+    
+     47         712 CALL                     1
+                720 POP_TOP
+    
+     62         722 POP_EXCEPT
+                724 LOAD_CONST               0 (None)
+                726 STORE_FAST               8 (exc)
+                728 DELETE_FAST              8 (exc)
+                730 RETURN_CONST             4 (False)
+            >>  732 LOAD_CONST               0 (None)
+                734 STORE_FAST               8 (exc)
+                736 DELETE_FAST              8 (exc)
+                738 RERAISE                  1
+    
+     46     >>  740 RERAISE                  0
+            >>  742 COPY                     3
+                744 POP_EXCEPT
+                746 RERAISE                  1
+    ExceptionTable:
+      244 to 296 -> 502 [0]
+      502 to 518 -> 742 [1] lasti
+      520 to 720 -> 732 [1] lasti
+      732 to 740 -> 742 [1] lasti
+
