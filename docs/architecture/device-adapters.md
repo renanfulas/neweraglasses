@@ -1,141 +1,90 @@
 # Device Adapter Architecture
 
-Status: Draft v1  
-Date: 2026-05-24  
-Related runtime:
-[../../src/new_era/application/ports/device_gateway.py](../../src/new_era/application/ports/device_gateway.py),
-[../../src/new_era/infrastructure/device/http_device_bridge_adapter.py](../../src/new_era/infrastructure/device/http_device_bridge_adapter.py),
-[../../src/new_era/infrastructure/http/app.py](../../src/new_era/infrastructure/http/app.py)
+Status: Active reference  
+Last updated: 2026-05-25
 
-## 1. Purpose
+## Purpose
 
-New Era treats glasses, phones, PWAs, and native companions as replaceable device
-surfaces. The backend owns intelligence, attention, and lens commands. Device
-adapters only translate between New Era contracts and a concrete capture/display
-surface.
+Describe how New Era keeps device integration replaceable while the backend remains the authority for intelligence and policy.
 
-This keeps the product useful in simulation while allowing a real phone camera or
-hardware bridge to be attached without changing domain logic.
+## Current Strategy
 
-## 2. Current Runtime Shape
+New Era does not embed device-vendor behavior into the core. The backend emits device-neutral `LensCommand` objects, and adapters translate them to a browser preview or a bridge process.
+
+## Implemented Adapters
+
+### BrowserSimulationAdapter
+
+Used for:
+
+- PWA lens preview
+- tests
+- local simulation without glasses hardware
+
+### HttpDeviceBridgeAdapter
+
+Used for:
+
+- forwarding `LensCommand` payloads to an external bridge
+- local native/hardware experimentation without changing domain logic
+
+## Implemented Input Bridge
+
+Today the repo also supports a camera bridge endpoint:
+
+- `POST /api/device-bridge/camera/document-contract-review`
+
+That path lets a real image payload enter the existing document pipeline through the HTTP surface.
+
+## Current Runtime Shape
 
 ```mermaid
 flowchart LR
-    Camera["Phone / Hardware Camera"] --> CameraBridge["HTTP Camera Bridge Endpoint"]
-    CameraBridge --> DocumentService["DocumentSessionService"]
-    DocumentService --> Core["Observation -> Attention -> LensCommand"]
-    Core --> DeviceGateway["DeviceGateway Port"]
+    Camera["Browser / Phone / Camera"] --> HTTP["FastAPI Adapter"]
+    HTTP --> Document["DocumentSessionService"]
+    Document --> DeviceGateway["DeviceGateway Port"]
     DeviceGateway --> Browser["BrowserSimulationAdapter"]
-    DeviceGateway --> HttpBridge["HttpDeviceBridgeAdapter"]
-    HttpBridge --> NativeBridge["Native / Hardware Bridge"]
+    DeviceGateway --> Bridge["HttpDeviceBridgeAdapter"]
 ```
 
-Implemented adapters:
+## What Progressed
 
-- `BrowserSimulationAdapter`: stores delivered commands in memory for PWA and tests.
-- `HttpDeviceBridgeAdapter`: posts device-neutral `LensCommand` payloads to a real
-  HTTP bridge, such as a native app, local hardware daemon, or vendor wrapper.
+Already real in the codebase:
 
-Implemented input bridge:
+- adapter abstraction exists
+- browser simulation path works
+- external HTTP bridge delivery works
+- capability checks and delivery failure events exist
 
-- `POST /api/device-bridge/camera/document-contract-review`: accepts a real camera
-  image payload, runs OCR, persists the analysis record, and feeds the existing
-  document observation pipeline.
+## What Is Still Missing
 
-## 3. Contracts
+Not implemented yet:
 
-Outbound display uses the application port:
+- vendor-specific glasses SDK adapter
+- gesture/voice-specific interaction adapters
+- device pairing lifecycle
+- production-grade bridge auth and trust model
+
+## Contract Boundary
+
+The backend should continue to treat device output like this:
 
 ```text
-DeviceGateway.capabilities() -> DeviceCapabilities
-DeviceGateway.deliver(LensCommand) -> None
+decide -> produce LensCommand -> deliver through DeviceGateway
 ```
 
-The domain remains vendor-neutral:
+It should not learn vendor payload formats, native lifecycle rules, or transport details.
 
-- `DeviceCapabilities` reports camera/display/voice/gesture support.
-- `LensCommand` is the only display instruction emitted by the backend.
-- Vendor SDKs, native bridge lifecycle, and hardware permissions stay in
-  infrastructure.
+## Keep / Avoid
 
-The real bridge adapter expects:
+Keep:
 
-```text
-GET  {bridge_url}/capabilities
-POST {bridge_url}/lens-commands
-```
+- device-neutral commands
+- adapter-owned transport logic
+- capability discovery outside the domain
 
-The command delivery payload is:
+Avoid:
 
-```json
-{
-  "command": {
-    "command_id": "cmd_...",
-    "command_version": 1,
-    "command_type": "show_alert",
-    "priority": "high",
-    "title": "Contract clause needs attention",
-    "body": "Check the automatic renewal clause.",
-    "duration_ms": 7000,
-    "interaction": {
-      "can_dismiss": true,
-      "can_mark_useful": true
-    },
-    "metadata": {}
-  }
-}
-```
-
-## 4. Configuration
-
-Default runtime remains simulation:
-
-```powershell
-$env:PYTHONPATH='src'; python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
-```
-
-Real bridge delivery is enabled by environment:
-
-```powershell
-$env:PYTHONPATH='src'
-$env:NEW_ERA_DEVICE_BRIDGE_URL='http://127.0.0.1:8787'
-$env:NEW_ERA_DEVICE_BRIDGE_TOKEN='dev-bridge-token'
-python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
-```
-
-Optional:
-
-```powershell
-$env:NEW_ERA_DEVICE_BRIDGE_TIMEOUT_SECONDS='2.0'
-```
-
-## 5. Failure Behavior
-
-Display delivery is best-effort at this layer:
-
-- unsupported display records `device_capability_missing`
-- bridge delivery failure records `device_delivery_failed`
-- successful delivery records `lens_command_delivered`
-
-The event metadata must not include access tokens, raw camera frames, raw document
-text, or full OCR text.
-
-## 6. Validation
-
-Runtime tests cover:
-
-- browser simulation capabilities and command storage
-- real HTTP bridge capability reads
-- real HTTP bridge command POST delivery
-- bridge failure converted to `device_delivery_failed`
-- camera bridge endpoint using an actual image payload through OCR
-
-Manual validation path:
-
-1. Start a local bridge that implements `/capabilities` and `/lens-commands`.
-2. Run the API with `NEW_ERA_DEVICE_BRIDGE_URL`.
-3. Submit `POST /api/device-bridge/camera/document-contract-review` with a camera
-   image.
-4. Confirm the session trace contains observation, candidate, decision, and
-   delivery events.
-5. Confirm the local bridge received the `LensCommand` JSON.
+- vendor conditionals in domain logic
+- client/device-generated policy decisions
+- coupling the PWA preview format to one hardware vendor

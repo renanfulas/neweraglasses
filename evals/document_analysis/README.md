@@ -1,21 +1,49 @@
-# OCR Analysis Eval Harness
+# OCR and Document Analysis Eval Harness
 
-Fixtures live in [evals/document_analysis/fixtures](/C:/Users/renan/OneDrive/Documents/New%20Era%20Glasses/evals/document_analysis/fixtures) and are executed by [tools/evaluate_document_analysis.py](/C:/Users/renan/OneDrive/Documents/New%20Era%20Glasses/tools/evaluate_document_analysis.py).
+Status: Active reference  
+Last updated: 2026-05-25
 
-Run all fixtures:
+## Purpose
 
-```bash
-python tools/evaluate_document_analysis.py
+This harness validates the current local document stack:
+
+- OCR extraction
+- deterministic contract parsing
+- finding detection
+- confidence and summary expectations
+
+It is not yet a full LLM eval harness.
+
+## Files
+
+- fixtures: [evals/document_analysis/fixtures](/C:/Users/renan/OneDrive/Documents/New%20Era%20Glasses/evals/document_analysis/fixtures)
+- runner: [tools/evaluate_document_analysis.py](/C:/Users/renan/OneDrive/Documents/New%20Era%20Glasses/tools/evaluate_document_analysis.py)
+
+## Run All Fixtures
+
+```powershell
+$env:PYTHONPATH='src'; python .\tools\evaluate_document_analysis.py
 ```
 
-Run one fixture and print JSON:
+## Run One Fixture With JSON Output
 
-```bash
-python tools/evaluate_document_analysis.py --fixture evals/document_analysis/fixtures/plain_text_risk_signals.json --json
+```powershell
+$env:PYTHONPATH='src'; python .\tools\evaluate_document_analysis.py --fixture evals/document_analysis/fixtures/plain_text_risk_signals.json --json
 ```
 
-Each fixture declares:
+## What It Covers Today
 
-- `input.document_text` for deterministic analyzer evals
-- `input.document_image_base64` or `input.document_image_path` for OCR + analyzer evals
-- `expected.*` assertions for findings, confidence, parsing notes, and extracted text snippets
+Each fixture can assert:
+
+- expected findings
+- confidence expectations
+- parsing notes
+- excerpt presence
+- OCR-derived behavior when image fixtures are used
+
+## What It Still Does Not Cover
+
+- live LLM prompt behavior
+- adversarial prompt-injection evals against a real model
+- large-scale benchmark reporting
+- CI-enforced score thresholds

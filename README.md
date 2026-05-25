@@ -2,119 +2,62 @@
 
 New Era Glasses is a contextual intelligence platform for smart glasses.
 
-The product vision is simple:
+The product thesis remains:
 
 > The glasses that remember, read, and alert for you.
 
-New Era treats smart glasses as a lightweight sensor and display surface. The durable product asset is the intelligence layer that understands context, respects attention, learns from feedback, and decides what deserves to appear in the user's field of view.
+The glasses are the capture and display edge. The durable asset is the backend intelligence layer that understands context, protects attention, and decides when a minimal response should return to the user.
 
-## Product Thesis
+## Current Product State
 
-Smart glasses should not behave like a phone screen attached to the user's face. They should behave like a selective assistant:
+The repository is past the blank-foundation phase. Today it already includes:
+
+- a Python modular monolith under `src/new_era`
+- a FastAPI companion surface with a real PWA shell
+- grocery simulation and session tracing
+- async document analysis jobs with local artifact lifecycle
+- SQLite-backed persistence for local-first sessions and history
+- a browser simulation device adapter and an HTTP device bridge adapter
+- document feedback metrics, policy rejections, quotas, and retention expiration
+
+What is still not finished:
+
+- production-grade authentication and authorization
+- UV reminder module implementation
+- browser-level end-to-end PWA coverage
+- real hardware integration beyond the HTTP bridge contract
+- LLM-backed document analysis and formal prompt versioning in production
+
+## Product Loop
 
 ```text
 observe -> understand -> contextualize -> decide -> display -> learn
 ```
 
-The first product direction focuses on three practical flows:
-
-- Grocery and memory assistant.
-- Anti-trap document and contract reader.
-- UV/protector and preventive reminders.
-
-Future modules may include environment radar, accessibility, color assistance, AR measurements, and richer personal memory.
-
-## Architecture
-
-New Era starts as a modular, observable, privacy-aware intelligence platform:
+## Architecture Snapshot
 
 ```mermaid
 flowchart LR
-    Glasses["Smart Glasses<br/>camera, mic, display, sensors"] <--> DeviceAdapter["Device Adapter<br/>vendor-specific integration"]
-    DeviceAdapter <--> Companion["Phone / PWA / Companion App<br/>auth, control, GPS, session bridge"]
-    Companion <--> API["Backend API<br/>Python modular monolith"]
+    Glasses["Smart Glasses<br/>capture + minimal display"] <--> Adapter["Device Adapter"]
+    Adapter <--> Companion["PWA / Companion App"]
+    Companion <--> API["FastAPI + Application Use Cases"]
 
-    API --> Perception["Perception<br/>OCR, visual observations, product/document detection"]
-    API --> Context["Context<br/>location, time, user state, session intent"]
-    API --> Attention["Attention Policy<br/>budget, ranking, cooldowns"]
-    API --> Memory["Memory<br/>preferences, habits, lists, feedback"]
-    API --> Events["Event Store<br/>observability, feedback, audit trail"]
-    API --> AI["AI Provider Adapters<br/>LLM, OCR, CV, embeddings later"]
-
-    Attention --> LensCommand["Lens Command<br/>minimal display instruction"]
-    LensCommand --> Companion
-    Companion --> DeviceAdapter
+    API --> Perception["Perception"]
+    API --> Context["Context"]
+    API --> Attention["Attention Policy"]
+    API --> Memory["Session Memory + History"]
+    API --> Jobs["Async Jobs"]
+    API --> Events["Event Store"]
 ```
 
-Runtime responsibilities:
+Current architectural stance:
 
-- **Smart glasses:** capture input and display minimal commands.
-- **Phone/PWA/companion:** authenticate, configure, bridge sessions, simulate the lens, and provide user control.
-- **Python backend:** own the intelligence, memory, AI orchestration, event schema, and attention policy.
-
-The backend should begin as a Python modular monolith using Clean Architecture and DDD boundaries. Microservices are intentionally out of scope until domain boundaries and scaling profiles are proven.
-
-## MVP Scope
-
-In scope:
-
-- PWA/app experience for settings, lists, contract upload/analysis, UV reminders, and simulated lens.
-- Backend Python with Clean Architecture and DDD.
-- Event Schema v1.
-- Attention Policy v1 with attention budget.
-- Grocery list and simple product/item recognition flow.
-- Anti-trap document/contract analysis flow.
-- UV/protector reminder flow.
-- Browser/mobile camera simulation before deep hardware integration.
-- Device adapter abstraction for future smart-glasses platforms.
-
-Out of scope:
-
-- Custom glasses hardware.
-- Heavy RAG or vector memory as a required MVP dependency.
-- Real-time physical safety alerts that require sub-100ms guarantees.
-- Real-time price comparison and live store inventory.
-- Full visual accessibility suite.
-- Always-on camera recording.
-- Vendor-specific product assumptions inside domain logic.
-
-## Core Design Decisions
-
-- **Device adapters first:** the core must not depend directly on Meta, Ray-Ban, Android XR, Xreal, or any future vendor.
-- **Attention Policy is central:** every alert candidate must pass through a central policy before being shown.
-- **Event Schema from day one:** every important observation, candidate, decision, display, dismissal, and feedback event should be observable.
-- **RAG ready, not RAG heavy:** retrieval interfaces should exist early, while vector search and semantic memory can arrive later.
-- **Privacy as UX:** memory must be explicit, inspectable, and deletable; sensitive data must not leak into generic event metadata.
-- **Lens commands, not UI coupling:** backend responses should be device-neutral commands that PWA, app, or glasses adapters can render.
-- **Spec-driven development:** important features must start from specs, contracts, acceptance criteria, security rules, and performance budgets.
-
-## Spec-Driven Development
-
-New Era uses Spec-Driven Development (SDD) to keep product behavior, architecture, AI prompts, security, and performance aligned before implementation.
-
-The delivery loop is:
-
-```text
-problem -> spec -> design -> tasks -> implementation -> tests -> telemetry
-```
-
-Each serious capability should define:
-
-- objective and non-goals
-- functional requirements
-- data/privacy classification
-- security controls
-- performance budget
-- events and observability
-- failure modes
-- acceptance criteria
-- test/eval plan
-
-Start here:
-
-- [docs/specs/README.md](docs/specs/README.md)
-- [docs/specs/0001-platform-foundation.md](docs/specs/0001-platform-foundation.md)
-- [docs/specs/0002-pwa-shell.md](docs/specs/0002-pwa-shell.md)
+- modular monolith
+- Clean Architecture boundaries
+- device-neutral lens commands
+- async jobs for expensive document work
+- privacy-aware local storage
+- event-driven observability inside the monolith
 
 ## Repository Map
 
@@ -128,160 +71,100 @@ tests/
   unit/
 docs/
   architecture/
-    ai-prompt-contracts.md
-    overview.md
-    performance-latency.md
-    pwa-frontend.md
-    security-implementation.md
   specs/
-    README.md
-    spec-template.md
-    0001-platform-foundation.md
-    0002-pwa-shell.md
+evals/
+  document_analysis/
 ```
 
-Main documents:
+## Documentation Map
 
-- [docs/architecture/overview.md](docs/architecture/overview.md)
-- [docs/architecture/performance-latency.md](docs/architecture/performance-latency.md)
-- [docs/architecture/pwa-frontend.md](docs/architecture/pwa-frontend.md)
-- [docs/architecture/device-adapters.md](docs/architecture/device-adapters.md)
-- [docs/architecture/security-implementation.md](docs/architecture/security-implementation.md)
-- [docs/architecture/ai-prompt-contracts.md](docs/architecture/ai-prompt-contracts.md)
+These are the docs that should be treated as current:
+
+### Architecture
+
+- [docs/architecture/overview.md](docs/architecture/overview.md)  
+  Source of truth for current runtime shape and major boundaries.
+- [docs/architecture/pwa-frontend.md](docs/architecture/pwa-frontend.md)  
+  Current PWA scope, offline posture, and frontend gaps.
+- [docs/architecture/security-implementation.md](docs/architecture/security-implementation.md)  
+  Current security/privacy controls and missing production controls.
+- [docs/architecture/device-adapters.md](docs/architecture/device-adapters.md)  
+  Browser simulation and HTTP bridge strategy.
+- [docs/architecture/performance-latency.md](docs/architecture/performance-latency.md)  
+  Latency classes, async boundaries, and current performance posture.
+- [docs/architecture/ai-prompt-contracts.md](docs/architecture/ai-prompt-contracts.md)  
+  Current deterministic/OCR analysis posture and future prompt-contract shape.
+
+### Specs
+
+- [docs/specs/README.md](docs/specs/README.md)  
+  Index of active specs and their status.
+- [docs/specs/0001-platform-foundation.md](docs/specs/0001-platform-foundation.md)  
+  Platform foundation. Partially implemented, still the base contract.
+- [docs/specs/0002-pwa-shell.md](docs/specs/0002-pwa-shell.md)  
+  PWA shell. Mostly implemented.
+- [docs/specs/0003-document-mvp-hardening.md](docs/specs/0003-document-mvp-hardening.md)  
+  Document hardening. In progress, with completed and remaining items called out.
+
+### Evals
+
+- [evals/document_analysis/README.md](evals/document_analysis/README.md)  
+  How to run the local OCR/deterministic analysis eval harness.
 
 ## Development
 
-The first executable foundation lives in `src/new_era`.
-
-It includes:
-
-- observation contracts for simulated input
-- domain contracts for attention, events, lens commands, and device capabilities
-- job contracts for long-running document analysis
-- an `AttentionPolicy` v1 with deterministic budget rules
-- a simple observation interpreter that turns simulated grocery observations into `AlertCandidate`
-- `GrocerySessionService` and `DocumentSessionService` as the first MVP-facing application entry points
-- a shared `SimulationRuntime` that keeps session state readable across requests, with optional SQLite persistence via `NEW_ERA_SQLITE_PATH`
-- a real OCR adapter for image-based contract extraction
-- deterministic contract parsing with excerpt extraction, structured findings, and refined alert language
-- an `EvaluateAlertCandidate` use case
-- a `DeviceGateway` port and `DeliverLensCommand` use case
-- a `ProcessAlertCandidate` orchestrator for the first end-to-end alert flow
-- a `ProcessObservation` orchestrator for the first observation-to-display flow
-- a `GetSessionTrace` read model use case for session history with user/module/event/step filters and cursor pagination
-- user-owned session records with create/list/read flows for the companion app
-- an `EnqueueDocumentAnalysisJob` use case, `RunDocumentAnalysisJob` runner, and job status/result lookup for async document flows
-- a threaded in-memory document analysis worker with retries, timeout policy, and persisted analysis results
-- a FastAPI adapter that exposes the grocery simulation flow over HTTP
-- a `BrowserSimulationAdapter` for PWA/app simulation before hardware integration
-- an `HttpDeviceBridgeAdapter` for real native/hardware bridge delivery over HTTP
-- a camera bridge endpoint that runs real image input through the document OCR flow
-- in-memory event, job, job payload, and document analysis store adapters for tests and simulation
-- SQLite event and session store adapters for durable MVP session history
-- unit tests for policy, event redaction, observation mapping, lens command generation, device delivery, and alert processing
-
-Run the tests:
+Run tests:
 
 ```powershell
 $env:PYTHONPATH='src'; python -m unittest discover
 ```
 
-## Quality And Test Coverage
-
-The maintained source of truth is the code under `src/`, the tests under `tests/`, and the product/architecture specs under `docs/architecture` and `docs/specs`.
-
-The current suite has focused unit and HTTP smoke coverage across:
-
-- attention policy and event metadata
-- grocery and document session services
-- document analysis jobs, status transitions, and result lookup
-- SQLite-backed event/session/job/analysis storage
-- contract analysis parsing and excerpt extraction
-- FastAPI endpoints for simulations, sessions, jobs, analyses, uploads, and feedback
-- browser simulation and HTTP device bridge adapters
-
-Validation command:
-
-```powershell
-$env:PYTHONPATH='src'; python -m unittest discover
-```
-
-Local bootstrap smoke command:
-
-```powershell
-$env:PYTHONPATH='src'; python .\tools\validate_local.py
-```
-
-Known quality gaps before external users:
-
-- no browser-level PWA end-to-end tests yet
-- no production auth or authorization test matrix yet
-- no real smart-glasses hardware integration test yet
-- no OCR/LLM quality evaluation harness yet
-- no coverage threshold enforced in CI yet
-
-Historical bytecode recovery artifacts are intentionally not maintained in the repository. If recovery tooling is ever needed again, it should stay local-only unless it becomes an active, documented engineering workflow.
-
-Run the HTTP adapter:
+Run the app:
 
 ```powershell
 $env:PYTHONPATH='src'; python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
 ```
 
-Run with persistent session/history storage:
+Run with SQLite persistence:
 
 ```powershell
-$env:PYTHONPATH='src'; $env:NEW_ERA_SQLITE_PATH='.new_era/runtime.sqlite3'; python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
+$env:PYTHONPATH='src'
+$env:NEW_ERA_SQLITE_PATH='.new_era/runtime.sqlite3'
+python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
 ```
 
-Initial endpoints:
+Run the local document eval harness:
 
-- `GET /`
-- `GET /health`
-- `POST /api/users/{user_id}/sessions`
-- `GET /api/users/{user_id}/sessions`
-- `POST /api/simulations/grocery/missing-item`
-- `POST /api/simulations/documents/contract-review`
-- `GET /api/device/capabilities`
-- `POST /api/device-bridge/camera/document-contract-review`
-- `GET /api/sessions/{session_id}/trace`
-- `GET /api/users/{user_id}/sessions/{session_id}/trace`
-- `POST /api/jobs/documents/contract-analysis`
-- `GET /api/jobs/{job_id}`
-- `GET /api/jobs/{job_id}/result`
-- `POST /api/jobs/{job_id}/status`
+```powershell
+$env:PYTHONPATH='src'; python .\tools\evaluate_document_analysis.py
+```
 
-Recommended next documentation:
+## Current Validation Baseline
 
-- `docs/product/vision.md`
-- `docs/product/mvp.md`
-- `docs/architecture/event-schema.md`
-- `docs/architecture/attention-policy.md`
-- `docs/architecture/device-adapters.md`
-- `docs/adr/0001-use-existing-smart-glasses-before-custom-hardware.md`
+The maintained baseline is the code plus the unit suite:
 
-## Validation Plan
+```powershell
+$env:PYTHONPATH='src'; python -m unittest discover
+```
 
-1. Product simulation
-   - PWA simulates lens alerts.
-   - User creates shopping lists.
-   - User uploads/scans documents.
-   - Backend records the event flow.
+The suite currently covers:
 
-2. Phone camera prototype
-   - Phone camera acts as glasses input.
-   - Backend processes selected observations.
-   - PWA displays simulated lens output.
-   - `POST /api/device-bridge/camera/document-contract-review` supports real camera image input for the document flow.
+- attention policy behavior
+- event redaction and event persistence
+- document jobs, idempotency, quotas, retention, and result lookup
+- SQLite-backed session, job, event, and analysis stores
+- PWA HTTP routes and static assets
+- browser simulation and HTTP device bridge adapters
 
-3. Device adapter prototype
-   - Integrate one real smart-glasses platform when available.
-   - Keep backend/domain contracts unchanged.
-   - Replace only adapter and display delivery.
-   - Set `NEW_ERA_DEVICE_BRIDGE_URL` to route lens commands to a real HTTP bridge.
+## What Changed Recently
 
-## Current Status
+The latest completed hardening pass delivered:
 
-This repository is in the architecture and MVP foundation phase.
+- consistent `PolicyRejection` contracts
+- session-level upload and active-job quotas
+- `blocked_reason` read model support in `/jobs`
+- payload fingerprint idempotency checks
+- post-terminal artifact retention expiration
+- PWA handling for friendly blocking messages and read-only offline shell
 
-The current runtime foundation implements the core contracts from `SPEC-0001` without tying the product to a web framework, database, AI provider, or glasses vendor.
+The next meaningful work is not more plumbing. It is finishing product-grade behavior around auth, browser E2E coverage, and the remaining modules.

@@ -1,6 +1,6 @@
 # Spec Template
 
-Status: Draft  
+Status: Template  
 Spec ID: SPEC-XXXX  
 Owner: TBD  
 Date: YYYY-MM-DD

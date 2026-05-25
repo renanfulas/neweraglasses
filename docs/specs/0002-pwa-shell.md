@@ -1,9 +1,28 @@
 # SPEC-0002: PWA Shell and Grocery Simulation
 
-Status: Draft v1  
+Status: Mostly implemented  
 Owner: New Era product/engineering  
-Date: 2026-05-23  
+Date: 2026-05-25  
 Related architecture: [../architecture/pwa-frontend.md](../architecture/pwa-frontend.md)
+
+## Progress Snapshot
+
+Implemented since the original draft:
+
+- FastAPI-served root shell
+- manifest and service worker
+- grocery simulation UX
+- document upload/text submission UX
+- jobs/history/result panels
+- offline read-only shell behavior for sensitive flows
+
+Still missing before this spec can be considered done:
+
+- real authentication UX
+- offline mutation queue
+- push/background sync
+- browser E2E coverage
+- install/polish pass for mobile companion behavior
 
 ## 1. Objective
 

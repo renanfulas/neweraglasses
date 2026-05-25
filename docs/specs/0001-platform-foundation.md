@@ -1,9 +1,29 @@
 # SPEC-0001: Platform Foundation
 
-Status: Draft v1  
+Status: Foundation implemented  
 Owner: New Era product/engineering  
-Date: 2026-05-23  
+Date: 2026-05-25  
 Related architecture: [../architecture/overview.md](../architecture/overview.md)
+
+## Implementation Snapshot
+
+What is already real in the repository:
+
+- Python modular monolith under `src/new_era`
+- device-neutral lens command flow
+- browser simulation adapter and HTTP bridge adapter
+- event model and event redaction
+- user sessions and session traces
+- async document jobs with retries and timeouts
+- SQLite-backed local persistence
+- PWA HTTP surface
+
+What this foundation still does not complete:
+
+- production authentication and authorization
+- UV reminder module implementation
+- mature observability and performance telemetry
+- production deployment/runtime concerns beyond localhost
 
 ## 1. Objective
 
@@ -439,7 +459,7 @@ Phase 3:
 ## 19. Open Questions
 
 1. Which authentication provider will be used first?
-2. Which database stack will be used in MVP: PostgreSQL only or PostgreSQL plus Redis?
+2. When local-first SQLite stops being enough, should the next persistence step be PostgreSQL alone or PostgreSQL plus Redis-backed hot state?
 3. Which AI/OCR providers are acceptable for the first document flow?
 4. What is the default data retention policy for uploaded documents?
 5. What is the first hardware target after PWA simulation?

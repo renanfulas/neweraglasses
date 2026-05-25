@@ -1,9 +1,30 @@
 # Document MVP Hardening
 
-Status: Draft
+Status: In progress
 Spec ID: SPEC-0003
 Owner: Platform / Documents
 Date: 2026-05-25
+
+## Progress Snapshot
+
+Completed so far:
+
+- first-class document artifacts
+- upload and active-job quotas
+- `PolicyRejection` contract
+- payload fingerprint idempotency
+- feedback metrics read model
+- local eval harness
+- PWA polling/history/result flow
+- post-terminal artifact expiration
+- offline read-only shell boundaries
+
+Still open:
+
+- broader `validate_local.py` level validation for the hardened document path
+- more product UX refinement around blocked states and install/offline affordances
+- production-grade auth/security follow-through for document ownership beyond localhost
+- stronger operational telemetry beyond unit/integration coverage
 
 ## 1. Objective
 
@@ -27,14 +48,11 @@ The current runtime already provides:
 - SQLite-backed local persistence
 - a static PWA shell served by FastAPI
 
-The current implementation is close to a usable MVP, but several gaps remain:
+The current implementation is now meaningfully hardened, but it is not finished:
 
-- uploaded artifacts have no first-class lifecycle object
-- generic job payload handling still carries raw content too directly
-- delete and retention behavior are not formalized
-- feedback exists as raw events, not as a session-level product metric
-- OCR and deterministic analysis lack a local evaluation harness
-- the PWA flow still exposes simulation-oriented controls and weak offline boundaries
+- the core artifact lifecycle now exists
+- quotas, idempotency, retention, and feedback metrics now exist
+- the remaining gaps are mainly validation depth, production auth posture, and product polish
 
 This spec evolves the current system instead of replacing it.
 
@@ -73,7 +91,6 @@ so that the document MVP is useful, inspectable, and safer to operate locally.
 - local OCR and deterministic analysis eval harness
 - PWA document job polling and automatic result opening
 - PWA manifest and service worker hardening for read-only offline shell
-- integration rules for multi-agent implementation
 
 ## 5. Out of Scope
 
@@ -259,14 +276,14 @@ Optional internal endpoint:
 
 This endpoint is allowed only if the eval harness output is promoted into a stable read model later. It is not required for the first implementation batch.
 
-Suggested new ports:
+Current ports in this area:
 
 ```text
 DocumentArtifactStore
 DocumentArtifactBlobStore
 ```
 
-Suggested new use cases:
+Current use cases in this area:
 
 ```text
 StoreDocumentArtifact
@@ -492,36 +509,20 @@ $env:PYTHONPATH='src'; python .\tools\evaluate_document_analysis.py
 
 ## 18. Rollout Plan
 
-Phase 0:
-
-- freeze `SPEC-0003`
-- freeze ownership and integration rules
-- freeze Contextual Attention Pyramid boundaries
-- freeze `PolicyRejection`
-- freeze fingerprint/idempotency semantics
-- freeze raw text persistence rule
-- freeze terminal retention paths
-
-Phase 1:
+Completed:
 
 - artifact lifecycle and quotas
 - feedback metrics read model
 - eval harness
 - service worker and manifest hardening
-- frontend UI state preparation without final endpoint wiring changes
+- runtime and HTTP integration
+- unit-test coverage for the hardening pass
 
-Phase 2:
+Still to finish:
 
-- integrate runtime wiring and HTTP endpoints
-- connect PWA to finalized contracts
-- update docs and smoke tests
-
-Phase 3:
-
-- run unit tests
-- run local bootstrap validation
-- run eval harness
-- complete manual mobile/PWA checklist
+- local bootstrap validation coverage at the same confidence level
+- manual mobile/PWA checklist refresh
+- broader production-oriented auth and observability follow-through
 
 ## 19. Open Questions
 
