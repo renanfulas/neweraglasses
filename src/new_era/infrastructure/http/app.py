@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from base64 import b64encode
 from contextlib import asynccontextmanager
 from datetime import datetime
+from os import environ
 from pathlib import Path
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
@@ -19,6 +21,11 @@ from new_era.application.services import (
 from new_era.application.use_cases import AdvanceDocumentAnalysisJob, GetJobStatus, GetSessionTrace
 from new_era.application.use_cases import GetDocumentAnalysis, ListDocumentAnalysesBySession
 from new_era.application.use_cases import LensFeedbackValue, RecordLensFeedback
+from new_era.application.use_cases import (
+    DocumentAnalysisFeedbackValue,
+    GetDocumentAnalysisFeedback,
+    RecordDocumentAnalysisFeedback,
+)
 from new_era.application.use_cases import (
     GetUserSession,
     ListUserSessions,
@@ -57,7 +64,7 @@ class DocumentContractReviewRequest(BaseModel):
     user_id: str
     session_id: str | None = None
     document_text: str | None = Field(default=None, min_length=20)
-    document_image_base64: str | None = None
+    document_image_base64: str | None = Field(default=None, max_length=10_500_000)
     confidence: float | None = Field(default=0.92, ge=0, le=1)
     mode: AttentionMode = AttentionMode.BALANCED
     recent_category_count: int = Field(ge=0, default=0)
@@ -93,7 +100,7 @@ class CameraDocumentContractReviewRequest(BaseModel):
 
     user_id: str
     session_id: str | None = None
-    image_base64: str = Field(min_length=1)
+    image_base64: str = Field(min_length=1, max_length=10_500_000)
     content_type: str = Field(default="image/jpeg", min_length=1)
     source_adapter: str = Field(
         default="phone_camera",
@@ -149,7 +156,7 @@ class DocumentAnalysisJobRequest(BaseModel):
     source_type: str = Field(min_length=1, default="pwa_simulation")
     idempotency_key: str = Field(min_length=8)
     document_text: str | None = Field(default=None, min_length=20)
-    document_image_base64: str | None = None
+    document_image_base64: str | None = Field(default=None, max_length=10_500_000)
     confidence: float | None = Field(default=0.92, ge=0, le=1)
     mode: AttentionMode = AttentionMode.BALANCED
     recent_category_count: int = Field(ge=0, default=0)
@@ -212,14 +219,38 @@ class DocumentAnalysisResponse(BaseModel):
     source_type: str
     created_at: str
     analysis: dict[str, object]
+    feedback: str | None = None
+
+
+class DocumentAnalysisFeedbackRequest(BaseModel):
+    user_id: str
+    session_id: str
+    feedback: DocumentAnalysisFeedbackValue
+    correlation_id: str | None = None
+    trace_id: str | None = None
+
+
+class DocumentAnalysisFeedbackResponse(BaseModel):
+    event_id: str
+    analysis_id: str
+    feedback: str
+
+
+LOCAL_AUTH_HEADER = "X-New-Era-User-Id"
+MAX_DOCUMENT_UPLOAD_BYTES = 7_500_000
+SUPPORTED_DOCUMENT_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 
 def serialize_job(job: JobRecord) -> JobResponse:
     return JobResponse(**job.to_dict())
 
 
-def serialize_document_analysis(record: DocumentAnalysisRecord) -> DocumentAnalysisResponse:
-    return DocumentAnalysisResponse(**record.to_dict())
+def serialize_document_analysis(
+    record: DocumentAnalysisRecord,
+    *,
+    feedback: str | None = None,
+) -> DocumentAnalysisResponse:
+    return DocumentAnalysisResponse(**record.to_dict(), feedback=feedback)
 
 
 def serialize_device_capabilities(capabilities) -> DeviceCapabilitiesResponse:
@@ -236,6 +267,16 @@ def serialize_device_capabilities(capabilities) -> DeviceCapabilitiesResponse:
 
 def get_runtime(request: Request) -> SimulationRuntime:
     return request.app.state.runtime
+
+
+def get_current_user_id(
+    request: Request,
+    x_new_era_user_id: Annotated[str | None, Header(alias=LOCAL_AUTH_HEADER)] = None,
+) -> str:
+    authenticated_user_id = x_new_era_user_id or getattr(request.app.state, "local_user_id", None)
+    if not authenticated_user_id:
+        raise HTTPException(status_code=401, detail="local_auth_user_required")
+    return authenticated_user_id
 
 
 def get_grocery_session_service(
@@ -298,6 +339,18 @@ def get_lens_feedback_recorder(
     return runtime.lens_feedback_recorder
 
 
+def get_document_analysis_feedback_reader(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> GetDocumentAnalysisFeedback:
+    return runtime.document_analysis_feedback_reader
+
+
+def get_document_analysis_feedback_recorder(
+    runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
+) -> RecordDocumentAnalysisFeedback:
+    return runtime.document_analysis_feedback_recorder
+
+
 def get_user_session_starter(
     runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
 ) -> StartUserSession:
@@ -324,6 +377,60 @@ def get_device_gateway(
 
 def serialize_user_session(session: UserSession) -> UserSessionResponse:
     return UserSessionResponse(**session.to_dict())
+
+
+def enforce_authenticated_user(
+    request_user_id: str,
+    current_user_id: str,
+) -> str:
+    if request_user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="authenticated_user_mismatch")
+    return current_user_id
+
+
+def enforce_path_user(
+    path_user_id: str,
+    current_user_id: str,
+) -> str:
+    if path_user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="authenticated_user_mismatch")
+    return current_user_id
+
+
+def ensure_session_owned_by_current_user(
+    session: UserSession,
+    current_user_id: str,
+) -> UserSession:
+    if session.user_id != current_user_id:
+        raise HTTPException(status_code=404, detail="session_not_found")
+    return session
+
+
+def ensure_job_owned_by_current_user(job: JobRecord, current_user_id: str) -> JobRecord:
+    if job.user_id != current_user_id:
+        raise HTTPException(status_code=404, detail="job_not_found")
+    return job
+
+
+def ensure_document_analysis_owned_by_current_user(
+    record: DocumentAnalysisRecord,
+    current_user_id: str,
+) -> DocumentAnalysisRecord:
+    if record.user_id != current_user_id:
+        raise HTTPException(status_code=404, detail="document_analysis_not_found")
+    return record
+
+
+def resolve_document_analysis_feedback(
+    record: DocumentAnalysisRecord,
+    feedback_reader: GetDocumentAnalysisFeedback,
+) -> str | None:
+    feedback = feedback_reader.execute(
+        analysis_id=record.analysis_id,
+        user_id=record.user_id,
+        session_id=record.session_id,
+    )
+    return feedback.value if feedback else None
 
 
 def resolve_user_session(
@@ -354,9 +461,41 @@ def parse_datetime_query(value: str | None, *, field_name: str) -> datetime | No
 
 def validate_camera_content_type(content_type: str) -> None:
     normalized = content_type.lower().split(";", 1)[0].strip()
-    supported_types = {"image/jpeg", "image/png", "image/webp"}
-    if normalized not in supported_types:
+    if normalized not in SUPPORTED_DOCUMENT_IMAGE_TYPES:
         raise HTTPException(status_code=415, detail="unsupported_camera_content_type")
+
+
+def validate_upload_content_type(content_type: str) -> str:
+    normalized = content_type.lower().split(";", 1)[0].strip()
+    if normalized not in SUPPORTED_DOCUMENT_IMAGE_TYPES:
+        raise HTTPException(status_code=415, detail="unsupported_upload_content_type")
+    return normalized
+
+
+def safe_upload_filename(filename: str | None, *, fallback: str) -> str:
+    raw_name = (filename or fallback).strip() or fallback
+    safe_name = "".join(
+        character if character.isalnum() or character in "._-" else "-"
+        for character in raw_name
+    ).strip(".-")
+    return safe_name or fallback
+
+
+def upload_extension_for(content_type: str) -> str:
+    if content_type == "image/png":
+        return ".png"
+    if content_type == "image/webp":
+        return ".webp"
+    return ".jpg"
+
+
+async def read_upload_bytes(upload: UploadFile) -> bytes:
+    payload = await upload.read(MAX_DOCUMENT_UPLOAD_BYTES + 1)
+    if not payload:
+        raise HTTPException(status_code=422, detail="upload_file_empty")
+    if len(payload) > MAX_DOCUMENT_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="upload_file_too_large")
+    return payload
 
 
 def build_simulation_response(
@@ -394,6 +533,7 @@ def create_app(
     *,
     storage_path: str | Path | None = None,
     device_gateway: DeviceGateway | None = None,
+    local_user_id: str | None = None,
 ) -> FastAPI:
     runtime = SimulationRuntime.build_default(
         storage_path=storage_path,
@@ -407,7 +547,16 @@ def create_app(
 
     app = FastAPI(title="New Era Glasses API", version="0.1.0", lifespan=lifespan)
     static_dir = Path(__file__).with_name("static")
+    runtime_root = (
+        Path(storage_path).parent
+        if storage_path is not None
+        else Path(environ.get("NEW_ERA_RUNTIME_DIR", ".new_era"))
+    )
+    upload_dir = runtime_root / "uploads" / "documents"
+    upload_dir.mkdir(parents=True, exist_ok=True)
     app.state.runtime = runtime
+    app.state.local_user_id = local_user_id or environ.get("NEW_ERA_LOCAL_USER_ID")
+    app.state.upload_dir = upload_dir
 
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
@@ -423,6 +572,10 @@ def create_app(
 
     @app.get("/")
     def index() -> FileResponse:
+        return FileResponse(static_dir / "index.html")
+
+    @app.get("/document-analyses/{analysis_id}/view")
+    def analysis_detail_page(analysis_id: str) -> FileResponse:
         return FileResponse(static_dir / "index.html")
 
     @app.get("/manifest.webmanifest")
@@ -442,17 +595,19 @@ def create_app(
         service: Annotated[GrocerySessionService, Depends(get_grocery_session_service)],
         session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
         session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> SimulationResponse:
+        user_id = enforce_authenticated_user(request.user_id, current_user_id)
         session = resolve_user_session(
             starter=session_starter,
-            user_id=request.user_id,
+            user_id=user_id,
             module="grocery",
             session_id=request.session_id,
         )
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
         result = service.process_missing_item(
             observation_id=request.observation_id or f"obs_{uuid4().hex}",
-            user_id=request.user_id,
+            user_id=user_id,
             session_id=session.session_id,
             item_name=request.item_name,
             confidence=request.confidence,
@@ -480,22 +635,24 @@ def create_app(
         service: Annotated[DocumentSessionService, Depends(get_document_session_service)],
         session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
         session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> SimulationResponse:
         if not request.document_text and not request.document_image_base64:
             raise HTTPException(
                 status_code=422,
                 detail="document_text_or_document_image_base64_required",
             )
+        user_id = enforce_authenticated_user(request.user_id, current_user_id)
         session = resolve_user_session(
             starter=session_starter,
-            user_id=request.user_id,
+            user_id=user_id,
             module="documents",
             session_id=request.session_id,
         )
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
         result = service.process_contract_review(
             observation_id=request.observation_id or f"obs_{uuid4().hex}",
-            user_id=request.user_id,
+            user_id=user_id,
             session_id=session.session_id,
             document_text=request.document_text,
             document_image_base64=request.document_image_base64,
@@ -526,18 +683,20 @@ def create_app(
         service: Annotated[DocumentSessionService, Depends(get_document_session_service)],
         session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
         session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> SimulationResponse:
         validate_camera_content_type(request.content_type)
+        user_id = enforce_authenticated_user(request.user_id, current_user_id)
         session = resolve_user_session(
             starter=session_starter,
-            user_id=request.user_id,
+            user_id=user_id,
             module="documents",
             session_id=request.session_id,
         )
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
         result = service.process_contract_review(
             observation_id=request.observation_id or f"obs_{uuid4().hex}",
-            user_id=request.user_id,
+            user_id=user_id,
             session_id=session.session_id,
             document_text=None,
             document_image_base64=request.image_base64,
@@ -579,11 +738,13 @@ def create_app(
         limit: int | None = Query(default=None, ge=1, le=100),
         cursor: str | None = None,
         reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)] = None,
+        current_user_id: Annotated[str, Depends(get_current_user_id)] = "",
     ) -> SessionTraceResponse:
+        scoped_user_id = current_user_id if user_id is None else enforce_authenticated_user(user_id, current_user_id)
         try:
             trace = reader.execute(
                 session_id=session_id,
-                user_id=user_id,
+                user_id=scoped_user_id,
                 trace_id=trace_id,
                 module=module,
                 event_types=set(event_type) if event_type else None,
@@ -620,13 +781,17 @@ def create_app(
         cursor: str | None = None,
         session_reader: Annotated[GetUserSession, Depends(get_user_session_reader)] = None,
         trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)] = None,
+        current_user_id: Annotated[str, Depends(get_current_user_id)] = "",
     ) -> SessionTraceResponse:
-        if session_reader.execute(user_id=user_id, session_id=session_id) is None:
+        enforce_path_user(user_id, current_user_id)
+        session = session_reader.execute(user_id=user_id, session_id=session_id)
+        if session is None:
             raise HTTPException(status_code=404, detail="session_not_found")
+        ensure_session_owned_by_current_user(session, current_user_id)
         try:
             trace = trace_reader.execute(
                 session_id=session_id,
-                user_id=user_id,
+                user_id=current_user_id,
                 trace_id=trace_id,
                 module=module,
                 event_types=set(event_type) if event_type else None,
@@ -654,10 +819,12 @@ def create_app(
         user_id: str,
         request: CreateUserSessionRequest,
         starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> UserSessionResponse:
+        enforce_path_user(user_id, current_user_id)
         try:
             session = starter.execute(
-                user_id=user_id,
+                user_id=current_user_id,
                 module=request.module,
                 title=request.title,
                 session_id=request.session_id,
@@ -677,10 +844,12 @@ def create_app(
         limit: int | None = Query(default=None, ge=1, le=100),
         cursor: str | None = None,
         lister: Annotated[ListUserSessions, Depends(get_user_sessions_lister)] = None,
+        current_user_id: Annotated[str, Depends(get_current_user_id)] = "",
     ) -> UserSessionPageResponse:
+        enforce_path_user(user_id, current_user_id)
         try:
             page = lister.execute(
-                user_id=user_id,
+                user_id=current_user_id,
                 module=module,
                 limit=limit,
                 cursor=cursor,
@@ -699,9 +868,21 @@ def create_app(
             ListDocumentAnalysesBySession,
             Depends(get_document_analyses_by_session_reader),
         ],
+        feedback_reader: Annotated[
+            GetDocumentAnalysisFeedback,
+            Depends(get_document_analysis_feedback_reader),
+        ],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> list[DocumentAnalysisResponse]:
         records = reader.execute(session_id=session_id)
-        return [serialize_document_analysis(record) for record in records]
+        return [
+            serialize_document_analysis(
+                record,
+                feedback=resolve_document_analysis_feedback(record, feedback_reader),
+            )
+            for record in records
+            if record.user_id == current_user_id
+        ]
 
     @app.get(
         "/api/document-analyses/{analysis_id}",
@@ -710,11 +891,20 @@ def create_app(
     def get_document_analysis(
         analysis_id: str,
         reader: Annotated[GetDocumentAnalysis, Depends(get_document_analysis_reader)],
+        feedback_reader: Annotated[
+            GetDocumentAnalysisFeedback,
+            Depends(get_document_analysis_feedback_reader),
+        ],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> DocumentAnalysisResponse:
         record = reader.execute(analysis_id=analysis_id)
         if record is None:
             raise HTTPException(status_code=404, detail="document_analysis_not_found")
-        return serialize_document_analysis(record)
+        ensure_document_analysis_owned_by_current_user(record, current_user_id)
+        return serialize_document_analysis(
+            record,
+            feedback=resolve_document_analysis_feedback(record, feedback_reader),
+        )
 
     @app.post(
         "/api/jobs/documents/contract-analysis",
@@ -725,21 +915,23 @@ def create_app(
         session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
         enqueuer=Depends(get_document_job_enqueuer),
         worker=Depends(get_document_job_worker),
+        current_user_id: Annotated[str, Depends(get_current_user_id)] = "",
     ) -> JobResponse:
         if not request.document_text and not request.document_image_base64:
             raise HTTPException(
                 status_code=422,
                 detail="document_text_or_document_image_base64_required",
             )
+        user_id = enforce_authenticated_user(request.user_id, current_user_id)
         session = resolve_user_session(
             starter=session_starter,
-            user_id=request.user_id,
+            user_id=user_id,
             module="documents",
             session_id=request.session_id,
         )
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
         job = enqueuer.execute(
-            user_id=request.user_id,
+            user_id=user_id,
             session_id=session.session_id,
             idempotency_key=request.idempotency_key,
             correlation_id=request.correlation_id or f"corr_{uuid4().hex}",
@@ -757,14 +949,76 @@ def create_app(
             worker.enqueue(job.job_id)
         return serialize_job(job)
 
+    @app.post(
+        "/api/uploads/documents/contract-analysis",
+        response_model=JobResponse,
+    )
+    async def upload_document_contract_analysis(
+        session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
+        request: Request,
+        user_id: Annotated[str, Form(min_length=1)],
+        artifact: Annotated[UploadFile, File()],
+        enqueuer=Depends(get_document_job_enqueuer),
+        worker=Depends(get_document_job_worker),
+        session_id: Annotated[str | None, Form()] = None,
+        document_text: Annotated[str | None, Form(min_length=20)] = None,
+        confidence: Annotated[float | None, Form(ge=0, le=1)] = 0.92,
+        mode: Annotated[AttentionMode, Form()] = AttentionMode.BALANCED,
+        recent_category_count: Annotated[int, Form(ge=0)] = 0,
+        observation_id: Annotated[str | None, Form()] = None,
+        idempotency_key: Annotated[str | None, Form()] = None,
+        correlation_id: Annotated[str | None, Form()] = None,
+        trace_id: Annotated[str | None, Form()] = None,
+        current_user_id: Annotated[str, Depends(get_current_user_id)] = "",
+    ) -> JobResponse:
+        authenticated_user_id = enforce_authenticated_user(user_id, current_user_id)
+        content_type = validate_upload_content_type(artifact.content_type or "")
+        payload = await read_upload_bytes(artifact)
+        session = resolve_user_session(
+            starter=session_starter,
+            user_id=authenticated_user_id,
+            module="documents",
+            session_id=session_id,
+        )
+        resolved_trace_id = trace_id or f"trace_{uuid4().hex}"
+        upload_id = f"upload_{uuid4().hex}"
+        original_name = safe_upload_filename(
+            artifact.filename,
+            fallback=f"{upload_id}{upload_extension_for(content_type)}",
+        )
+        stored_name = f"{upload_id}_{original_name}"
+        stored_path = request.app.state.upload_dir / stored_name
+        stored_path.write_bytes(payload)
+
+        job = enqueuer.execute(
+            user_id=authenticated_user_id,
+            session_id=session.session_id,
+            idempotency_key=idempotency_key or f"idem_{upload_id}",
+            correlation_id=correlation_id or f"corr_{uuid4().hex}",
+            trace_id=resolved_trace_id,
+            artifact_label=original_name,
+            source_type="pwa_multipart_upload",
+            document_text=document_text,
+            document_image_base64=b64encode(payload).decode("ascii"),
+            confidence=confidence,
+            mode=mode,
+            recent_category_count=recent_category_count,
+            observation_id=observation_id or f"obs_{upload_id}",
+        )
+        if job.status == JobStatus.QUEUED:
+            worker.enqueue(job.job_id)
+        return serialize_job(job)
+
     @app.get("/api/jobs/{job_id}", response_model=JobResponse)
     def get_job_status(
         job_id: str,
         reader: Annotated[GetJobStatus, Depends(get_job_status_reader)],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> JobResponse:
         job = reader.execute(job_id=job_id)
         if job is None:
             raise HTTPException(status_code=404, detail="job_not_found")
+        ensure_job_owned_by_current_user(job, current_user_id)
         return serialize_job(job)
 
     @app.post("/api/jobs/{job_id}/status", response_model=JobResponse)
@@ -772,7 +1026,13 @@ def create_app(
         job_id: str,
         request: JobTransitionRequest,
         advancer: Annotated[AdvanceDocumentAnalysisJob, Depends(get_document_job_advancer)],
+        reader: Annotated[GetJobStatus, Depends(get_job_status_reader)],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> JobResponse:
+        existing_job = reader.execute(job_id=job_id)
+        if existing_job is None:
+            raise HTTPException(status_code=404, detail="job_not_found")
+        ensure_job_owned_by_current_user(existing_job, current_user_id)
         trace_id = request.trace_id or f"trace_{uuid4().hex}"
         try:
             job = advancer.execute(
@@ -786,8 +1046,6 @@ def create_app(
             )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        if job is None:
-            raise HTTPException(status_code=404, detail="job_not_found")
         return serialize_job(job)
 
     @app.get(
@@ -798,16 +1056,56 @@ def create_app(
         job_id: str,
         job_reader: Annotated[GetJobStatus, Depends(get_job_status_reader)],
         analysis_reader: Annotated[GetDocumentAnalysis, Depends(get_document_analysis_reader)],
+        feedback_reader: Annotated[
+            GetDocumentAnalysisFeedback,
+            Depends(get_document_analysis_feedback_reader),
+        ],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> DocumentAnalysisResponse:
         job = job_reader.execute(job_id=job_id)
         if job is None:
             raise HTTPException(status_code=404, detail="job_not_found")
+        ensure_job_owned_by_current_user(job, current_user_id)
         if job.status != JobStatus.SUCCEEDED or not job.result_id:
             raise HTTPException(status_code=409, detail="job_result_not_ready")
         record = analysis_reader.execute(analysis_id=job.result_id)
         if record is None:
             raise HTTPException(status_code=404, detail="job_result_not_found")
-        return serialize_document_analysis(record)
+        ensure_document_analysis_owned_by_current_user(record, current_user_id)
+        return serialize_document_analysis(
+            record,
+            feedback=resolve_document_analysis_feedback(record, feedback_reader),
+        )
+
+    @app.post(
+        "/api/document-analyses/{analysis_id}/feedback",
+        response_model=DocumentAnalysisFeedbackResponse,
+    )
+    def record_document_analysis_feedback(
+        analysis_id: str,
+        request: DocumentAnalysisFeedbackRequest,
+        recorder: Annotated[
+            RecordDocumentAnalysisFeedback,
+            Depends(get_document_analysis_feedback_recorder),
+        ],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
+    ) -> DocumentAnalysisFeedbackResponse:
+        user_id = enforce_authenticated_user(request.user_id, current_user_id)
+        result = recorder.execute(
+            analysis_id=analysis_id,
+            user_id=user_id,
+            session_id=request.session_id,
+            feedback=request.feedback,
+            correlation_id=request.correlation_id or f"corr_{uuid4().hex}",
+            trace_id=request.trace_id,
+        )
+        if result is None:
+            raise HTTPException(status_code=404, detail="document_analysis_not_found")
+        return DocumentAnalysisFeedbackResponse(
+            event_id=result.event_id,
+            analysis_id=result.analysis_id,
+            feedback=result.feedback.value,
+        )
 
     @app.post(
         "/api/lens-commands/{command_id}/feedback",
@@ -817,10 +1115,12 @@ def create_app(
         command_id: str,
         request: LensFeedbackRequest,
         recorder: Annotated[RecordLensFeedback, Depends(get_lens_feedback_recorder)],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> LensFeedbackResponse:
+        user_id = enforce_authenticated_user(request.user_id, current_user_id)
         result = recorder.execute(
             command_id=command_id,
-            user_id=request.user_id,
+            user_id=user_id,
             session_id=request.session_id,
             feedback=request.feedback,
             correlation_id=request.correlation_id or f"corr_{uuid4().hex}",

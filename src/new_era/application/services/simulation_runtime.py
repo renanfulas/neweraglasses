@@ -21,6 +21,7 @@ from new_era.application.use_cases import (
     EnqueueDocumentAnalysisJob,
     EvaluateAlertCandidate,
     GetDocumentAnalysis,
+    GetDocumentAnalysisFeedback,
     GetJobStatus,
     GetSessionTrace,
     GetUserSession,
@@ -28,6 +29,7 @@ from new_era.application.use_cases import (
     ListUserSessions,
     ProcessAlertCandidate,
     ProcessObservation,
+    RecordDocumentAnalysisFeedback,
     RecordLensFeedback,
     RunDocumentAnalysisJob,
     StartUserSession,
@@ -41,11 +43,14 @@ from new_era.infrastructure.events import InMemoryEventStore, SQLiteEventStore
 from new_era.infrastructure.jobs import (
     InMemoryDocumentAnalysisJobPayloadStore,
     InMemoryJobStore,
+    SQLiteDocumentAnalysisJobPayloadStore,
+    SQLiteJobStore,
     ThreadedDocumentAnalysisJobWorker,
 )
 from new_era.infrastructure.observations import SimpleSimulationObservationAdapter
 from new_era.infrastructure.ocr import RapidOCRAdapter
 from new_era.infrastructure.sessions import InMemorySessionStore, SQLiteSessionStore
+from new_era.infrastructure.documents import SQLiteDocumentAnalysisStore
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,6 +63,8 @@ class SimulationRuntime:
     job_status_reader: GetJobStatus
     document_analysis_reader: GetDocumentAnalysis
     document_analyses_by_session_reader: ListDocumentAnalysesBySession
+    document_analysis_feedback_reader: GetDocumentAnalysisFeedback
+    document_analysis_feedback_recorder: RecordDocumentAnalysisFeedback
     lens_feedback_recorder: RecordLensFeedback
     user_session_starter: StartUserSession
     user_session_reader: GetUserSession
@@ -81,12 +88,19 @@ class SimulationRuntime:
         if configured_storage_path:
             event_store: EventStore = SQLiteEventStore(configured_storage_path)
             session_store: SessionStore = SQLiteSessionStore(configured_storage_path)
+            job_store: JobStore = SQLiteJobStore(configured_storage_path)
+            document_job_payload_store: DocumentAnalysisJobPayloadStore = (
+                SQLiteDocumentAnalysisJobPayloadStore(configured_storage_path)
+            )
+            document_analysis_store: DocumentAnalysisStore = (
+                SQLiteDocumentAnalysisStore(configured_storage_path)
+            )
         else:
             event_store = InMemoryEventStore()
             session_store = InMemorySessionStore()
-        job_store = InMemoryJobStore()
-        document_job_payload_store = InMemoryDocumentAnalysisJobPayloadStore()
-        document_analysis_store = InMemoryDocumentAnalysisStore()
+            job_store = InMemoryJobStore()
+            document_job_payload_store = InMemoryDocumentAnalysisJobPayloadStore()
+            document_analysis_store = InMemoryDocumentAnalysisStore()
         device_gateway = device_gateway or build_device_gateway_from_environment()
         observation_interpreter: ObservationInterpreter = SimpleSimulationObservationAdapter()
         attention_policy = AttentionPolicy()
@@ -145,6 +159,13 @@ class SimulationRuntime:
             ),
             document_analyses_by_session_reader=ListDocumentAnalysesBySession(
                 analysis_store=document_analysis_store,
+            ),
+            document_analysis_feedback_reader=GetDocumentAnalysisFeedback(
+                event_store=event_store,
+            ),
+            document_analysis_feedback_recorder=RecordDocumentAnalysisFeedback(
+                analysis_store=document_analysis_store,
+                event_store=event_store,
             ),
             lens_feedback_recorder=RecordLensFeedback(event_store=event_store),
             user_session_starter=StartUserSession(session_store=session_store),

@@ -26,6 +26,7 @@ class EventType(StrEnum):
     JOB_STATUS_UPDATED = "job_status_updated"
     JOB_COMPLETED = "job_completed"
     JOB_FAILED = "job_failed"
+    DOCUMENT_ANALYSIS_FEEDBACK_GIVEN = "document_analysis_feedback_given"
     AI_CALL_COMPLETED = "ai_call_completed"
     AI_CALL_FAILED = "ai_call_failed"
     LENS_COMMAND_DELIVERED = "lens_command_delivered"

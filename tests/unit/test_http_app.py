@@ -9,6 +9,10 @@ from new_era.infrastructure.http.app import create_app
 
 
 class HttpAppTest(TestCase):
+    @staticmethod
+    def _auth_headers(user_id: str) -> dict[str, str]:
+        return {"X-New-Era-User-Id": user_id}
+
     def test_root_serves_pwa_shell(self) -> None:
         client = TestClient(create_app())
 
@@ -17,6 +21,14 @@ class HttpAppTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Context, attention, and display in one loop.", response.text)
         self.assertIn("Contracts", response.text)
+
+    def test_analysis_detail_route_serves_pwa_shell(self) -> None:
+        client = TestClient(create_app())
+
+        response = client.get("/document-analyses/analysis_demo/view")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Contracts Session Library", response.text)
 
     def test_health_endpoint_returns_ok(self) -> None:
         client = TestClient(create_app())
@@ -46,7 +58,7 @@ class HttpAppTest(TestCase):
         self.assertIn('"name": "New Era Simulator"', response.text)
 
     def test_grocery_simulation_endpoint_processes_missing_item(self) -> None:
-        client = TestClient(create_app())
+        client = TestClient(create_app(), headers=self._auth_headers("user_1"))
 
         response = client.post(
             "/api/simulations/grocery/missing-item",
@@ -85,7 +97,7 @@ class HttpAppTest(TestCase):
         )
 
     def test_grocery_simulation_endpoint_returns_suppressed_for_low_confidence(self) -> None:
-        client = TestClient(create_app())
+        client = TestClient(create_app(), headers=self._auth_headers("user_1"))
 
         response = client.post(
             "/api/simulations/grocery/missing-item",
@@ -122,7 +134,7 @@ class HttpAppTest(TestCase):
         )
 
     def test_document_contract_review_endpoint_processes_risk_signal(self) -> None:
-        client = TestClient(create_app())
+        client = TestClient(create_app(), headers=self._auth_headers("user_1"))
 
         response = client.post(
             "/api/simulations/documents/contract-review",
@@ -156,7 +168,7 @@ class HttpAppTest(TestCase):
         )
 
     def test_document_contract_review_endpoint_returns_observation_only_when_no_risk_is_found(self) -> None:
-        client = TestClient(create_app())
+        client = TestClient(create_app(), headers=self._auth_headers("user_1"))
 
         response = client.post(
             "/api/simulations/documents/contract-review",
@@ -184,7 +196,7 @@ class HttpAppTest(TestCase):
         )
 
     def test_document_contract_review_endpoint_supports_image_ocr(self) -> None:
-        client = TestClient(create_app())
+        client = TestClient(create_app(), headers=self._auth_headers("user_1"))
         image = Image.new("RGB", (1200, 240), "white")
         draw = ImageDraw.Draw(image)
         font = ImageFont.load_default(size=48)
@@ -220,7 +232,7 @@ class HttpAppTest(TestCase):
         self.assertGreater(payload["analysis"]["source_confidence"], 0.5)
 
     def test_camera_bridge_contract_review_processes_real_camera_image(self) -> None:
-        client = TestClient(create_app())
+        client = TestClient(create_app(), headers=self._auth_headers("user_camera"))
         image = Image.new("RGB", (1200, 240), "white")
         draw = ImageDraw.Draw(image)
         font = ImageFont.load_default(size=48)
@@ -274,7 +286,7 @@ class HttpAppTest(TestCase):
         self.assertEqual(analysis_response.json()["source_type"], "camera:phone_camera")
 
     def test_camera_bridge_contract_review_rejects_unsupported_content_type(self) -> None:
-        client = TestClient(create_app())
+        client = TestClient(create_app(), headers=self._auth_headers("user_camera"))
 
         response = client.post(
             "/api/device-bridge/camera/document-contract-review",
@@ -290,7 +302,7 @@ class HttpAppTest(TestCase):
         self.assertEqual(response.json()["detail"], "unsupported_camera_content_type")
 
     def test_document_analysis_read_model_endpoints_return_persisted_analysis(self) -> None:
-        client = TestClient(create_app())
+        client = TestClient(create_app(), headers=self._auth_headers("user_1"))
 
         response = client.post(
             "/api/simulations/documents/contract-review",
@@ -328,10 +340,61 @@ class HttpAppTest(TestCase):
             detail_payload["analysis"]["summary_title"],
             "Contract clause needs attention",
         )
+        self.assertIsNone(detail_payload["feedback"])
+
+    def test_document_analysis_feedback_endpoint_persists_feedback_and_enriches_read_models(self) -> None:
+        client = TestClient(create_app(), headers=self._auth_headers("user_1"))
+
+        response = client.post(
+            "/api/simulations/documents/contract-review",
+            json={
+                "user_id": "user_1",
+                "session_id": "session_analysis_feedback_1",
+                "document_text": (
+                    "Contrato com renovacao automatica, multa de cancelamento "
+                    "e fidelidade de 12 meses."
+                ),
+                "confidence": 0.92,
+                "mode": "balanced",
+                "recent_category_count": 0,
+                "observation_id": "obs_doc_analysis_feedback_1",
+                "correlation_id": "corr_doc_analysis_feedback_1",
+                "trace_id": "trace_doc_analysis_feedback_1",
+            },
+        )
+        analysis_id = response.json()["analysis_id"]
+
+        feedback_response = client.post(
+            f"/api/document-analyses/{analysis_id}/feedback",
+            json={
+                "user_id": "user_1",
+                "session_id": "session_analysis_feedback_1",
+                "feedback": "useful",
+                "correlation_id": "corr_analysis_feedback_2",
+                "trace_id": "trace_doc_analysis_feedback_1",
+            },
+        )
+        detail_response = client.get(f"/api/document-analyses/{analysis_id}")
+        list_response = client.get("/api/sessions/session_analysis_feedback_1/document-analyses")
+        trace_response = client.get(
+            "/api/sessions/session_analysis_feedback_1/trace?trace_id=trace_doc_analysis_feedback_1"
+        )
+
+        self.assertEqual(feedback_response.status_code, 200)
+        self.assertEqual(feedback_response.json()["analysis_id"], analysis_id)
+        self.assertEqual(feedback_response.json()["feedback"], "useful")
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(detail_response.json()["feedback"], "useful")
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(list_response.json()[0]["feedback"], "useful")
+        self.assertEqual(
+            trace_response.json()["session_trace"][-1]["event_type"],
+            "document_analysis_feedback_given",
+        )
 
     def test_session_trace_endpoint_reads_persisted_trace_for_same_app_runtime(self) -> None:
         app = create_app()
-        client = TestClient(app)
+        client = TestClient(app, headers=self._auth_headers("user_1"))
 
         client.post(
             "/api/simulations/grocery/missing-item",
@@ -366,7 +429,7 @@ class HttpAppTest(TestCase):
 
     def test_user_session_endpoints_create_list_and_filter_trace(self) -> None:
         app = create_app()
-        client = TestClient(app)
+        client = TestClient(app, headers=self._auth_headers("user_sessions"))
 
         create_response = client.post(
             "/api/users/user_sessions/sessions",
@@ -410,7 +473,7 @@ class HttpAppTest(TestCase):
 
     def test_user_scoped_trace_rejects_other_user_session(self) -> None:
         app = create_app()
-        client = TestClient(app)
+        client = TestClient(app, headers=self._auth_headers("user_owner"))
 
         create_response = client.post(
             "/api/users/user_owner/sessions",
@@ -419,7 +482,8 @@ class HttpAppTest(TestCase):
         session_id = create_response.json()["session_id"]
 
         response = client.get(
-            f"/api/users/other_user/sessions/{session_id}/trace"
+            f"/api/users/other_user/sessions/{session_id}/trace",
+            headers=self._auth_headers("other_user"),
         )
 
         self.assertEqual(response.status_code, 404)
@@ -427,7 +491,7 @@ class HttpAppTest(TestCase):
 
     def test_document_analysis_job_endpoints_support_idempotent_enqueue_and_status(self) -> None:
         app = create_app()
-        client = TestClient(app)
+        client = TestClient(app, headers=self._auth_headers("user_1"))
 
         document_text = (
             "Contrato com renovacao automatica, multa de cancelamento "
@@ -480,7 +544,7 @@ class HttpAppTest(TestCase):
 
     def test_document_analysis_job_worker_completes_and_result_endpoint_returns_analysis(self) -> None:
         app = create_app()
-        client = TestClient(app)
+        client = TestClient(app, headers=self._auth_headers("user_1"))
 
         enqueue_response = client.post(
             "/api/jobs/documents/contract-analysis",
@@ -527,9 +591,124 @@ class HttpAppTest(TestCase):
             ],
         )
 
+    def test_document_analysis_job_worker_accepts_uploaded_image_payload(self) -> None:
+        app = create_app()
+        client = TestClient(app, headers=self._auth_headers("user_image_job"))
+        image = Image.new("RGB", (1200, 240), "white")
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.load_default(size=48)
+        draw.text(
+            (40, 80),
+            "AUTOMATIC RENEWAL CANCELLATION FEE",
+            fill="black",
+            font=font,
+        )
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        image_base64 = base64.b64encode(buffer.getvalue()).decode("ascii")
+
+        enqueue_response = client.post(
+            "/api/jobs/documents/contract-analysis",
+            json={
+                "user_id": "user_image_job",
+                "session_id": "session_image_jobs",
+                "artifact_label": "camera-capture.png",
+                "source_type": "pwa_camera_or_upload",
+                "idempotency_key": "idem_image_contract_456",
+                "document_image_base64": image_base64,
+                "observation_id": "obs_doc_image_job_1",
+                "correlation_id": "corr_image_jobs_1",
+                "trace_id": "trace_image_jobs_1",
+            },
+        )
+        job_id = enqueue_response.json()["job_id"]
+
+        self.assertEqual(enqueue_response.status_code, 200)
+        self.assertTrue(app.state.runtime.document_job_worker.wait_until_idle(timeout_seconds=15))
+        status_response = client.get(f"/api/jobs/{job_id}")
+        result_response = client.get(f"/api/jobs/{job_id}/result")
+
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(result_response.status_code, 200)
+        self.assertEqual(status_response.json()["status"], "succeeded")
+        self.assertEqual(status_response.json()["metadata"]["source_type"], "pwa_camera_or_upload")
+        self.assertEqual(
+            result_response.json()["analysis"]["summary_title"],
+            "Contract clause needs attention",
+        )
+
+    def test_multipart_document_upload_creates_job_and_local_artifact(self) -> None:
+        app = create_app()
+        client = TestClient(app, headers=self._auth_headers("user_upload_job"))
+        image = Image.new("RGB", (1200, 240), "white")
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.load_default(size=48)
+        draw.text(
+            (40, 80),
+            "AUTOMATIC RENEWAL CANCELLATION FEE",
+            fill="black",
+            font=font,
+        )
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        upload_bytes = buffer.getvalue()
+
+        response = client.post(
+            "/api/uploads/documents/contract-analysis",
+            data={
+                "user_id": "user_upload_job",
+                "session_id": "session_upload_jobs",
+                "idempotency_key": "idem_upload_contract_456",
+                "mode": "balanced",
+                "recent_category_count": "0",
+                "observation_id": "obs_doc_upload_job_1",
+                "correlation_id": "corr_upload_jobs_1",
+                "trace_id": "trace_upload_jobs_1",
+            },
+            files={
+                "artifact": ("camera-capture.png", upload_bytes, "image/png"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "queued")
+        self.assertEqual(payload["metadata"]["artifact_label"], "camera-capture.png")
+        self.assertEqual(payload["metadata"]["source_type"], "pwa_multipart_upload")
+        self.assertTrue(any(app.state.upload_dir.iterdir()))
+
+        self.assertTrue(app.state.runtime.document_job_worker.wait_until_idle(timeout_seconds=15))
+        status_response = client.get(f"/api/jobs/{payload['job_id']}")
+        result_response = client.get(f"/api/jobs/{payload['job_id']}/result")
+
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(status_response.json()["status"], "succeeded")
+        self.assertEqual(result_response.status_code, 200)
+        self.assertEqual(
+            result_response.json()["analysis"]["summary_title"],
+            "Contract clause needs attention",
+        )
+
+    def test_multipart_document_upload_rejects_unsupported_content_type(self) -> None:
+        client = TestClient(create_app(), headers=self._auth_headers("user_upload_job"))
+
+        response = client.post(
+            "/api/uploads/documents/contract-analysis",
+            data={
+                "user_id": "user_upload_job",
+                "session_id": "session_upload_jobs",
+            },
+            files={
+                "artifact": ("contract.txt", b"plain text contract", "text/plain"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 415)
+        self.assertEqual(response.json()["detail"], "unsupported_upload_content_type")
+
     def test_document_analysis_job_success_requires_persisted_analysis_id(self) -> None:
         app = create_app()
-        client = TestClient(app)
+        client = TestClient(app, headers=self._auth_headers("user_1"))
 
         job = app.state.runtime.document_job_enqueuer.execute(
             user_id="user_1",
@@ -565,7 +744,7 @@ class HttpAppTest(TestCase):
         )
 
     def test_document_analysis_job_endpoint_requires_document_input(self) -> None:
-        client = TestClient(create_app())
+        client = TestClient(create_app(), headers=self._auth_headers("user_1"))
 
         response = client.post(
             "/api/jobs/documents/contract-analysis",
@@ -586,9 +765,38 @@ class HttpAppTest(TestCase):
             "document_text_or_document_image_base64_required",
         )
 
+    def test_document_contract_review_requires_local_authenticated_user(self) -> None:
+        client = TestClient(create_app())
+
+        response = client.post(
+            "/api/simulations/documents/contract-review",
+            json={
+                "user_id": "user_1",
+                "session_id": "session_1",
+                "document_text": "Contrato com fidelidade de 12 meses e multa.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["detail"], "local_auth_user_required")
+
+    def test_user_session_endpoint_rejects_authenticated_user_mismatch(self) -> None:
+        client = TestClient(create_app(), headers=self._auth_headers("user_owner"))
+
+        response = client.post(
+            "/api/users/other_user/sessions",
+            json={
+                "module": "documents",
+                "title": "Contract review session",
+            },
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["detail"], "authenticated_user_mismatch")
+
     def test_lens_feedback_endpoint_records_feedback_for_delivered_command(self) -> None:
         app = create_app()
-        client = TestClient(app)
+        client = TestClient(app, headers=self._auth_headers("user_feedback"))
 
         simulation_response = client.post(
             "/api/simulations/grocery/missing-item",
@@ -637,7 +845,7 @@ class HttpAppTest(TestCase):
 
     def test_lens_feedback_endpoint_rejects_command_not_owned_by_session(self) -> None:
         app = create_app()
-        client = TestClient(app)
+        client = TestClient(app, headers=self._auth_headers("user_feedback"))
 
         simulation_response = client.post(
             "/api/simulations/grocery/missing-item",
@@ -664,6 +872,7 @@ class HttpAppTest(TestCase):
                 "correlation_id": "corr_feedback_2",
                 "trace_id": "trace_feedback_1",
             },
+            headers=self._auth_headers("other_user"),
         )
 
         self.assertEqual(feedback_response.status_code, 404)

@@ -86,9 +86,19 @@
                 <textarea id="document-text" name="document_text" rows="8">Plano com fidelidade de 12 meses, renovacao automatica por igual periodo e multa de cancelamento antecipado.</textarea>
               </label>
               <label>
-                <span>Contract image (optional OCR)</span>
-                <input id="document-image" name="document_image" type="file" accept="image/png,image/jpeg,image/webp">
+                <span>Capture or upload contract image</span>
+                <input id="document-image" name="document_image" type="file" accept="image/png,image/jpeg,image/webp" capture="environment">
               </label>
+              <div class="document-capture-preview" id="document-capture-preview" data-state="empty">
+                <div class="document-capture-frame">
+                  <img id="document-capture-image" alt="Selected contract capture preview">
+                  <p id="document-capture-empty">No image selected yet.</p>
+                </div>
+                <div class="document-capture-meta">
+                  <strong id="document-capture-title">Camera/upload ready</strong>
+                  <span id="document-capture-copy">Use the file picker or camera capture to feed OCR.</span>
+                </div>
+              </div>
               <label>
                 <span>Confidence</span>
                 <input id="document-confidence" name="confidence" type="range" min="0" max="1" step="0.01" value="0.92">
@@ -139,8 +149,95 @@
                   <button id="job-success-button" type="button" class="job-action-secondary">Set succeeded</button>
                   <button id="job-failed-button" type="button" class="job-action-secondary">Set failed</button>
                   <button id="job-refresh-button" type="button" class="job-action-secondary">Refresh status</button>
+                  <button id="open-linked-analysis-button" type="button" class="job-action-secondary">View result</button>
                 </div>
               </div>
+
+              <section class="analysis-browser" aria-label="Persisted contract analyses">
+                <div class="analysis-browser-header">
+                  <div>
+                    <p class="panel-kicker">Persisted Analyses</p>
+                    <h3>Contracts Session Library</h3>
+                  </div>
+                  <div class="analysis-browser-actions">
+                    <label class="analysis-filter-field">
+                      <span>Search</span>
+                      <input id="analysis-search" type="search" placeholder="Find by summary or clause">
+                    </label>
+                    <label class="analysis-filter-field">
+                      <span>Order</span>
+                      <select id="analysis-sort">
+                        <option value="newest" selected>Newest first</option>
+                        <option value="oldest">Oldest first</option>
+                      </select>
+                    </label>
+                    <button id="refresh-analyses-button" type="button" class="job-action-secondary">Refresh analyses</button>
+                  </div>
+                </div>
+                <div class="analysis-browser-grid">
+                  <ol class="analysis-list" id="analysis-list" aria-live="polite">
+                    <li class="analysis-list-empty">
+                      <h4>No persisted analyses yet</h4>
+                      <p>Run a contract simulation or complete a document job to build a reusable review history.</p>
+                    </li>
+                  </ol>
+                  <article class="analysis-detail" id="analysis-detail">
+                    <p class="analysis-detail-kicker">Analysis detail</p>
+                    <div class="analysis-detail-heading">
+                      <div>
+                        <h3 id="analysis-detail-title">Waiting for a saved review</h3>
+                        <p class="analysis-route-copy" id="analysis-route-copy">Pick a persisted contract analysis to inspect the findings, excerpts, and confidence.</p>
+                      </div>
+                      <span class="analysis-decision-badge" id="analysis-decision-badge">Awaiting review</span>
+                    </div>
+                    <p id="analysis-detail-summary">Pick a persisted contract analysis to inspect the findings, excerpts, and confidence.</p>
+                    <dl class="analysis-detail-meta">
+                      <div>
+                        <dt>Analysis ID</dt>
+                        <dd id="analysis-detail-id">none</dd>
+                      </div>
+                      <div>
+                        <dt>Source</dt>
+                        <dd id="analysis-detail-source">unknown</dd>
+                      </div>
+                      <div>
+                        <dt>Confidence</dt>
+                        <dd id="analysis-detail-confidence">n/a</dd>
+                      </div>
+                      <div>
+                        <dt>Feedback</dt>
+                        <dd id="analysis-detail-feedback">none</dd>
+                      </div>
+                    </dl>
+                    <div class="analysis-detail-actions">
+                      <button id="open-analysis-route-button" type="button" class="job-action-secondary">Open detail route</button>
+                      <button id="analysis-feedback-useful-button" type="button" class="job-action-secondary">Mark useful</button>
+                      <button id="analysis-feedback-not-useful-button" type="button" class="job-action-secondary">Mark not useful</button>
+                    </div>
+                    <div class="analysis-timeline-block">
+                      <div class="analysis-timeline-header">
+                        <p class="panel-kicker">Decision Timeline</p>
+                        <span id="analysis-timeline-caption">The review path will appear here.</span>
+                      </div>
+                      <ol class="analysis-timeline" id="analysis-timeline">
+                        <li class="analysis-findings-empty">No timeline loaded.</li>
+                      </ol>
+                    </div>
+                    <ul class="analysis-findings" id="analysis-findings">
+                      <li class="analysis-findings-empty">No findings loaded.</li>
+                    </ul>
+                    <section class="analysis-review-block" aria-label="What to review before signing">
+                      <div class="analysis-timeline-header">
+                        <p class="panel-kicker">What to review before signing</p>
+                        <span id="analysis-review-caption">Action guidance will appear here.</span>
+                      </div>
+                      <ul class="analysis-review-list" id="analysis-review-list">
+                        <li class="analysis-findings-empty">No review checklist loaded.</li>
+                      </ul>
+                    </section>
+                  </article>
+                </div>
+              </section>
             </form>
           </section>
 

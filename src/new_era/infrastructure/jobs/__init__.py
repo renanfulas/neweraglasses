@@ -4,6 +4,10 @@ from new_era.infrastructure.jobs.in_memory_document_analysis_job_payload_store i
     InMemoryDocumentAnalysisJobPayloadStore,
 )
 from new_era.infrastructure.jobs.in_memory_job_store import InMemoryJobStore
+from new_era.infrastructure.jobs.sqlite_document_analysis_job_payload_store import (
+    SQLiteDocumentAnalysisJobPayloadStore,
+)
+from new_era.infrastructure.jobs.sqlite_job_store import SQLiteJobStore
 from new_era.infrastructure.jobs.threaded_document_analysis_worker import (
     ThreadedDocumentAnalysisJobWorker,
 )
@@ -11,5 +15,7 @@ from new_era.infrastructure.jobs.threaded_document_analysis_worker import (
 __all__ = [
     "InMemoryDocumentAnalysisJobPayloadStore",
     "InMemoryJobStore",
+    "SQLiteDocumentAnalysisJobPayloadStore",
+    "SQLiteJobStore",
     "ThreadedDocumentAnalysisJobWorker",
 ]

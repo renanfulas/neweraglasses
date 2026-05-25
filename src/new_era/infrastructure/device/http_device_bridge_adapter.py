@@ -100,6 +100,8 @@ class HttpDeviceBridgeAdapter(DeviceGateway):
             raise DeviceGatewayError("bridge unavailable") from exc
         except TimeoutError as exc:
             raise DeviceGatewayError("bridge timed out") from exc
+        except OSError as exc:
+            raise DeviceGatewayError("bridge unavailable") from exc
 
         if not response_body:
             return {}

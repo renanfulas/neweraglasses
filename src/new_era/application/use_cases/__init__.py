@@ -32,6 +32,12 @@ from new_era.application.use_cases.record_lens_feedback import (
     LensFeedbackValue,
     RecordLensFeedback,
 )
+from new_era.application.use_cases.record_document_analysis_feedback import (
+    DocumentAnalysisFeedbackResult,
+    DocumentAnalysisFeedbackValue,
+    GetDocumentAnalysisFeedback,
+    RecordDocumentAnalysisFeedback,
+)
 from new_era.application.use_cases.user_sessions import (
     GetUserSession,
     ListUserSessions,
@@ -47,9 +53,12 @@ __all__ = [
     "AdvanceDocumentAnalysisJob",
     "DocumentAnalysisJobTimedOut",
     "DeliverLensCommand",
+    "DocumentAnalysisFeedbackResult",
+    "DocumentAnalysisFeedbackValue",
     "EnqueueDocumentAnalysisJob",
     "EvaluateAlertCandidate",
     "GetDocumentAnalysis",
+    "GetDocumentAnalysisFeedback",
     "GetJobStatus",
     "GetSessionTrace",
     "GetUserSession",
@@ -59,6 +68,7 @@ __all__ = [
     "ListDocumentAnalysesBySession",
     "ObservationProcessingResult",
     "ProcessObservation",
+    "RecordDocumentAnalysisFeedback",
     "ProcessAlertCandidate",
     "RecordLensFeedback",
     "RunDocumentAnalysisJob",

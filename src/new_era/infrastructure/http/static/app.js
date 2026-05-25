@@ -23,6 +23,12 @@ const feedbackBadge = document.getElementById("feedback-badge");
 const feedbackCopy = document.getElementById("feedback-copy");
 const feedbackUsefulButton = document.getElementById("feedback-useful-button");
 const feedbackNotUsefulButton = document.getElementById("feedback-not-useful-button");
+const documentImageInput = document.getElementById("document-image");
+const documentTextInput = document.getElementById("document-text");
+const documentCapturePreview = document.getElementById("document-capture-preview");
+const documentCaptureImage = document.getElementById("document-capture-image");
+const documentCaptureTitle = document.getElementById("document-capture-title");
+const documentCaptureCopy = document.getElementById("document-capture-copy");
 
 const jobStatusBadge = document.getElementById("job-status-badge");
 const jobSummary = document.getElementById("job-summary");
@@ -34,6 +40,27 @@ const jobRunningButton = document.getElementById("job-running-button");
 const jobSuccessButton = document.getElementById("job-success-button");
 const jobFailedButton = document.getElementById("job-failed-button");
 const jobRefreshButton = document.getElementById("job-refresh-button");
+const openLinkedAnalysisButton = document.getElementById("open-linked-analysis-button");
+const refreshAnalysesButton = document.getElementById("refresh-analyses-button");
+const analysisSearchInput = document.getElementById("analysis-search");
+const analysisSortSelect = document.getElementById("analysis-sort");
+const analysisList = document.getElementById("analysis-list");
+const analysisDetailTitle = document.getElementById("analysis-detail-title");
+const analysisRouteCopy = document.getElementById("analysis-route-copy");
+const analysisDecisionBadge = document.getElementById("analysis-decision-badge");
+const analysisDetailSummary = document.getElementById("analysis-detail-summary");
+const analysisDetailId = document.getElementById("analysis-detail-id");
+const analysisDetailSource = document.getElementById("analysis-detail-source");
+const analysisDetailConfidence = document.getElementById("analysis-detail-confidence");
+const analysisDetailFeedback = document.getElementById("analysis-detail-feedback");
+const openAnalysisRouteButton = document.getElementById("open-analysis-route-button");
+const analysisFeedbackUsefulButton = document.getElementById("analysis-feedback-useful-button");
+const analysisFeedbackNotUsefulButton = document.getElementById("analysis-feedback-not-useful-button");
+const analysisTimelineCaption = document.getElementById("analysis-timeline-caption");
+const analysisTimeline = document.getElementById("analysis-timeline");
+const analysisReviewCaption = document.getElementById("analysis-review-caption");
+const analysisReviewList = document.getElementById("analysis-review-list");
+const analysisFindings = document.getElementById("analysis-findings");
 
 const DEMO_USERS = {
   grocery: "demo-grocery-user",
@@ -44,6 +71,8 @@ const DEMO_SESSIONS = {
   grocery: "demo-grocery-session",
   documents: "demo-documents-session",
 };
+const LOCAL_AUTH_HEADER = "X-New-Era-User-Id";
+const MAX_DOCUMENT_IMAGE_BYTES = 7_500_000;
 
 const moduleTabs = Array.from(document.querySelectorAll(".module-tab"));
 const moduleForms = {
@@ -79,7 +108,64 @@ const appState = {
   currentDocumentJobId: null,
   currentDocumentJobTraceId: null,
   lastDocumentAnalysisId: null,
+  documentAnalyses: [],
+  selectedDocumentAnalysisId: null,
 };
+
+function getAnalysisViewPath(analysisId) {
+  return `/document-analyses/${encodeURIComponent(analysisId)}/view`;
+}
+
+function getSelectedDocumentAnalysis() {
+  if (!appState.selectedDocumentAnalysisId) {
+    return null;
+  }
+  return (
+    appState.documentAnalyses.find(
+      (record) => record.analysis_id === appState.selectedDocumentAnalysisId,
+    ) || null
+  );
+}
+
+function getFindingSeverity(finding) {
+  if (!finding) {
+    return "low";
+  }
+  if (finding.confidence >= 0.8) {
+    return "high";
+  }
+  if (finding.confidence >= 0.62) {
+    return "medium";
+  }
+  return "low";
+}
+
+function buildReviewChecklist(record, findings) {
+  if (!findings.length) {
+    return [
+      {
+        title: "Confirm the visible capture is complete",
+        body: "No known risk clause was extracted, so verify the image or text still includes the key commercial terms before signing.",
+      },
+    ];
+  }
+
+  return findings.map((finding) => {
+    const severity = getFindingSeverity(finding);
+    const guidanceByType = {
+      automatic_renewal: "Check when renewal happens, how to cancel before renewal, and whether notice is required.",
+      cancellation_fee: "Confirm the exact penalty amount and whether there is any proportional reduction over time.",
+      minimum_commitment: "Review the minimum term and whether the agreement locks you in longer than expected.",
+      fees_or_interest: "Validate the extra charges, trigger conditions, and whether interest compounds over time.",
+    };
+    return {
+      title: `${severity === "high" ? "Prioritize" : "Review"} ${finding.label || "this clause"}`,
+      body:
+        guidanceByType[finding.finding_type] ||
+        "Read this clause end to end and confirm the practical consequence before signing.",
+    };
+  });
+}
 
 const simulations = {
   grocery: {
@@ -117,14 +203,12 @@ const simulations = {
     confidenceInput: document.getElementById("document-confidence"),
     confidenceOutput: document.getElementById("document-confidence-output"),
     async buildRequest() {
-      const documentImageInput = document.getElementById("document-image");
-      const selectedFile = documentImageInput.files[0];
-      const documentImageBase64 = selectedFile ? await fileToBase64(selectedFile) : null;
+      const inputPayload = await buildDocumentInputPayload();
       return {
         user_id: DEMO_USERS.documents,
         session_id: DEMO_SESSIONS.documents,
-        document_text: document.getElementById("document-text").value.trim(),
-        document_image_base64: documentImageBase64,
+        document_text: inputPayload.documentText,
+        document_image_base64: inputPayload.documentImageBase64,
         confidence: Number(document.getElementById("document-confidence").value),
         mode: document.getElementById("document-mode").value,
         recent_category_count: Number(document.getElementById("document-recent-count").value),
@@ -164,17 +248,79 @@ function createId(prefix) {
   return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
-function fileToBase64(file) {
+function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result || "");
-      const base64Value = result.includes(",") ? result.split(",")[1] : result;
-      resolve(base64Value);
-    };
+    reader.onload = () => resolve(String(reader.result || ""));
     reader.onerror = () => reject(new Error("Could not read the selected image file."));
     reader.readAsDataURL(file);
   });
+}
+
+async function fileToBase64(file) {
+  const dataUrl = await fileToDataUrl(file);
+  return dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
+}
+
+function validateDocumentImageFile(file) {
+  if (!file) {
+    return;
+  }
+  if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+    throw new Error("Select a PNG, JPEG, or WebP image.");
+  }
+  if (file.size > MAX_DOCUMENT_IMAGE_BYTES) {
+    throw new Error("Selected image is too large for the local MVP intake.");
+  }
+}
+
+async function buildDocumentInputPayload() {
+  const selectedFile = documentImageInput.files[0] || null;
+  validateDocumentImageFile(selectedFile);
+  const documentText = documentTextInput.value.trim();
+  const documentImageBase64 = selectedFile ? await fileToBase64(selectedFile) : null;
+  if (!documentText && !documentImageBase64) {
+    throw new Error("Add contract text or capture/upload an image before processing.");
+  }
+  return {
+    selectedFile,
+    documentText: documentText || null,
+    documentImageBase64,
+  };
+}
+
+async function renderDocumentCapturePreview() {
+  const selectedFile = documentImageInput.files[0] || null;
+  if (!selectedFile) {
+    documentCapturePreview.dataset.state = "empty";
+    documentCaptureImage.removeAttribute("src");
+    documentCaptureTitle.textContent = "Camera/upload ready";
+    documentCaptureCopy.textContent = "Use the file picker or camera capture to feed OCR.";
+    return;
+  }
+
+  try {
+    validateDocumentImageFile(selectedFile);
+    documentCaptureImage.src = await fileToDataUrl(selectedFile);
+    documentCapturePreview.dataset.state = "ready";
+    documentCaptureTitle.textContent = selectedFile.name || "Captured contract image";
+    documentCaptureCopy.textContent = `${Math.round(selectedFile.size / 1024)} KB image ready for OCR and async analysis.`;
+  } catch (error) {
+    documentCapturePreview.dataset.state = "empty";
+    documentCaptureImage.removeAttribute("src");
+    documentCaptureTitle.textContent = "Image cannot be used";
+    documentCaptureCopy.textContent = error.message;
+  }
+}
+
+function buildAuthHeaders(userId, includeJson = false) {
+  const headers = {
+    [LOCAL_AUTH_HEADER]: userId,
+  };
+  if (includeJson) {
+    headers["Content-Type"] = "application/json";
+  }
+  return headers;
 }
 
 const MODULE_LABELS = {
@@ -434,17 +580,365 @@ function renderJobState(job) {
     jobIdNode.textContent = "none";
     jobSourceNode.textContent = "pwa_simulation";
     jobAnalysisIdNode.textContent = appState.lastDocumentAnalysisId || "none";
+    openLinkedAnalysisButton.disabled = !appState.lastDocumentAnalysisId;
     setAsyncState("documents", "idle");
     return;
   }
 
+  const linkedAnalysisId = job.metadata.analysis_id || job.result_id || appState.lastDocumentAnalysisId || null;
   jobStatusBadge.textContent = job.status;
   jobStatusBadge.dataset.state = job.status;
   jobSummary.textContent = `Job ${job.job_id} is currently ${job.status}.`;
   jobIdNode.textContent = job.job_id;
   jobSourceNode.textContent = job.metadata.source_type || "pwa_simulation";
-  jobAnalysisIdNode.textContent = job.metadata.analysis_id || appState.lastDocumentAnalysisId || "none";
+  jobAnalysisIdNode.textContent = linkedAnalysisId || "none";
+  openLinkedAnalysisButton.disabled = !linkedAnalysisId;
   setAsyncState("documents", job.status);
+}
+
+function getVisibleDocumentAnalyses(records) {
+  const searchTerm = analysisSearchInput.value.trim().toLowerCase();
+  const ordered = [...records].sort((left, right) => {
+    const leftDate = Date.parse(left.created_at || "") || 0;
+    const rightDate = Date.parse(right.created_at || "") || 0;
+    return analysisSortSelect.value === "oldest" ? leftDate - rightDate : rightDate - leftDate;
+  });
+
+  if (!searchTerm) {
+    return ordered;
+  }
+
+  return ordered.filter((record) => {
+    const haystack = [
+      record.analysis?.summary_title,
+      record.analysis?.summary_body,
+      record.source_type,
+      ...(Array.isArray(record.analysis?.findings)
+        ? record.analysis.findings.flatMap((finding) => [finding.label, finding.excerpt])
+        : []),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(searchTerm);
+  });
+}
+
+function renderAnalysisDetail(record) {
+  if (!record) {
+    analysisDetailTitle.textContent = "Waiting for a saved review";
+    analysisRouteCopy.textContent =
+      "Pick a persisted contract analysis to inspect the findings, excerpts, confidence, and timeline.";
+    analysisDecisionBadge.textContent = "Awaiting review";
+    analysisDecisionBadge.dataset.state = "idle";
+    analysisDetailSummary.textContent =
+      "Pick a persisted contract analysis to inspect the findings, excerpts, and confidence.";
+    analysisDetailId.textContent = "none";
+    analysisDetailSource.textContent = "unknown";
+    analysisDetailConfidence.textContent = "n/a";
+    analysisDetailFeedback.textContent = "none";
+    openAnalysisRouteButton.disabled = true;
+    analysisFeedbackUsefulButton.disabled = true;
+    analysisFeedbackNotUsefulButton.disabled = true;
+    analysisFindings.innerHTML = '<li class="analysis-findings-empty">No findings loaded.</li>';
+    analysisReviewCaption.textContent = "Action guidance will appear here.";
+    analysisReviewList.innerHTML =
+      '<li class="analysis-findings-empty">No review checklist loaded.</li>';
+    return;
+  }
+
+  analysisDetailTitle.textContent = record.analysis.summary_title || "Contract review";
+  analysisRouteCopy.textContent =
+    "Use this view to decide quickly whether the clause deserves a second pass before signing.";
+  analysisDetailSummary.textContent =
+    record.analysis.summary_body || "No summary body was stored for this analysis.";
+  analysisDetailId.textContent = record.analysis_id;
+  analysisDetailSource.textContent = record.source_type || "unknown";
+  analysisDetailConfidence.textContent =
+    typeof record.analysis.review_confidence === "number"
+      ? record.analysis.review_confidence.toFixed(2)
+      : "n/a";
+  analysisDetailFeedback.textContent = record.feedback || "none";
+  const hasFindings = Array.isArray(record.analysis.findings) && record.analysis.findings.length > 0;
+  analysisDecisionBadge.textContent = hasFindings ? "Needs attention" : "No key risk found";
+  analysisDecisionBadge.dataset.state = hasFindings ? "attention" : "clear";
+  openAnalysisRouteButton.disabled = false;
+  analysisFeedbackUsefulButton.disabled = false;
+  analysisFeedbackNotUsefulButton.disabled = false;
+  analysisFeedbackUsefulButton.classList.toggle("feedback-button-selected", record.feedback === "useful");
+  analysisFeedbackNotUsefulButton.classList.toggle(
+    "feedback-button-selected",
+    record.feedback === "not_useful",
+  );
+
+  const findings = Array.isArray(record.analysis.findings) ? record.analysis.findings : [];
+  if (findings.length === 0) {
+    analysisFindings.innerHTML =
+      '<li class="analysis-findings-empty">No findings were extracted for this contract.</li>';
+  } else {
+    analysisFindings.innerHTML = findings
+      .map((finding) => {
+        const severity = getFindingSeverity(finding);
+        const confidence =
+          typeof finding.confidence === "number" ? finding.confidence.toFixed(2) : "n/a";
+        return `
+          <li class="analysis-finding-card" data-severity="${escapeHtml(severity)}">
+            <div class="analysis-finding-header">
+              <strong>${escapeHtml(finding.label || "Finding")}</strong>
+              <div class="analysis-finding-meta">
+                <span class="analysis-severity-badge" data-severity="${escapeHtml(severity)}">${escapeHtml(
+                  severity,
+                )} severity</span>
+                <span class="analysis-confidence-badge">Confidence ${escapeHtml(confidence)}</span>
+              </div>
+            </div>
+            <p class="analysis-excerpt">${escapeHtml(finding.excerpt || "No excerpt available.")}</p>
+          </li>
+        `;
+      })
+      .join("");
+  }
+
+  const checklist = buildReviewChecklist(record, findings);
+  analysisReviewCaption.textContent = `${checklist.length} review checkpoints before signing`;
+  analysisReviewList.innerHTML = checklist
+    .map(
+      (item) => `
+        <li>
+          <strong>${escapeHtml(item.title)}</strong>
+          <p>${escapeHtml(item.body)}</p>
+        </li>
+      `,
+    )
+    .join("");
+}
+
+async function openDocumentAnalysis(analysisId, { pushRoute = false } = {}) {
+  if (!analysisId) {
+    return;
+  }
+
+  const cachedRecord = appState.documentAnalyses.find((record) => record.analysis_id === analysisId);
+  if (cachedRecord) {
+    appState.selectedDocumentAnalysisId = analysisId;
+    renderAnalysisList(appState.documentAnalyses);
+    if (pushRoute) {
+      history.pushState({ analysisId }, "", getAnalysisViewPath(analysisId));
+    }
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/document-analyses/${encodeURIComponent(analysisId)}`, {
+      headers: buildAuthHeaders(DEMO_USERS.documents),
+    });
+    if (!response.ok) {
+      throw new Error(`Analysis lookup failed with status ${response.status}`);
+    }
+
+    const payload = await response.json();
+    appState.documentAnalyses = [payload, ...appState.documentAnalyses.filter((record) => record.analysis_id !== payload.analysis_id)];
+    appState.selectedDocumentAnalysisId = analysisId;
+    renderAnalysisList(appState.documentAnalyses);
+    if (pushRoute) {
+      history.pushState({ analysisId }, "", getAnalysisViewPath(analysisId));
+    }
+  } catch (error) {
+    setStatus("API error", true);
+    analysisDetailTitle.textContent = "Analysis lookup unavailable";
+    analysisDetailSummary.textContent = error.message;
+    analysisDetailId.textContent = analysisId;
+    analysisDetailSource.textContent = "unknown";
+    analysisDetailConfidence.textContent = "n/a";
+    analysisFindings.innerHTML =
+      '<li class="analysis-findings-empty">The linked analysis could not be loaded right now.</li>';
+  }
+}
+
+async function submitDocumentAnalysisFeedback(feedback) {
+  const record = getSelectedDocumentAnalysis();
+  if (!record) {
+    return;
+  }
+
+  analysisFeedbackUsefulButton.disabled = true;
+  analysisFeedbackNotUsefulButton.disabled = true;
+  setStatus("Saving analysis feedback", "loading");
+  try {
+    const response = await fetch(
+      `/api/document-analyses/${encodeURIComponent(record.analysis_id)}/feedback`,
+      {
+        method: "POST",
+        headers: buildAuthHeaders(DEMO_USERS.documents, true),
+        body: JSON.stringify({
+          user_id: DEMO_USERS.documents,
+          session_id: record.session_id,
+          feedback,
+          correlation_id: createId("corr_analysis_feedback"),
+          trace_id: record.trace_id,
+        }),
+      },
+    );
+    if (!response.ok) {
+      const errorPayload = await response.json().catch(() => null);
+      throw new Error(errorPayload?.detail || `Analysis feedback failed with status ${response.status}`);
+    }
+
+    appState.documentAnalyses = appState.documentAnalyses.map((entry) =>
+      entry.analysis_id === record.analysis_id ? { ...entry, feedback } : entry,
+    );
+    renderAnalysisList(appState.documentAnalyses);
+    await refreshSessionHistory("documents");
+    setStatus("API ready");
+  } catch (error) {
+    setStatus("API error", true);
+    analysisDetailSummary.textContent = error.message;
+    renderAnalysisDetail(getSelectedDocumentAnalysis());
+  }
+}
+
+async function refreshAnalysisTimeline(record) {
+  if (!record) {
+    analysisTimelineCaption.textContent = "The review path will appear here.";
+    analysisTimeline.innerHTML = '<li class="analysis-findings-empty">No timeline loaded.</li>';
+    return;
+  }
+
+  try {
+    const query = new URLSearchParams({
+      trace_id: record.trace_id,
+      module: "documents",
+    });
+    const response = await fetch(
+      `/api/users/${encodeURIComponent(DEMO_USERS.documents)}/sessions/${encodeURIComponent(
+        record.session_id,
+      )}/trace?${query.toString()}`,
+      {
+        headers: buildAuthHeaders(DEMO_USERS.documents),
+      },
+    );
+    if (!response.ok) {
+      throw new Error(`Timeline failed with status ${response.status}`);
+    }
+
+    const payload = await response.json();
+    analysisTimelineCaption.textContent = `${payload.event_count} events in this review trace`;
+    const entries = Array.isArray(payload.session_trace) ? payload.session_trace : [];
+    if (!entries.length) {
+      analysisTimeline.innerHTML = '<li class="analysis-findings-empty">No timeline loaded.</li>';
+      return;
+    }
+
+    analysisTimeline.innerHTML = entries
+      .map(
+        (entry) => `
+          <li>
+            <span class="analysis-timeline-step">${escapeHtml(entry.step || "step")}</span>
+            <h4>${escapeHtml(entry.title || entry.event_type || "Event")}</h4>
+            <p>${escapeHtml(entry.detail || "No detail available.")}</p>
+          </li>
+        `,
+      )
+      .join("");
+  } catch (error) {
+    analysisTimelineCaption.textContent = "Timeline unavailable";
+    analysisTimeline.innerHTML = `
+      <li class="analysis-findings-empty">${escapeHtml(error.message)}</li>
+    `;
+  }
+}
+
+function renderAnalysisList(records) {
+  const visibleRecords = getVisibleDocumentAnalyses(records || []);
+  if (!visibleRecords.length) {
+    analysisList.innerHTML = `
+      <li class="analysis-list-empty">
+        <h4>${records && records.length ? "No analyses match the current filters" : "No persisted analyses yet"}</h4>
+        <p>${
+          records && records.length
+            ? "Try another search term or switch the recency order."
+            : "Run a contract simulation or complete a document job to build a reusable review history."
+        }</p>
+      </li>
+    `;
+    if (!records || records.length === 0) {
+      renderAnalysisDetail(null);
+    }
+    return;
+  }
+
+  const selectedId =
+    appState.selectedDocumentAnalysisId &&
+    visibleRecords.some((record) => record.analysis_id === appState.selectedDocumentAnalysisId)
+      ? appState.selectedDocumentAnalysisId
+      : visibleRecords[0].analysis_id;
+  appState.selectedDocumentAnalysisId = selectedId;
+
+  analysisList.innerHTML = visibleRecords
+    .map((record) => {
+      const activeClass =
+        record.analysis_id === selectedId ? "analysis-list-item analysis-list-item-active" : "analysis-list-item";
+      const confidence =
+        typeof record.analysis.review_confidence === "number"
+          ? record.analysis.review_confidence.toFixed(2)
+          : "n/a";
+      return `
+        <li>
+          <button
+            type="button"
+            class="${activeClass}"
+            data-analysis-id="${escapeHtml(record.analysis_id)}"
+          >
+            <h4>${escapeHtml(record.analysis.summary_title || "Contract review")}</h4>
+            <p>${escapeHtml(record.analysis.summary_body || "No summary available.")}</p>
+            <div class="analysis-list-item-meta">
+              <span>${escapeHtml(record.source_type || "unknown")}</span>
+              <span>Confidence ${escapeHtml(confidence)}</span>
+            </div>
+          </button>
+        </li>
+      `;
+    })
+    .join("");
+
+  analysisList.querySelectorAll("[data-analysis-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      appState.selectedDocumentAnalysisId = button.dataset.analysisId;
+      renderAnalysisList(appState.documentAnalyses);
+    });
+  });
+
+  const selectedRecord =
+    visibleRecords.find((record) => record.analysis_id === selectedId) || visibleRecords[0];
+  renderAnalysisDetail(selectedRecord);
+  refreshAnalysisTimeline(selectedRecord);
+}
+
+async function refreshDocumentAnalyses() {
+  try {
+    const response = await fetch(
+      `/api/sessions/${encodeURIComponent(DEMO_SESSIONS.documents)}/document-analyses`,
+      {
+        headers: buildAuthHeaders(DEMO_USERS.documents),
+      },
+    );
+    if (!response.ok) {
+      throw new Error(`Analyses failed with status ${response.status}`);
+    }
+
+    const payload = await response.json();
+    appState.documentAnalyses = Array.isArray(payload) ? payload : [];
+    renderAnalysisList(appState.documentAnalyses);
+  } catch (error) {
+    appState.documentAnalyses = [];
+    analysisList.innerHTML = `
+      <li class="analysis-list-empty">
+        <h4>Analysis history unavailable</h4>
+        <p>${escapeHtml(error.message)}</p>
+      </li>
+    `;
+    renderAnalysisDetail(null);
+  }
 }
 
 async function refreshSessionHistory(moduleName) {
@@ -472,6 +966,9 @@ async function refreshSessionHistory(moduleName) {
       `/api/users/${encodeURIComponent(userId)}/sessions/${encodeURIComponent(
         sessionId,
       )}/trace?${query.toString()}`,
+      {
+        headers: buildAuthHeaders(userId),
+      },
     );
     if (!response.ok) {
       throw new Error(`History failed with status ${response.status}`);
@@ -508,9 +1005,22 @@ function setActiveModule(moduleName) {
     } else {
       renderJobState(null);
     }
+    refreshDocumentAnalyses();
   }
 
   refreshSessionHistory(moduleName);
+}
+
+async function handleAnalysisRoute() {
+  const match = window.location.pathname.match(/^\/document-analyses\/([^/]+)\/view\/?$/);
+  if (!match) {
+    document.body.classList.remove("analysis-route-active");
+    return;
+  }
+
+  document.body.classList.add("analysis-route-active");
+  setActiveModule("documents");
+  await openDocumentAnalysis(decodeURIComponent(match[1]));
 }
 
 async function submitSimulation(moduleName, event) {
@@ -534,7 +1044,7 @@ async function submitSimulation(moduleName, event) {
   try {
     const response = await fetch(config.endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildAuthHeaders(requestBody.user_id, true),
       body: JSON.stringify(requestBody),
     });
 
@@ -546,6 +1056,7 @@ async function submitSimulation(moduleName, event) {
     validateSimulationPayload(payload);
     if (moduleName === "documents" && payload.analysis_id) {
       appState.lastDocumentAnalysisId = payload.analysis_id;
+      appState.selectedDocumentAnalysisId = payload.analysis_id;
     }
     appState.lastCommandByModule[moduleName] = payload.command;
     outcomeNode.textContent = payload.outcome;
@@ -559,6 +1070,9 @@ async function submitSimulation(moduleName, event) {
     insightLog.innerHTML = config.buildInsight(payload, requestBody);
     renderSessionTrace(payload.session_trace);
     await refreshSessionHistory(moduleName);
+    if (moduleName === "documents") {
+      await refreshDocumentAnalyses();
+    }
     setStatus("API ready");
   } catch (error) {
     appState.lastCommandByModule[moduleName] = null;
@@ -587,7 +1101,7 @@ async function submitLensFeedback(feedback) {
   try {
     const response = await fetch(`/api/lens-commands/${encodeURIComponent(command.command_id)}/feedback`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildAuthHeaders(DEMO_USERS[moduleName], true),
       body: JSON.stringify({
         user_id: DEMO_USERS[moduleName],
         session_id: DEMO_SESSIONS[moduleName],
@@ -611,6 +1125,9 @@ async function submitLensFeedback(feedback) {
         `/api/users/${encodeURIComponent(DEMO_USERS[moduleName])}/sessions/${encodeURIComponent(
           DEMO_SESSIONS[moduleName],
         )}/trace?trace_id=${encodeURIComponent(traceId)}&module=${encodeURIComponent(moduleName)}`,
+        {
+          headers: buildAuthHeaders(DEMO_USERS[moduleName]),
+        },
       );
       if (traceResponse.ok) {
         const tracePayload = await traceResponse.json();
@@ -627,26 +1144,54 @@ async function submitLensFeedback(feedback) {
 
 async function enqueueDocumentJob() {
   const traceId = createId("trace_job");
-  const requestBody = {
-    user_id: DEMO_USERS.documents,
-    session_id: DEMO_SESSIONS.documents,
-    artifact_label: "contract-simulation.txt",
-    source_type: "pwa_simulation",
-    idempotency_key: `idem_${DEMO_SESSIONS.documents}`,
-    correlation_id: createId("corr_job"),
-    trace_id: traceId,
-  };
-
   jobEnqueueButton.disabled = true;
   setAsyncState("documents", "queueing");
   setStatus("Queueing document job", "loading");
 
   try {
-    const response = await fetch("/api/jobs/documents/contract-analysis", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody),
-    });
+    const inputPayload = await buildDocumentInputPayload();
+    let response;
+    if (inputPayload.selectedFile) {
+      const formData = new FormData();
+      formData.append("user_id", DEMO_USERS.documents);
+      formData.append("session_id", DEMO_SESSIONS.documents);
+      formData.append("artifact", inputPayload.selectedFile);
+      formData.append("idempotency_key", createId("idem_upload"));
+      formData.append("confidence", document.getElementById("document-confidence").value);
+      formData.append("mode", document.getElementById("document-mode").value);
+      formData.append("recent_category_count", document.getElementById("document-recent-count").value);
+      formData.append("observation_id", createId("obs_document_upload"));
+      formData.append("correlation_id", createId("corr_upload_job"));
+      formData.append("trace_id", traceId);
+      if (inputPayload.documentText) {
+        formData.append("document_text", inputPayload.documentText);
+      }
+      response = await fetch("/api/uploads/documents/contract-analysis", {
+        method: "POST",
+        headers: buildAuthHeaders(DEMO_USERS.documents),
+        body: formData,
+      });
+    } else {
+      const requestBody = {
+        user_id: DEMO_USERS.documents,
+        session_id: DEMO_SESSIONS.documents,
+        artifact_label: "contract-text-entry.txt",
+        source_type: "pwa_text_entry",
+        idempotency_key: createId("idem_document"),
+        document_text: inputPayload.documentText,
+        confidence: Number(document.getElementById("document-confidence").value),
+        mode: document.getElementById("document-mode").value,
+        recent_category_count: Number(document.getElementById("document-recent-count").value),
+        observation_id: createId("obs_document_job"),
+        correlation_id: createId("corr_job"),
+        trace_id: traceId,
+      };
+      response = await fetch("/api/jobs/documents/contract-analysis", {
+        method: "POST",
+        headers: buildAuthHeaders(DEMO_USERS.documents, true),
+        body: JSON.stringify(requestBody),
+      });
+    }
     if (!response.ok) {
       throw new Error(`Job enqueue failed with status ${response.status}`);
     }
@@ -656,7 +1201,7 @@ async function enqueueDocumentJob() {
     appState.currentDocumentJobTraceId = traceId;
     renderJobState(payload);
     await refreshSessionHistory("documents");
-    setStatus("API ready");
+    setStatus(inputPayload.selectedFile ? "Upload job queued" : "Text job queued");
   } catch (error) {
     jobSummary.textContent = error.message;
     setAsyncState("documents", "error");
@@ -673,12 +1218,19 @@ async function refreshCurrentJobStatus() {
   }
 
   try {
-    const response = await fetch(`/api/jobs/${appState.currentDocumentJobId}`);
+    const response = await fetch(`/api/jobs/${appState.currentDocumentJobId}`, {
+      headers: buildAuthHeaders(DEMO_USERS.documents),
+    });
     if (!response.ok) {
       throw new Error(`Job status failed with status ${response.status}`);
     }
     const payload = await response.json();
     renderJobState(payload);
+    if (payload.status === "succeeded" && payload.result_id) {
+      appState.lastDocumentAnalysisId = payload.result_id;
+      appState.selectedDocumentAnalysisId = payload.result_id;
+      await refreshDocumentAnalyses();
+    }
     setStatus("API ready");
   } catch (error) {
     jobSummary.textContent = error.message;
@@ -712,7 +1264,7 @@ async function transitionCurrentJob(targetStatus) {
     }
     const response = await fetch(`/api/jobs/${appState.currentDocumentJobId}/status`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildAuthHeaders(DEMO_USERS.documents, true),
       body: JSON.stringify(requestBody),
     });
     if (!response.ok) {
@@ -724,6 +1276,11 @@ async function transitionCurrentJob(targetStatus) {
     const payload = await response.json();
     renderJobState(payload);
     await refreshSessionHistory("documents");
+    if (payload.status === "succeeded" && payload.result_id) {
+      appState.lastDocumentAnalysisId = payload.result_id;
+      appState.selectedDocumentAnalysisId = payload.result_id;
+      await refreshDocumentAnalyses();
+    }
     setStatus("API ready");
   } catch (error) {
     jobSummary.textContent = error.message;
@@ -738,6 +1295,8 @@ Object.values(simulations).forEach((config) => {
     updateConfidenceOutput(config.confidenceInput, config.confidenceOutput),
   );
 });
+
+documentImageInput.addEventListener("change", renderDocumentCapturePreview);
 
 moduleTabs.forEach((tab) => {
   tab.addEventListener("click", () => setActiveModule(tab.dataset.module));
@@ -760,14 +1319,38 @@ jobRunningButton.addEventListener("click", () => transitionCurrentJob("running")
 jobSuccessButton.addEventListener("click", () => transitionCurrentJob("succeeded"));
 jobFailedButton.addEventListener("click", () => transitionCurrentJob("failed"));
 jobRefreshButton.addEventListener("click", refreshCurrentJobStatus);
+openLinkedAnalysisButton.addEventListener("click", () =>
+  openDocumentAnalysis(jobAnalysisIdNode.textContent !== "none" ? jobAnalysisIdNode.textContent : null, {
+    pushRoute: true,
+  }),
+);
+refreshAnalysesButton.addEventListener("click", refreshDocumentAnalyses);
+analysisSearchInput.addEventListener("input", () => renderAnalysisList(appState.documentAnalyses));
+analysisSortSelect.addEventListener("change", () => renderAnalysisList(appState.documentAnalyses));
+openAnalysisRouteButton.addEventListener("click", () => {
+  const record = getSelectedDocumentAnalysis();
+  if (record) {
+    history.pushState({ analysisId: record.analysis_id }, "", getAnalysisViewPath(record.analysis_id));
+  }
+});
+analysisFeedbackUsefulButton.addEventListener("click", () => submitDocumentAnalysisFeedback("useful"));
+analysisFeedbackNotUsefulButton.addEventListener("click", () =>
+  submitDocumentAnalysisFeedback("not_useful"),
+);
 feedbackUsefulButton.addEventListener("click", () => submitLensFeedback("useful"));
 feedbackNotUsefulButton.addEventListener("click", () => submitLensFeedback("not_useful"));
+
+window.addEventListener("popstate", () => {
+  handleAnalysisRoute();
+});
 
 setActiveModule("grocery");
 setHistoryScope("latest");
 renderJobState(null);
 updateSessionRail();
 renderFeedbackControls();
+renderDocumentCapturePreview();
+handleAnalysisRoute();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
