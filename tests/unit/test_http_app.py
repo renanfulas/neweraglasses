@@ -12,6 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from new_era.domain.jobs import JobStatus
 from new_era.infrastructure.http.app import create_app
+from new_era.infrastructure.http.schemas import MAX_DOCUMENT_TEXT_LENGTH
 
 
 class HttpAppTest(TestCase):
@@ -1016,6 +1017,96 @@ class HttpAppTest(TestCase):
         self.assertEqual(status_payload["attempts"], 1)
         self.assertIsNotNone(status_payload["result_id"])
         self.assertEqual(status_payload["metadata"]["artifact_label"], "gym-contract.pdf")
+
+    def test_document_analysis_job_accepts_mobile_text_scanner_payload(self) -> None:
+        app = create_app()
+        client = TestClient(app, headers=self._auth_headers("user_mobile_scanner"))
+        document_text = (
+            "Contrato capturado pelo scanner mobile com renovacao automatica, "
+            "fidelidade de 12 meses e multa de cancelamento antecipado."
+        )
+        request_body = {
+            "user_id": "user_mobile_scanner",
+            "session_id": "session_mobile_scanner",
+            "artifact_label": "mobile-scanner-text.txt",
+            "source_type": "mobile_text_scanner",
+            "idempotency_key": "idem_mobile_scanner_text_001",
+            "document_text": document_text,
+            "observation_id": "obs_mobile_scanner_text_1",
+            "correlation_id": "corr_mobile_scanner_text_1",
+            "trace_id": "trace_mobile_scanner_text_1",
+        }
+
+        first_response = client.post(
+            "/api/jobs/documents/contract-analysis",
+            json=request_body,
+        )
+        second_response = client.post(
+            "/api/jobs/documents/contract-analysis",
+            json=request_body | {"correlation_id": "corr_mobile_scanner_text_2"},
+        )
+
+        self.assertEqual(first_response.status_code, 200)
+        self.assertEqual(second_response.status_code, 200)
+        first_payload = first_response.json()
+        second_payload = second_response.json()
+        self.assertEqual(first_payload["status"], "queued")
+        self.assertEqual(first_payload["job_id"], second_payload["job_id"])
+        self.assertEqual(first_payload["metadata"]["source_type"], "mobile_text_scanner")
+        self.assertEqual(second_payload["metadata"]["source_type"], "mobile_text_scanner")
+
+        self.assertTrue(app.state.runtime.document_job_worker.wait_until_idle())
+        status_response = client.get(f"/api/jobs/{first_payload['job_id']}")
+        result_response = client.get(f"/api/jobs/{first_payload['job_id']}/result")
+
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(result_response.status_code, 200)
+        status_payload = status_response.json()
+        result_payload = result_response.json()
+        self.assertEqual(status_payload["status"], "succeeded")
+        self.assertEqual(status_payload["result_id"], result_payload["analysis_id"])
+        self.assertEqual(status_payload["metadata"]["source_type"], "mobile_text_scanner")
+        self.assertEqual(result_payload["source_type"], "mobile_text_scanner")
+        self.assertEqual(
+            result_payload["analysis"]["summary_title"],
+            "Contract clause needs attention",
+        )
+        self.assertNotIn("extracted_text", result_payload["analysis"])
+
+    def test_document_analysis_job_rejects_invalid_mobile_scanner_text(self) -> None:
+        client = TestClient(create_app(), headers=self._auth_headers("user_mobile_scanner"))
+        base_request = {
+            "user_id": "user_mobile_scanner",
+            "session_id": "session_mobile_scanner_invalid",
+            "artifact_label": "mobile-scanner-text.txt",
+            "source_type": "mobile_text_scanner",
+            "idempotency_key": "idem_mobile_scanner_invalid",
+        }
+        cases = [
+            ("empty", "", "string_too_short"),
+            ("short", "renovacao", "string_too_short"),
+            ("too_long", "x" * (MAX_DOCUMENT_TEXT_LENGTH + 1), "string_too_long"),
+        ]
+
+        for label, document_text, expected_error_type in cases:
+            with self.subTest(label=label):
+                response = client.post(
+                    "/api/jobs/documents/contract-analysis",
+                    json=base_request
+                    | {
+                        "idempotency_key": f"idem_mobile_scanner_invalid_{label}",
+                        "document_text": document_text,
+                    },
+                )
+
+                self.assertEqual(response.status_code, 422)
+                self.assertTrue(
+                    any(
+                        error["loc"][-1] == "document_text"
+                        and error["type"] == expected_error_type
+                        for error in response.json()["detail"]
+                    )
+                )
 
     def test_session_jobs_endpoint_lists_user_owned_jobs(self) -> None:
         app = create_app()

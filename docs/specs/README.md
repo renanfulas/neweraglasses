@@ -35,6 +35,7 @@ problem -> spec -> design -> tasks -> implementation -> tests -> telemetry
 | [0002-pwa-shell.md](0002-pwa-shell.md) | Mostly implemented | grocery shell, document shell, service worker, manifest, history and job UX | auth UX, offline mutation queue, browser E2E, push/install polish |
 | [0003-document-mvp-hardening.md](0003-document-mvp-hardening.md) | In progress | artifacts, quotas, retention, feedback metrics, eval harness, offline guardrails | validate_local coverage, more UX polish, broader ops/security follow-through |
 | [0004-auth-boundary.md](0004-auth-boundary.md) | In progress | cookie session boundary, current-user dependency, auth bootstrap endpoints, dev-auth gate | durable production-grade auth UX, full browser hardening, broader auth coverage |
+| [0005-mobile-text-scanner.md](0005-mobile-text-scanner.md) | Planned | minimal scanner-text contract defined against existing document job flow | auth/transport POC decision before native POST testing, ML Kit client POC, scanner comparison set |
 | [spec-template.md](spec-template.md) | Template | reusable structure for future specs | no action needed |
 
 ## Current Working Rule

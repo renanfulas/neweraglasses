@@ -44,6 +44,7 @@ class DocumentContractReviewProcessor(Protocol):
         correlation_id: str,
         trace_id: str,
         artifact_id: str | None = None,
+        source_type: str | None = None,
     ) -> DocumentContractReviewResultLike:
         raise NotImplementedError
 
@@ -591,6 +592,7 @@ class RunDocumentAnalysisJob:
             correlation_id=payload.correlation_id,
             trace_id=payload.trace_id,
             artifact_id=payload.artifact_id,
+            source_type=payload.source_type,
         )
         try:
             return future.result(timeout=job.timeout_seconds)

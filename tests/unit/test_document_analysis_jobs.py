@@ -74,6 +74,7 @@ class FakeDocumentProcessor:
         correlation_id: str,
         trace_id: str,
         artifact_id: str | None = None,
+        source_type: str | None = None,
     ) -> FakeDocumentReviewResult:
         self.calls += 1
         if self.sleep_seconds:
@@ -85,7 +86,7 @@ class FakeDocumentProcessor:
             session_id=session_id,
             observation_id=observation_id,
             trace_id=trace_id,
-            source_type="plain_text" if document_text else "image_ocr",
+            source_type=source_type or ("plain_text" if document_text else "image_ocr"),
             artifact_id=artifact_id,
             analysis=ContractReviewAnalysis(
                 extracted_text=document_text or "OCR text",

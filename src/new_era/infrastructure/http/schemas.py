@@ -14,6 +14,9 @@ from new_era.domain.jobs import JobRecord, JobStatus
 from new_era.domain.sessions import UserSession
 
 
+MAX_DOCUMENT_TEXT_LENGTH = 50_000
+
+
 class HealthResponse(BaseModel):
     status: str
 
@@ -52,7 +55,11 @@ class DocumentContractReviewRequest(BaseModel):
 
     user_id: str | None = None
     session_id: str | None = None
-    document_text: str | None = Field(default=None, min_length=20)
+    document_text: str | None = Field(
+        default=None,
+        min_length=20,
+        max_length=MAX_DOCUMENT_TEXT_LENGTH,
+    )
     document_image_base64: str | None = Field(default=None, max_length=10_500_000)
     confidence: float | None = Field(default=0.92, ge=0, le=1)
     mode: AttentionMode = AttentionMode.BALANCED
@@ -144,7 +151,11 @@ class DocumentAnalysisJobRequest(BaseModel):
     artifact_label: str = Field(min_length=1)
     source_type: str = Field(min_length=1, default="pwa_simulation")
     idempotency_key: str = Field(min_length=8)
-    document_text: str | None = Field(default=None, min_length=20)
+    document_text: str | None = Field(
+        default=None,
+        min_length=20,
+        max_length=MAX_DOCUMENT_TEXT_LENGTH,
+    )
     document_image_base64: str | None = Field(default=None, max_length=10_500_000)
     confidence: float | None = Field(default=0.92, ge=0, le=1)
     mode: AttentionMode = AttentionMode.BALANCED

@@ -69,6 +69,8 @@ src/
     domain/
     application/
     infrastructure/
+apps/
+  mobile-text-scanner/
 tests/
   unit/
 docs/
@@ -100,6 +102,10 @@ These are the docs that should be treated as current:
   Current deterministic/OCR analysis posture and future prompt-contract shape.
 - [docs/architecture/mvp-execution-plan.md](docs/architecture/mvp-execution-plan.md)  
   Coordination reference for the validated local MVP path, frozen contracts, and required checks.
+- [docs/architecture/mobile-text-scanner-execution-plan.md](docs/architecture/mobile-text-scanner-execution-plan.md)
+  Multi-agent coordination plan for the planned ML Kit text-scanner capture path.
+- [docs/architecture/mobile-text-scanner-auth-transport.md](docs/architecture/mobile-text-scanner-auth-transport.md)
+  POC auth and transport boundary for scanner submission without weakening PWA auth.
 
 ### Specs
 
@@ -113,6 +119,8 @@ These are the docs that should be treated as current:
   Document hardening. In progress, with completed and remaining items called out.
 - [docs/specs/0004-auth-boundary.md](docs/specs/0004-auth-boundary.md)  
   Planned auth boundary implementation for the companion surface.
+- [docs/specs/0005-mobile-text-scanner.md](docs/specs/0005-mobile-text-scanner.md)
+  Planned mobile text-scanner capture contract using ML Kit OCR output and the existing document job flow.
 
 ### Evals
 
@@ -166,6 +174,32 @@ Run the MVP local validation pack:
 python .\tools\validate_local.py --with-e2e
 ```
 
+Run the scanner comparison harness:
+
+```powershell
+$env:PYTHONPATH='src'; python .\tools\scanner_comparison_harness.py
+```
+
+Run MVP validation with the scanner comparison included:
+
+```powershell
+python .\tools\validate_local.py --with-e2e --with-scanner-comparison
+```
+
+Open the Android mobile text scanner POC:
+
+```text
+apps/mobile-text-scanner/
+```
+
+Start the backend for an emulator/device scanner test:
+
+```powershell
+$env:PYTHONPATH='src'
+$env:NEW_ERA_ENABLE_DEV_AUTH='1'
+python -m uvicorn new_era.infrastructure.http.app:create_app --factory --host 0.0.0.0 --port 8000
+```
+
 Run the local HTTP device bridge harness:
 
 ```powershell
@@ -204,6 +238,7 @@ The suite currently covers:
 - browser simulation and HTTP device bridge adapters
 - local MVP smoke validation through `tools/validate_local.py`
 - maintained browser E2E smoke through Playwright for the validated MVP journey
+- mobile text scanner contract validation through `tools/scanner_comparison_harness.py`
 
 ## What Changed Recently
 
@@ -220,5 +255,8 @@ The latest completed hardening pass delivered:
 - dev header auth moved behind an explicit `NEW_ERA_ENABLE_DEV_AUTH` gate
 - same-origin validation for cookie-authenticated writes
 - `current-user` session routes so the browser no longer needs `user_id` in companion URLs
+- a contract-only mobile text scanner path using `source_type="mobile_text_scanner"` through the existing document job endpoint
+- a comparison harness for direct text, generated image OCR, and simulated mobile scanner text
+- an isolated Android/Kotlin `apps/mobile-text-scanner` scaffold using ML Kit Text Recognition v2
 
 The next meaningful work is not more plumbing. It is product-grade auth hardening, broader browser coverage beyond the current smoke path, and the remaining modules.

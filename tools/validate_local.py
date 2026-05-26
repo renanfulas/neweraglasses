@@ -19,6 +19,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Skip the full unit suite and only run local smoke probes.",
     )
+    parser.add_argument(
+        "--with-scanner-comparison",
+        action="store_true",
+        help="Also compare direct text, image OCR, and simulated mobile scanner text paths.",
+    )
     return parser.parse_args()
 
 
@@ -169,6 +174,16 @@ with TestClient(
     )
     if bridge_status != 0:
         return bridge_status
+
+    if args.with_scanner_comparison:
+        print("[validate] Running mobile text scanner comparison harness...", flush=True)
+        scanner_status = run_command(
+            [sys.executable, str(repo_root / "tools" / "scanner_comparison_harness.py")],
+            cwd=repo_root,
+            env=base_env,
+        )
+        if scanner_status != 0:
+            return scanner_status
 
     if args.with_e2e:
         print("[validate] Running browser E2E smoke...", flush=True)
