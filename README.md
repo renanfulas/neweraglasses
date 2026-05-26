@@ -26,7 +26,7 @@ What is still not finished:
 
 - production-grade authentication UX, provider integration, and browser hardening
 - UV reminder module implementation
-- browser-level end-to-end PWA coverage
+- broader browser-level end-to-end coverage beyond the maintained smoke flow
 - real hardware integration beyond the HTTP bridge contract
 - LLM-backed document analysis and formal prompt versioning in production
 
@@ -99,7 +99,7 @@ These are the docs that should be treated as current:
 - [docs/architecture/ai-prompt-contracts.md](docs/architecture/ai-prompt-contracts.md)  
   Current deterministic/OCR analysis posture and future prompt-contract shape.
 - [docs/architecture/mvp-execution-plan.md](docs/architecture/mvp-execution-plan.md)  
-  Execution checklist for the local MVP demo path, merge gates, and validation sequence.
+  Coordination reference for the validated local MVP path, frozen contracts, and required checks.
 
 ### Specs
 
@@ -163,7 +163,7 @@ python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
 Run the MVP local validation pack:
 
 ```powershell
-python .\tools\validate_local.py
+python .\tools\validate_local.py --with-e2e
 ```
 
 Run the local HTTP device bridge harness:
@@ -203,7 +203,7 @@ The suite currently covers:
 - PWA HTTP routes and static assets
 - browser simulation and HTTP device bridge adapters
 - local MVP smoke validation through `tools/validate_local.py`
-- optional browser E2E smoke through Playwright
+- maintained browser E2E smoke through Playwright for the validated MVP journey
 
 ## What Changed Recently
 
@@ -221,4 +221,4 @@ The latest completed hardening pass delivered:
 - same-origin validation for cookie-authenticated writes
 - `current-user` session routes so the browser no longer needs `user_id` in companion URLs
 
-The next meaningful work is not more plumbing. It is finishing product-grade behavior around auth, browser E2E coverage, and the remaining modules.
+The next meaningful work is not more plumbing. It is product-grade auth hardening, broader browser coverage beyond the current smoke path, and the remaining modules.

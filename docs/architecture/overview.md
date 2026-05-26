@@ -1,7 +1,7 @@
 # New Era Glasses Architecture Overview
 
 Status: Active reference  
-Last updated: 2026-05-25  
+Last updated: 2026-05-26  
 Owner: New Era product/engineering
 
 ## Purpose
@@ -67,6 +67,8 @@ Implemented and exercised in tests:
 - browser simulation device delivery
 - HTTP device bridge delivery
 - local OCR plus deterministic document analysis
+- local MVP validation pack through `tools/validate_local.py`
+- browser E2E smoke covering the validated MVP path
 - explicit development-only header auth fallback behind configuration
 - `current-user` companion routes for sessions, trace, jobs, and feedback metrics
 
@@ -77,7 +79,7 @@ Not implemented yet, or only partially implemented:
 - production-grade auth hardening, provider-backed identity, and broader browser security posture
 - UV reminder module behavior
 - richer product memory and retrieval layers
-- browser-level end-to-end validation
+- broader browser E2E coverage beyond the maintained smoke journey
 - production queue, worker, and operational monitoring stack
 - native glasses adapter beyond the generic HTTP bridge
 - LLM-backed document reasoning as a production contract
@@ -157,10 +159,10 @@ Strong today:
 - tests cover most document and HTTP flows
 - retention and quota behavior exist in code
 - event metadata redaction is enforced
+- the local MVP path is validated end to end, including browser smoke and device bridge harness
 
 Still weak:
 
-- no browser E2E suite
 - no production-ready auth hardening
 - no distributed worker story
 - no measured production latency telemetry
