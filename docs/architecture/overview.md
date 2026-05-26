@@ -54,6 +54,8 @@ flowchart LR
 Implemented and exercised in tests:
 
 - browser-served PWA shell
+- backend-managed auth session cookie plus `/api/auth/session`, local-password login, and logout
+- same-origin validation for cookie-authenticated writes
 - grocery simulation flow
 - document upload and async document analysis jobs
 - local document artifact lifecycle with delete and expiration
@@ -61,15 +63,18 @@ Implemented and exercised in tests:
 - user-owned session records
 - feedback capture and feedback metrics
 - in-memory runtime plus SQLite persistence
+- SQLite-backed local auth session persistence when the runtime uses a database path
 - browser simulation device delivery
 - HTTP device bridge delivery
 - local OCR plus deterministic document analysis
+- explicit development-only header auth fallback behind configuration
+- `current-user` companion routes for sessions, trace, jobs, and feedback metrics
 
 ## What Is Still Missing
 
 Not implemented yet, or only partially implemented:
 
-- production auth and real user/session security model
+- production-grade auth hardening, provider-backed identity, and broader browser security posture
 - UV reminder module behavior
 - richer product memory and retrieval layers
 - browser-level end-to-end validation
@@ -156,7 +161,7 @@ Strong today:
 Still weak:
 
 - no browser E2E suite
-- no production auth model
+- no production-ready auth hardening
 - no distributed worker story
 - no measured production latency telemetry
 
@@ -166,6 +171,7 @@ This document is current.
 
 Use these next:
 
+- [auth-boundary.md](auth-boundary.md)
 - [pwa-frontend.md](pwa-frontend.md)
 - [security-implementation.md](security-implementation.md)
 - [device-adapters.md](device-adapters.md)

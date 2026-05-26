@@ -22,9 +22,11 @@ SUPPORTED_DOCUMENT_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 
 def enforce_authenticated_user(
-    request_user_id: str,
+    request_user_id: str | None,
     current_user_id: str,
 ) -> str:
+    if request_user_id is None:
+        return current_user_id
     if request_user_id != current_user_id:
         raise HTTPException(status_code=403, detail="authenticated_user_mismatch")
     return current_user_id

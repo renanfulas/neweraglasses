@@ -7,6 +7,16 @@ const insightLog = document.getElementById("insight-log");
 const traceList = document.getElementById("trace-list");
 const historyList = document.getElementById("history-list");
 const networkStatus = document.getElementById("network-status");
+const authBand = document.getElementById("auth-band");
+const authTitle = document.getElementById("auth-title");
+const authCopy = document.getElementById("auth-copy");
+const authUserLabel = document.getElementById("auth-user-label");
+const authExpiryLabel = document.getElementById("auth-expiry-label");
+const authForm = document.getElementById("auth-form");
+const authUserIdInput = document.getElementById("auth-user-id");
+const authPasswordInput = document.getElementById("auth-password");
+const authLoginButton = document.getElementById("auth-login-button");
+const authLogoutButton = document.getElementById("auth-logout-button");
 const refreshHistoryButton = document.getElementById("refresh-history-button");
 const scopeLatestButton = document.getElementById("scope-latest-button");
 const scopeSessionButton = document.getElementById("scope-session-button");
@@ -66,17 +76,12 @@ const analysisReviewCaption = document.getElementById("analysis-review-caption")
 const analysisReviewList = document.getElementById("analysis-review-list");
 const analysisFindings = document.getElementById("analysis-findings");
 
-const DEMO_USERS = {
-  grocery: "demo-grocery-user",
-  documents: "demo-documents-user",
-};
-
 const DEMO_SESSIONS = {
   grocery: "demo-grocery-session",
   documents: "demo-documents-session",
 };
-const LOCAL_AUTH_HEADER = "X-New-Era-User-Id";
 const MAX_DOCUMENT_IMAGE_BYTES = 7_500_000;
+const AUTH_LOCKED_BODY_CLASS = "app-auth-locked";
 
 const moduleTabs = Array.from(document.querySelectorAll(".module-tab"));
 const moduleForms = {
@@ -116,6 +121,12 @@ const appState = {
   lastDocumentAnalysisId: null,
   documentAnalyses: [],
   selectedDocumentAnalysisId: null,
+  currentUserId: null,
+  authState: "loading",
+  authMessage: "Verifying whether this browser already has a valid companion session.",
+  authExpiresAt: null,
+  authExpiryTimerId: null,
+  shellInitialized: false,
 };
 
 function getAnalysisViewPath(analysisId) {
@@ -182,7 +193,6 @@ const simulations = {
     confidenceOutput: document.getElementById("grocery-confidence-output"),
     buildRequest() {
       return {
-        user_id: DEMO_USERS.grocery,
         session_id: DEMO_SESSIONS.grocery,
         item_name: document.getElementById("item-name").value.trim(),
         confidence: Number(document.getElementById("grocery-confidence").value),
@@ -211,7 +221,6 @@ const simulations = {
     async buildRequest() {
       const inputPayload = await buildDocumentInputPayload();
       return {
-        user_id: DEMO_USERS.documents,
         session_id: DEMO_SESSIONS.documents,
         document_text: inputPayload.documentText,
         document_image_base64: inputPayload.documentImageBase64,
@@ -319,14 +328,180 @@ async function renderDocumentCapturePreview() {
   }
 }
 
-function buildAuthHeaders(userId, includeJson = false) {
-  const headers = {
-    [LOCAL_AUTH_HEADER]: userId,
-  };
+function buildAuthHeaders(_userId, includeJson = false) {
+  const headers = {};
   if (includeJson) {
     headers["Content-Type"] = "application/json";
   }
   return headers;
+}
+
+function getCurrentUserId() {
+  return appState.currentUserId;
+}
+
+function getCurrentUserSessionBasePath(sessionId) {
+  return `/api/current-user/sessions/${encodeURIComponent(sessionId)}`;
+}
+
+class AuthRequiredError extends Error {}
+
+function formatAuthExpiry(expiresAt) {
+  if (!expiresAt) {
+    return "unknown";
+  }
+  const parsed = new Date(expiresAt);
+  if (Number.isNaN(parsed.getTime())) {
+    return "unknown";
+  }
+  return parsed.toLocaleString();
+}
+
+function clearAuthExpiryTimer() {
+  if (appState.authExpiryTimerId !== null) {
+    window.clearTimeout(appState.authExpiryTimerId);
+    appState.authExpiryTimerId = null;
+  }
+}
+
+function setAuthRequired(message, state = "unauthenticated") {
+  clearAuthExpiryTimer();
+  appState.currentUserId = null;
+  appState.authExpiresAt = null;
+  appState.authState = state;
+  appState.authMessage = message;
+  renderAuthState();
+}
+
+function scheduleAuthExpiry(expiresAt) {
+  clearAuthExpiryTimer();
+  if (!expiresAt) {
+    return;
+  }
+  const expiresAtTime = new Date(expiresAt).getTime();
+  if (Number.isNaN(expiresAtTime)) {
+    return;
+  }
+  const delayMs = expiresAtTime - Date.now();
+  if (delayMs <= 0) {
+    setAuthRequired("Your session expired. Sign in again to continue.", "reauth-required");
+    return;
+  }
+  appState.authExpiryTimerId = window.setTimeout(() => {
+    setStatus("Session expired. Sign in again.", true);
+    setAuthRequired("Your session expired. Sign in again to continue.", "reauth-required");
+  }, delayMs);
+}
+
+function renderAuthState() {
+  const titleByState = {
+    loading: "Checking session",
+    authenticated: "Companion session active",
+    unauthenticated: "Sign in to continue",
+    "reauth-required": "Session expired",
+    error: "Sign-in unavailable",
+  };
+  const userId = getCurrentUserId();
+  const isAuthenticated = appState.authState === "authenticated";
+  authBand.dataset.state = appState.authState;
+  authTitle.textContent = titleByState[appState.authState] || "Companion access";
+  authCopy.textContent = appState.authMessage;
+  authUserLabel.textContent = userId || "not signed in";
+  authExpiryLabel.textContent = isAuthenticated ? formatAuthExpiry(appState.authExpiresAt) : "not signed in";
+  authForm.hidden = isAuthenticated || appState.authState === "loading";
+  authLogoutButton.hidden = !isAuthenticated;
+  authLoginButton.disabled = appState.authState === "loading";
+  document.body.classList.toggle(AUTH_LOCKED_BODY_CLASS, !isAuthenticated);
+}
+
+function applyAuthenticatedSession(payload) {
+  appState.currentUserId = payload.current_user?.user_id || null;
+  appState.authExpiresAt = payload.auth_session?.expires_at || null;
+  appState.authState = "authenticated";
+  appState.authMessage = "This browser has an active local companion session.";
+  authPasswordInput.value = "";
+  scheduleAuthExpiry(appState.authExpiresAt);
+  renderAuthState();
+}
+
+async function apiFetch(input, init = {}, { allow401 = false, trapAuthFailure = true } = {}) {
+  const response = await fetch(input, {
+    credentials: "same-origin",
+    ...init,
+  });
+  if (response.status === 401 && !allow401 && trapAuthFailure) {
+    setStatus("Session expired. Sign in again.", true);
+    setAuthRequired("Your session expired. Sign in again to continue.", "reauth-required");
+    throw new AuthRequiredError("Session expired. Sign in again.");
+  }
+  return response;
+}
+
+async function loadAuthenticatedSession({ silent401 = false } = {}) {
+  const sessionResponse = await apiFetch("/api/auth/session", {}, { allow401: true, trapAuthFailure: false });
+  if (sessionResponse.ok) {
+    const payload = await sessionResponse.json();
+    applyAuthenticatedSession(payload);
+    return true;
+  }
+  if (sessionResponse.status === 401) {
+    setAuthRequired(
+      "Sign in with the local companion credentials configured on this runtime.",
+      "unauthenticated",
+    );
+    return false;
+  }
+  throw new Error(`Auth bootstrap failed with status ${sessionResponse.status}`);
+}
+
+async function loginWithCredentials(userId, password) {
+  authLoginButton.disabled = true;
+  authBand.dataset.state = "loading";
+  authCopy.textContent = "Opening a fresh companion session for this browser.";
+  setStatus("Signing in", "loading");
+  try {
+    const loginResponse = await apiFetch(
+      "/api/auth/login",
+      {
+        method: "POST",
+        headers: buildAuthHeaders(null, true),
+        body: JSON.stringify({ user_id: userId, password }),
+      },
+      { allow401: true, trapAuthFailure: false },
+    );
+    if (!loginResponse.ok) {
+      throw await buildApiError(loginResponse, `Auth login failed with status ${loginResponse.status}`);
+    }
+    const payload = await loginResponse.json();
+    applyAuthenticatedSession(payload);
+    setStatus("API ready");
+    await enterAuthenticatedShell();
+  } catch (error) {
+    authBand.dataset.state = "error";
+    authTitle.textContent = "Sign-in unavailable";
+    authCopy.textContent = error.message;
+    setStatus("Sign-in failed", true);
+  } finally {
+    authLoginButton.disabled = false;
+  }
+}
+
+async function logoutCurrentSession() {
+  authLogoutButton.disabled = true;
+  setStatus("Signing out", "loading");
+  try {
+    await apiFetch(
+      "/api/auth/logout",
+      {
+        method: "POST",
+      },
+      { allow401: true, trapAuthFailure: false },
+    );
+  } finally {
+    authLogoutButton.disabled = false;
+  }
+  setAuthRequired("Sign in with the local companion credentials configured on this runtime.", "unauthenticated");
+  setStatus("Signed out");
 }
 
 const MODULE_LABELS = {
@@ -871,8 +1046,8 @@ async function openDocumentAnalysis(analysisId, { pushRoute = false } = {}) {
   }
 
   try {
-    const response = await fetch(`/api/document-analyses/${encodeURIComponent(analysisId)}`, {
-      headers: buildAuthHeaders(DEMO_USERS.documents),
+    const response = await apiFetch(`/api/document-analyses/${encodeURIComponent(analysisId)}`, {
+      headers: buildAuthHeaders(null),
     });
     if (!response.ok) {
       throw new Error(`Analysis lookup failed with status ${response.status}`);
@@ -886,6 +1061,9 @@ async function openDocumentAnalysis(analysisId, { pushRoute = false } = {}) {
       history.pushState({ analysisId }, "", getAnalysisViewPath(analysisId));
     }
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     setStatus("API error", true);
     analysisDetailTitle.textContent = "Analysis lookup unavailable";
     analysisDetailSummary.textContent = error.message;
@@ -907,13 +1085,12 @@ async function submitDocumentAnalysisFeedback(feedback) {
   analysisFeedbackNotUsefulButton.disabled = true;
   setStatus("Saving analysis feedback", "loading");
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       `/api/document-analyses/${encodeURIComponent(record.analysis_id)}/feedback`,
       {
         method: "POST",
-        headers: buildAuthHeaders(DEMO_USERS.documents, true),
+        headers: buildAuthHeaders(null, true),
         body: JSON.stringify({
-          user_id: DEMO_USERS.documents,
           session_id: record.session_id,
           feedback,
           correlation_id: createId("corr_analysis_feedback"),
@@ -932,6 +1109,9 @@ async function submitDocumentAnalysisFeedback(feedback) {
     await refreshSessionHistory("documents");
     setStatus("API ready");
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     setStatus("API error", true);
     analysisDetailSummary.textContent = error.message;
     renderAnalysisDetail(getSelectedDocumentAnalysis());
@@ -950,12 +1130,10 @@ async function refreshAnalysisTimeline(record) {
       trace_id: record.trace_id,
       module: "documents",
     });
-    const response = await fetch(
-      `/api/users/${encodeURIComponent(DEMO_USERS.documents)}/sessions/${encodeURIComponent(
-        record.session_id,
-      )}/trace?${query.toString()}`,
+    const response = await apiFetch(
+      `${getCurrentUserSessionBasePath(record.session_id)}/trace?${query.toString()}`,
       {
-        headers: buildAuthHeaders(DEMO_USERS.documents),
+        headers: buildAuthHeaders(null),
       },
     );
     if (!response.ok) {
@@ -982,6 +1160,9 @@ async function refreshAnalysisTimeline(record) {
       )
       .join("");
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     analysisTimelineCaption.textContent = "Timeline unavailable";
     analysisTimeline.innerHTML = `
       <li class="analysis-findings-empty">${escapeHtml(error.message)}</li>
@@ -1057,10 +1238,10 @@ function renderAnalysisList(records) {
 
 async function refreshDocumentAnalyses() {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       `/api/sessions/${encodeURIComponent(DEMO_SESSIONS.documents)}/document-analyses`,
       {
-        headers: buildAuthHeaders(DEMO_USERS.documents),
+        headers: buildAuthHeaders(null),
       },
     );
     if (!response.ok) {
@@ -1071,6 +1252,9 @@ async function refreshDocumentAnalyses() {
     appState.documentAnalyses = Array.isArray(payload) ? payload : [];
     renderAnalysisList(appState.documentAnalyses);
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     appState.documentAnalyses = [];
     analysisList.innerHTML = `
       <li class="analysis-list-empty">
@@ -1084,12 +1268,10 @@ async function refreshDocumentAnalyses() {
 
 async function refreshDocumentJobs() {
   try {
-    const response = await fetch(
-      `/api/users/${encodeURIComponent(DEMO_USERS.documents)}/sessions/${encodeURIComponent(
-        DEMO_SESSIONS.documents,
-      )}/jobs?module=documents&limit=10`,
+    const response = await apiFetch(
+      `${getCurrentUserSessionBasePath(DEMO_SESSIONS.documents)}/jobs?module=documents&limit=10`,
       {
-        headers: buildAuthHeaders(DEMO_USERS.documents),
+        headers: buildAuthHeaders(null),
       },
     );
     if (!response.ok) {
@@ -1105,6 +1287,9 @@ async function refreshDocumentJobs() {
     renderJobHistory(appState.documentJobs);
     renderJobPolicyNotice();
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     setDocumentPolicyRejection(error.detail);
     appState.documentJobs = [];
     jobHistoryList.innerHTML = `
@@ -1118,7 +1303,6 @@ async function refreshDocumentJobs() {
 }
 
 async function refreshSessionHistory(moduleName) {
-  const userId = DEMO_USERS[moduleName];
   const sessionId = DEMO_SESSIONS[moduleName];
   const traceId = appState.lastTraceIdByModule[moduleName];
   const wantsLatestScope = appState.historyScope === "latest";
@@ -1138,12 +1322,10 @@ async function refreshSessionHistory(moduleName) {
     query.set("trace_id", traceId);
   }
   try {
-    const response = await fetch(
-      `/api/users/${encodeURIComponent(userId)}/sessions/${encodeURIComponent(
-        sessionId,
-      )}/trace?${query.toString()}`,
+    const response = await apiFetch(
+      `${getCurrentUserSessionBasePath(sessionId)}/trace?${query.toString()}`,
       {
-        headers: buildAuthHeaders(userId),
+        headers: buildAuthHeaders(null),
       },
     );
     if (!response.ok) {
@@ -1154,6 +1336,9 @@ async function refreshSessionHistory(moduleName) {
       renderSessionHistory(payload.session_trace);
     }
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     if (appState.activeModule === moduleName) {
       renderSessionHistory([]);
     }
@@ -1219,9 +1404,9 @@ async function submitSimulation(moduleName, event) {
   setStatus("Running simulation", "loading");
 
   try {
-    const response = await fetch(config.endpoint, {
+    const response = await apiFetch(config.endpoint, {
       method: "POST",
-      headers: buildAuthHeaders(requestBody.user_id, true),
+      headers: buildAuthHeaders(null, true),
       body: JSON.stringify(requestBody),
     });
 
@@ -1252,6 +1437,9 @@ async function submitSimulation(moduleName, event) {
     }
     setStatus("API ready");
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     appState.lastCommandByModule[moduleName] = null;
     renderLensMessage("lens-overlay-error", "Simulation unavailable", error.message);
     insightLog.innerHTML = `<p><strong>Error:</strong> ${escapeHtml(error.message)}</p>`;
@@ -1276,11 +1464,10 @@ async function submitLensFeedback(feedback) {
   setStatus("Saving feedback", "loading");
 
   try {
-    const response = await fetch(`/api/lens-commands/${encodeURIComponent(command.command_id)}/feedback`, {
+    const response = await apiFetch(`/api/lens-commands/${encodeURIComponent(command.command_id)}/feedback`, {
       method: "POST",
-      headers: buildAuthHeaders(DEMO_USERS[moduleName], true),
+      headers: buildAuthHeaders(null, true),
       body: JSON.stringify({
-        user_id: DEMO_USERS[moduleName],
         session_id: DEMO_SESSIONS[moduleName],
         feedback,
         correlation_id: createId(`corr_feedback_${moduleName}`),
@@ -1297,12 +1484,10 @@ async function submitLensFeedback(feedback) {
     await refreshSessionHistory(moduleName);
     const traceId = appState.lastTraceIdByModule[moduleName];
     if (traceId) {
-      const traceResponse = await fetch(
-        `/api/users/${encodeURIComponent(DEMO_USERS[moduleName])}/sessions/${encodeURIComponent(
-          DEMO_SESSIONS[moduleName],
-        )}/trace?trace_id=${encodeURIComponent(traceId)}&module=${encodeURIComponent(moduleName)}`,
+      const traceResponse = await apiFetch(
+        `${getCurrentUserSessionBasePath(DEMO_SESSIONS[moduleName])}/trace?trace_id=${encodeURIComponent(traceId)}&module=${encodeURIComponent(moduleName)}`,
         {
-          headers: buildAuthHeaders(DEMO_USERS[moduleName]),
+          headers: buildAuthHeaders(null),
         },
       );
       if (traceResponse.ok) {
@@ -1312,6 +1497,9 @@ async function submitLensFeedback(feedback) {
     }
     setStatus("API ready");
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     setFeedbackState(moduleName, "error");
     feedbackCopy.textContent = error.message;
     setStatus("API error", true);
@@ -1329,7 +1517,6 @@ async function enqueueDocumentJob() {
     let response;
     if (inputPayload.selectedFile) {
       const formData = new FormData();
-      formData.append("user_id", DEMO_USERS.documents);
       formData.append("session_id", DEMO_SESSIONS.documents);
       formData.append("artifact", inputPayload.selectedFile);
       formData.append("idempotency_key", createId("idem_upload"));
@@ -1342,14 +1529,13 @@ async function enqueueDocumentJob() {
       if (inputPayload.documentText) {
         formData.append("document_text", inputPayload.documentText);
       }
-      response = await fetch("/api/uploads/documents/contract-analysis", {
+      response = await apiFetch("/api/uploads/documents/contract-analysis", {
         method: "POST",
-        headers: buildAuthHeaders(DEMO_USERS.documents),
+        headers: buildAuthHeaders(null),
         body: formData,
       });
     } else {
       const requestBody = {
-        user_id: DEMO_USERS.documents,
         session_id: DEMO_SESSIONS.documents,
         artifact_label: "contract-text-entry.txt",
         source_type: "pwa_text_entry",
@@ -1362,9 +1548,9 @@ async function enqueueDocumentJob() {
         correlation_id: createId("corr_job"),
         trace_id: traceId,
       };
-      response = await fetch("/api/jobs/documents/contract-analysis", {
+      response = await apiFetch("/api/jobs/documents/contract-analysis", {
         method: "POST",
-        headers: buildAuthHeaders(DEMO_USERS.documents, true),
+        headers: buildAuthHeaders(null, true),
         body: JSON.stringify(requestBody),
       });
     }
@@ -1381,6 +1567,9 @@ async function enqueueDocumentJob() {
     await refreshSessionHistory("documents");
     setStatus(inputPayload.selectedFile ? "Upload job queued" : "Text job queued");
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     setDocumentPolicyRejection(error.detail);
     jobSummary.textContent = error.message;
     renderJobPolicyNotice();
@@ -1399,8 +1588,8 @@ async function refreshCurrentJobStatus() {
   }
 
   try {
-    const response = await fetch(`/api/jobs/${appState.currentDocumentJobId}`, {
-      headers: buildAuthHeaders(DEMO_USERS.documents),
+    const response = await apiFetch(`/api/jobs/${appState.currentDocumentJobId}`, {
+      headers: buildAuthHeaders(null),
     });
     if (!response.ok) {
       throw await buildApiError(response, `Job status failed with status ${response.status}`);
@@ -1415,6 +1604,9 @@ async function refreshCurrentJobStatus() {
     await refreshDocumentJobs();
     setStatus("API ready");
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     setDocumentPolicyRejection(error.detail);
     jobSummary.textContent = error.message;
     renderJobPolicyNotice();
@@ -1446,9 +1638,9 @@ async function transitionCurrentJob(targetStatus) {
     if (targetStatus === "succeeded" && appState.lastDocumentAnalysisId) {
       requestBody.analysis_id = appState.lastDocumentAnalysisId;
     }
-    const response = await fetch(`/api/jobs/${appState.currentDocumentJobId}/status`, {
+    const response = await apiFetch(`/api/jobs/${appState.currentDocumentJobId}/status`, {
       method: "POST",
-      headers: buildAuthHeaders(DEMO_USERS.documents, true),
+      headers: buildAuthHeaders(null, true),
       body: JSON.stringify(requestBody),
     });
     if (!response.ok) {
@@ -1466,12 +1658,35 @@ async function transitionCurrentJob(targetStatus) {
     await refreshDocumentJobs();
     setStatus("API ready");
   } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      return;
+    }
     setDocumentPolicyRejection(error.detail);
     jobSummary.textContent = error.message;
     renderJobPolicyNotice();
     setAsyncState("documents", isPolicyRejection(error.detail) ? "blocked" : "error");
     setStatus("API error", true);
   }
+}
+
+async function enterAuthenticatedShell() {
+  if (!appState.shellInitialized) {
+    setHistoryScope("latest");
+    renderJobState(null);
+    renderJobHistory([]);
+    updateSessionRail();
+    renderFeedbackControls();
+    renderDocumentCapturePreview();
+    appState.shellInitialized = true;
+  }
+
+  const routeTargetsAnalysis = /^\/document-analyses\/[^/]+\/view\/?$/.test(window.location.pathname);
+  if (routeTargetsAnalysis) {
+    await handleAnalysisRoute();
+    return;
+  }
+
+  setActiveModule(appState.activeModule || "grocery");
 }
 
 Object.values(simulations).forEach((config) => {
@@ -1482,6 +1697,11 @@ Object.values(simulations).forEach((config) => {
 });
 
 documentImageInput.addEventListener("change", renderDocumentCapturePreview);
+authForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  loginWithCredentials(authUserIdInput.value.trim(), authPasswordInput.value);
+});
+authLogoutButton.addEventListener("click", logoutCurrentSession);
 
 moduleTabs.forEach((tab) => {
   tab.addEventListener("click", () => setActiveModule(tab.dataset.module));
@@ -1529,14 +1749,22 @@ window.addEventListener("popstate", () => {
   handleAnalysisRoute();
 });
 
-setActiveModule("grocery");
-setHistoryScope("latest");
-renderJobState(null);
-renderJobHistory([]);
-updateSessionRail();
-renderFeedbackControls();
-renderDocumentCapturePreview();
-handleAnalysisRoute();
+async function initializeApp() {
+  renderAuthState();
+  try {
+    const hasSession = await loadAuthenticatedSession({ silent401: true });
+    if (hasSession) {
+      await enterAuthenticatedShell();
+      setStatus("API ready");
+    } else {
+      setStatus("Sign in required");
+    }
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+}
+
+initializeApp();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

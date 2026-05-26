@@ -18,10 +18,25 @@ class HealthResponse(BaseModel):
     status: str
 
 
+class AuthLoginRequest(BaseModel):
+    user_id: str = Field(min_length=1)
+    password: str = Field(min_length=1)
+
+
+class CurrentUserResponse(BaseModel):
+    user_id: str
+
+
+class AuthSessionStateResponse(BaseModel):
+    authenticated: bool
+    current_user: CurrentUserResponse
+    auth_session: dict[str, object]
+
+
 class GroceryMissingItemRequest(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
-    user_id: str
+    user_id: str | None = None
     session_id: str | None = None
     item_name: str = Field(min_length=1)
     confidence: float = Field(ge=0, le=1, default=0.9)
@@ -35,7 +50,7 @@ class GroceryMissingItemRequest(BaseModel):
 class DocumentContractReviewRequest(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
-    user_id: str
+    user_id: str | None = None
     session_id: str | None = None
     document_text: str | None = Field(default=None, min_length=20)
     document_image_base64: str | None = Field(default=None, max_length=10_500_000)
@@ -72,7 +87,7 @@ class DeviceCapabilitiesResponse(BaseModel):
 class CameraDocumentContractReviewRequest(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
-    user_id: str
+    user_id: str | None = None
     session_id: str | None = None
     image_base64: str = Field(min_length=1, max_length=10_500_000)
     content_type: str = Field(default="image/jpeg", min_length=1)
@@ -124,7 +139,7 @@ class UserSessionPageResponse(BaseModel):
 class DocumentAnalysisJobRequest(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
-    user_id: str
+    user_id: str | None = None
     session_id: str | None = None
     artifact_label: str = Field(min_length=1)
     source_type: str = Field(min_length=1, default="pwa_simulation")
@@ -179,7 +194,7 @@ class JobTransitionRequest(BaseModel):
 
 
 class LensFeedbackRequest(BaseModel):
-    user_id: str
+    user_id: str | None = None
     session_id: str
     feedback: LensFeedbackValue
     correlation_id: str | None = None
@@ -206,7 +221,7 @@ class DocumentAnalysisResponse(BaseModel):
 
 
 class DocumentAnalysisFeedbackRequest(BaseModel):
-    user_id: str
+    user_id: str | None = None
     session_id: str
     feedback: DocumentAnalysisFeedbackValue
     correlation_id: str | None = None

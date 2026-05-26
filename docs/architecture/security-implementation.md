@@ -6,6 +6,7 @@ Related specs:
 
 - [../specs/0001-platform-foundation.md](../specs/0001-platform-foundation.md)
 - [../specs/0003-document-mvp-hardening.md](../specs/0003-document-mvp-hardening.md)
+- [../specs/0004-auth-boundary.md](../specs/0004-auth-boundary.md)
 
 ## Purpose
 
@@ -66,9 +67,28 @@ The current service worker is hardened for:
 
 ## Important Current Limitation
 
-Authentication is still local-development grade.
+Authentication is no longer header-first.
 
-The current app uses local user scoping and request headers for ownership checks, which is acceptable for localhost simulation and tests, but not for real users.
+The current app now has a real browser auth boundary shape:
+
+- same-origin backend-managed session cookie
+- backend-resolved current user through FastAPI dependencies
+- local-password login/logout/session bootstrap endpoints
+- same-origin validation for cookie-authenticated writes
+- development-only fallback for the local auth header behind explicit configuration
+- `current-user` companion routes that remove `user_id` from browser URLs
+
+What is still not production-grade:
+
+- the login flow is still local-first and runtime-configured
+- no provider-backed identity exists yet
+- broader browser security hardening is still incomplete
+
+The target contract remains explicit in [auth-boundary.md](auth-boundary.md):
+
+- same-origin backend-managed session cookie for the PWA
+- backend-resolved current user
+- development-only fallback for the local auth header
 
 ## Data Retention Posture
 
@@ -95,8 +115,8 @@ Recently completed:
 
 Before any production release:
 
-- real authentication
-- real session management
+- production authentication hardening
+- durable session management beyond local-first SQLite and in-memory auth sessions
 - production authorization test matrix
 - secret management beyond local env handling
 - stronger audit coverage for consent/privacy settings
@@ -114,14 +134,16 @@ Strong enough for localhost MVP:
 
 Not strong enough for production:
 
-- identity model
-- auth tokens/session lifecycle
+- production identity lifecycle
+- auth session durability and browser hardening
 - hardened deployment posture
 - incident/audit tooling
 
 ## Recommended Next Security Work
 
-1. Replace local header auth with a real auth boundary.
+1. Harden the new cookie auth boundary with explicit origin/CSRF posture and non-demo login semantics.
 2. Add authorization-focused HTTP tests for cross-user access.
 3. Define explicit consent flows if more sensitive modules are added.
-4. Add browser E2E checks for document deletion, quota blocks, and offline behavior.
+4. Add browser E2E checks for auth bootstrap, document deletion, quota blocks, and offline behavior.
+
+The first item is now partially implemented; the remaining execution should follow [../specs/0004-auth-boundary.md](../specs/0004-auth-boundary.md).

@@ -25,6 +25,9 @@ It is not the product core. It renders backend decisions and exposes controls ar
 Implemented:
 
 - root shell served by FastAPI
+- auth bootstrap through `GET /api/auth/session`
+- cookie-session login/logout endpoints for the same-origin companion
+- browser write flows that can derive current user server-side without body-level `user_id`
 - manifest and service worker
 - grocery simulation form
 - document upload and text submission flow
@@ -37,7 +40,7 @@ Implemented:
 
 Still missing:
 
-- real authentication UX
+- production-grade authentication UX
 - install education and lifecycle UX polish
 - offline mutation queue
 - push notifications
@@ -103,10 +106,23 @@ The document flow is no longer just a simulation stub. It now includes:
 
 ### Ready for the next pass
 
-- auth-aware user/session bootstrapping
 - better mobile ergonomics and install UX
 - browser automation coverage
 - clearer empty/loading states for multi-session usage
+
+Current auth-aware bootstrapping now follows [auth-boundary.md](auth-boundary.md):
+
+- `GET /api/auth/session` as the PWA authority for authenticated state
+- same-origin backend-managed session cookie for the browser companion
+- explicit local-password login UI and logout controls in the shell
+- expiry/relogin behavior that returns the shell to an auth gate on `401` or session timeout
+- `current-user` session routes for history and jobs
+- no browser token storage as the main MVP contract
+
+Still missing on top of that:
+
+- provider-backed login beyond local-first credentials
+- browser automation coverage for the auth gate and relogin path
 
 ### Not ready yet
 

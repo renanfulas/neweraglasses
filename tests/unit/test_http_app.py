@@ -1,6 +1,10 @@
 import base64
 import io
+import os
 import time
+from dataclasses import replace
+from datetime import UTC, datetime, timedelta
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 from fastapi.testclient import TestClient
@@ -11,9 +15,36 @@ from new_era.infrastructure.http.app import create_app
 
 
 class HttpAppTest(TestCase):
+    LOCAL_AUTH_PASSWORD = "companion-secret"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls._previous_enable_dev_auth = os.environ.get("NEW_ERA_ENABLE_DEV_AUTH")
+        os.environ["NEW_ERA_ENABLE_DEV_AUTH"] = "1"
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        if cls._previous_enable_dev_auth is None:
+            os.environ.pop("NEW_ERA_ENABLE_DEV_AUTH", None)
+        else:
+            os.environ["NEW_ERA_ENABLE_DEV_AUTH"] = cls._previous_enable_dev_auth
+
     @staticmethod
     def _auth_headers(user_id: str) -> dict[str, str]:
         return {"X-New-Era-User-Id": user_id}
+
+    @staticmethod
+    def _login(
+        client: TestClient,
+        user_id: str,
+        password: str = LOCAL_AUTH_PASSWORD,
+    ) -> None:
+        response = client.post(
+            "/api/auth/login",
+            json={"user_id": user_id, "password": password},
+            headers={"Origin": "http://testserver"},
+        )
+        assert response.status_code == 200
 
     def test_root_serves_pwa_shell(self) -> None:
         client = TestClient(create_app())
@@ -50,6 +81,298 @@ class HttpAppTest(TestCase):
         self.assertEqual(payload["adapter_name"], "browser_simulation")
         self.assertTrue(payload["supports_camera"])
         self.assertTrue(payload["supports_display"])
+
+    def test_auth_session_endpoint_bootstraps_cookie_session_identity(self) -> None:
+        client = TestClient(
+            create_app(
+                enable_dev_auth=False,
+                local_auth_user_id="user_cookie",
+                local_auth_password=self.LOCAL_AUTH_PASSWORD,
+            )
+        )
+
+        unauthenticated = client.get("/api/auth/session")
+        login = client.post(
+            "/api/auth/login",
+            json={"user_id": "user_cookie", "password": self.LOCAL_AUTH_PASSWORD},
+            headers={"Origin": "http://testserver"},
+        )
+        authenticated = client.get("/api/auth/session")
+
+        self.assertEqual(unauthenticated.status_code, 401)
+        self.assertEqual(unauthenticated.json()["detail"], "auth_session_required")
+        self.assertEqual(login.status_code, 200)
+        self.assertIn("newera_session=", login.headers["set-cookie"])
+        self.assertEqual(authenticated.status_code, 200)
+        self.assertEqual(authenticated.json()["current_user"]["user_id"], "user_cookie")
+
+    def test_auth_logout_clears_cookie_session_access(self) -> None:
+        client = TestClient(
+            create_app(
+                enable_dev_auth=False,
+                local_auth_user_id="user_cookie",
+                local_auth_password=self.LOCAL_AUTH_PASSWORD,
+            )
+        )
+        client.post(
+            "/api/auth/login",
+            json={"user_id": "user_cookie", "password": self.LOCAL_AUTH_PASSWORD},
+            headers={"Origin": "http://testserver"},
+        )
+
+        logout = client.post("/api/auth/logout", headers={"Origin": "http://testserver"})
+        after_logout = client.get("/api/auth/session")
+
+        self.assertEqual(logout.status_code, 204)
+        self.assertEqual(after_logout.status_code, 401)
+
+    def test_dev_header_auth_is_rejected_when_dev_auth_is_disabled(self) -> None:
+        client = TestClient(create_app(enable_dev_auth=False))
+
+        response = client.post(
+            "/api/simulations/grocery/missing-item",
+            headers=self._auth_headers("user_dev"),
+            json={
+                "user_id": "user_dev",
+                "session_id": "session_dev",
+                "item_name": "eggs",
+            },
+        )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["detail"], "dev_header_auth_disabled")
+
+    def test_cookie_authenticated_write_derives_current_user_without_body_user_id(self) -> None:
+        client = TestClient(
+            create_app(
+                enable_dev_auth=False,
+                local_auth_user_id="user_cookie",
+                local_auth_password=self.LOCAL_AUTH_PASSWORD,
+            )
+        )
+        self._login(client, "user_cookie")
+
+        response = client.post(
+            "/api/simulations/grocery/missing-item",
+            headers={"Origin": "http://testserver"},
+            json={
+                "session_id": "session_cookie",
+                "item_name": "eggs",
+                "confidence": 0.88,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["session_id"], "session_cookie")
+        self.assertEqual(response.json()["outcome"], "delivered")
+
+    def test_cookie_authenticated_write_requires_same_origin(self) -> None:
+        client = TestClient(
+            create_app(
+                enable_dev_auth=False,
+                local_auth_user_id="user_cookie",
+                local_auth_password=self.LOCAL_AUTH_PASSWORD,
+            )
+        )
+        self._login(client, "user_cookie")
+
+        response = client.post(
+            "/api/simulations/grocery/missing-item",
+            headers={"Origin": "https://evil.example"},
+            json={
+                "session_id": "session_cookie",
+                "item_name": "eggs",
+                "confidence": 0.88,
+            },
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["detail"], "cross_origin_write_forbidden")
+
+    def test_cookie_session_persists_across_app_restart_with_sqlite_runtime(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            database_path = f"{temp_dir}\\runtime.sqlite3"
+            first_client = TestClient(
+                create_app(
+                    storage_path=database_path,
+                    enable_dev_auth=False,
+                    local_auth_user_id="user_persisted_cookie",
+                    local_auth_password=self.LOCAL_AUTH_PASSWORD,
+                )
+            )
+            login = first_client.post(
+                "/api/auth/login",
+                json={
+                    "user_id": "user_persisted_cookie",
+                    "password": self.LOCAL_AUTH_PASSWORD,
+                },
+                headers={"Origin": "http://testserver"},
+            )
+            self.assertEqual(login.status_code, 200)
+            auth_cookie = login.cookies.get("newera_session")
+            first_client.close()
+
+            second_client = TestClient(
+                create_app(
+                    storage_path=database_path,
+                    enable_dev_auth=False,
+                    local_auth_user_id="user_persisted_cookie",
+                    local_auth_password=self.LOCAL_AUTH_PASSWORD,
+                )
+            )
+            second_client.cookies.set("newera_session", auth_cookie)
+
+            response = second_client.get("/api/auth/session")
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(
+                response.json()["current_user"]["user_id"],
+                "user_persisted_cookie",
+            )
+            second_client.close()
+
+    def test_auth_login_requires_local_password_configuration(self) -> None:
+        client = TestClient(create_app(enable_dev_auth=False))
+
+        response = client.post(
+            "/api/auth/login",
+            json={"user_id": "user_cookie", "password": self.LOCAL_AUTH_PASSWORD},
+            headers={"Origin": "http://testserver"},
+        )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["detail"], "local_auth_not_configured")
+
+    def test_auth_login_rejects_invalid_local_password(self) -> None:
+        client = TestClient(
+            create_app(
+                enable_dev_auth=False,
+                local_auth_user_id="user_cookie",
+                local_auth_password=self.LOCAL_AUTH_PASSWORD,
+            )
+        )
+
+        response = client.post(
+            "/api/auth/login",
+            json={"user_id": "user_cookie", "password": "wrong-password"},
+            headers={"Origin": "http://testserver"},
+        )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["detail"], "invalid_credentials")
+
+    def test_expired_cookie_session_requires_relogin(self) -> None:
+        client = TestClient(
+            create_app(
+                enable_dev_auth=False,
+                local_auth_user_id="user_cookie",
+                local_auth_password=self.LOCAL_AUTH_PASSWORD,
+            )
+        )
+        self._login(client, "user_cookie")
+        auth_session_id = client.cookies.get("newera_session")
+        store = client.app.state.auth_session_store
+        record = store.get(auth_session_id)
+        store._records[auth_session_id] = replace(
+            record,
+            expires_at=datetime.now(UTC) - timedelta(seconds=1),
+        )
+
+        response = client.get("/api/auth/session")
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["detail"], "auth_session_required")
+
+    def test_current_user_session_routes_work_with_cookie_auth(self) -> None:
+        client = TestClient(
+            create_app(
+                enable_dev_auth=False,
+                local_auth_user_id="user_current",
+                local_auth_password=self.LOCAL_AUTH_PASSWORD,
+            )
+        )
+        self._login(client, "user_current")
+
+        created = client.post(
+            "/api/current-user/sessions",
+            json={
+                "module": "grocery",
+                "title": "Current user grocery session",
+                "session_id": "session_current_trace",
+            },
+            headers={"Origin": "http://testserver"},
+        )
+        simulated = client.post(
+            "/api/simulations/grocery/missing-item",
+            json={
+                "session_id": "session_current_trace",
+                "item_name": "eggs",
+                "confidence": 0.88,
+                "trace_id": "trace_current_route",
+            },
+            headers={"Origin": "http://testserver"},
+        )
+        listed = client.get("/api/current-user/sessions?module=grocery")
+        trace = client.get(
+            "/api/current-user/sessions/session_current_trace/trace"
+            "?trace_id=trace_current_route&module=grocery"
+        )
+
+        self.assertEqual(created.status_code, 200)
+        self.assertEqual(simulated.status_code, 200)
+        self.assertEqual(listed.status_code, 200)
+        self.assertEqual(trace.status_code, 200)
+        self.assertEqual(listed.json()["sessions"][0]["session_id"], "session_current_trace")
+        self.assertEqual(trace.json()["trace_id"], "trace_current_route")
+
+    def test_current_user_document_routes_work_with_cookie_auth(self) -> None:
+        client = TestClient(
+            create_app(
+                enable_dev_auth=False,
+                local_auth_user_id="user_documents_current",
+                local_auth_password=self.LOCAL_AUTH_PASSWORD,
+            )
+        )
+        self._login(client, "user_documents_current")
+
+        simulation = client.post(
+            "/api/simulations/documents/contract-review",
+            json={
+                "session_id": "session_documents_current",
+                "document_text": (
+                    "Contrato com renovacao automatica, multa de cancelamento "
+                    "e fidelidade de 12 meses."
+                ),
+                "trace_id": "trace_documents_current",
+            },
+            headers={"Origin": "http://testserver"},
+        )
+        job = client.post(
+            "/api/jobs/documents/contract-analysis",
+            json={
+                "session_id": "session_documents_current",
+                "artifact_label": "contract-current-user.txt",
+                "idempotency_key": "idem-current-user-job",
+                "document_text": (
+                    "Contrato com renovacao automatica, multa de cancelamento "
+                    "e fidelidade de 12 meses."
+                ),
+            },
+            headers={"Origin": "http://testserver"},
+        )
+        jobs = client.get(
+            "/api/current-user/sessions/session_documents_current/jobs?module=documents&limit=10"
+        )
+        metrics = client.get(
+            "/api/current-user/sessions/session_documents_current/feedback-metrics"
+        )
+
+        self.assertEqual(simulation.status_code, 200)
+        self.assertEqual(job.status_code, 200)
+        self.assertEqual(jobs.status_code, 200)
+        self.assertEqual(metrics.status_code, 200)
+        self.assertGreaterEqual(jobs.json()["job_count"], 1)
+        self.assertEqual(metrics.json()["session_id"], "session_documents_current")
 
     def test_manifest_endpoint_is_available(self) -> None:
         client = TestClient(create_app())
@@ -1180,7 +1503,7 @@ class HttpAppTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json()["detail"], "local_auth_user_required")
+        self.assertEqual(response.json()["detail"], "auth_session_required")
 
     def test_user_session_endpoint_rejects_authenticated_user_mismatch(self) -> None:
         client = TestClient(create_app(), headers=self._auth_headers("user_owner"))
