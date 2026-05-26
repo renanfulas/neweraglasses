@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Annotated
+from urllib.parse import urlsplit
 
-from fastapi import Depends, Header, HTTPException, Request
+from fastapi import Cookie, Depends, Header, HTTPException, Request
 
 from new_era.application.ports import DeviceGateway
 from new_era.application.services import DocumentSessionService, GrocerySessionService, SimulationRuntime
@@ -24,22 +26,91 @@ from new_era.application.use_cases import (
     RegisterLocalDocumentArtifact,
     StartUserSession,
 )
+from new_era.infrastructure.http.auth import AUTH_SESSION_COOKIE, AuthenticatedIdentity
 
 LOCAL_AUTH_HEADER = "X-New-Era-User-Id"
+SAFE_HTTP_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 
 def get_runtime(request: Request) -> SimulationRuntime:
     return request.app.state.runtime
 
 
-def get_current_user_id(
+def enforce_same_origin_browser_write(
     request: Request,
+    auth_session_cookie: Annotated[str | None, Cookie(alias=AUTH_SESSION_COOKIE)] = None,
+    origin: Annotated[str | None, Header(alias="Origin")] = None,
+) -> None:
+    if request.method.upper() in SAFE_HTTP_METHODS:
+        return
+
+    is_auth_route = request.url.path.startswith("/api/auth/")
+    if not auth_session_cookie and not is_auth_route:
+        return
+
+    if origin is None:
+        raise HTTPException(status_code=403, detail="origin_required")
+
+    request_origin = _normalize_origin(origin)
+    expected_origin = f"{request.url.scheme}://{request.url.netloc}".lower()
+    if request_origin != expected_origin:
+        raise HTTPException(status_code=403, detail="cross_origin_write_forbidden")
+
+
+def get_optional_authenticated_identity(
+    request: Request,
+    auth_session_cookie: Annotated[str | None, Cookie(alias=AUTH_SESSION_COOKIE)] = None,
     x_new_era_user_id: Annotated[str | None, Header(alias=LOCAL_AUTH_HEADER)] = None,
+) -> AuthenticatedIdentity | None:
+    auth_session_store = getattr(request.app.state, "auth_session_store", None)
+    if auth_session_cookie and auth_session_store is not None:
+        record = auth_session_store.get(auth_session_cookie)
+        if record is not None:
+            return record.to_identity()
+
+    enable_dev_auth = bool(getattr(request.app.state, "enable_dev_auth", False))
+    if x_new_era_user_id and not enable_dev_auth:
+        raise HTTPException(status_code=401, detail="dev_header_auth_disabled")
+    if enable_dev_auth and x_new_era_user_id:
+        current_time = datetime.now(UTC)
+        return AuthenticatedIdentity(
+            subject_id=x_new_era_user_id,
+            user_id=x_new_era_user_id,
+            auth_session_id="dev_header_auth",
+            auth_method="dev_header",
+            issued_at=current_time,
+            expires_at=current_time,
+        )
+
+    local_user_id = getattr(request.app.state, "local_user_id", None)
+    if enable_dev_auth and local_user_id:
+        current_time = datetime.now(UTC)
+        return AuthenticatedIdentity(
+            subject_id=local_user_id,
+            user_id=local_user_id,
+            auth_session_id="dev_local_auth",
+            auth_method="dev_local_fallback",
+            issued_at=current_time,
+            expires_at=current_time,
+        )
+    return None
+
+
+def get_authenticated_identity(
+    identity: Annotated[
+        AuthenticatedIdentity | None,
+        Depends(get_optional_authenticated_identity),
+    ],
+) -> AuthenticatedIdentity:
+    if identity is None:
+        raise HTTPException(status_code=401, detail="auth_session_required")
+    return identity
+
+
+def get_current_user_id(
+    identity: Annotated[AuthenticatedIdentity, Depends(get_authenticated_identity)],
 ) -> str:
-    authenticated_user_id = x_new_era_user_id or getattr(request.app.state, "local_user_id", None)
-    if not authenticated_user_id:
-        raise HTTPException(status_code=401, detail="local_auth_user_required")
-    return authenticated_user_id
+    return identity.user_id
 
 
 def get_grocery_session_service(
@@ -170,3 +241,10 @@ def get_device_gateway(
     runtime: Annotated[SimulationRuntime, Depends(get_runtime)],
 ) -> DeviceGateway:
     return runtime.device_gateway
+
+
+def _normalize_origin(origin: str) -> str:
+    parsed = urlsplit(origin)
+    if not parsed.scheme or not parsed.netloc:
+        raise HTTPException(status_code=403, detail="invalid_origin")
+    return f"{parsed.scheme}://{parsed.netloc}".lower()

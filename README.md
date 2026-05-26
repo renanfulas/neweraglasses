@@ -14,15 +14,17 @@ The repository is past the blank-foundation phase. Today it already includes:
 
 - a Python modular monolith under `src/new_era`
 - a FastAPI companion surface with a real PWA shell
+- a backend-managed auth session cookie for the browser companion
 - grocery simulation and session tracing
 - async document analysis jobs with local artifact lifecycle
 - SQLite-backed persistence for local-first sessions and history
+- SQLite-backed persistence for local auth sessions when enabled in the runtime
 - a browser simulation device adapter and an HTTP device bridge adapter
 - document feedback metrics, policy rejections, quotas, and retention expiration
 
 What is still not finished:
 
-- production-grade authentication and authorization
+- production-grade authentication UX, provider integration, and browser hardening
 - UV reminder module implementation
 - browser-level end-to-end PWA coverage
 - real hardware integration beyond the HTTP bridge contract
@@ -84,6 +86,8 @@ These are the docs that should be treated as current:
 
 - [docs/architecture/overview.md](docs/architecture/overview.md)  
   Source of truth for current runtime shape and major boundaries.
+- [docs/architecture/auth-boundary.md](docs/architecture/auth-boundary.md)  
+  Identity boundary, current-user contract, ownership rules, and MVP auth decision.
 - [docs/architecture/pwa-frontend.md](docs/architecture/pwa-frontend.md)  
   Current PWA scope, offline posture, and frontend gaps.
 - [docs/architecture/security-implementation.md](docs/architecture/security-implementation.md)  
@@ -105,6 +109,8 @@ These are the docs that should be treated as current:
   PWA shell. Mostly implemented.
 - [docs/specs/0003-document-mvp-hardening.md](docs/specs/0003-document-mvp-hardening.md)  
   Document hardening. In progress, with completed and remaining items called out.
+- [docs/specs/0004-auth-boundary.md](docs/specs/0004-auth-boundary.md)  
+  Planned auth boundary implementation for the companion surface.
 
 ### Evals
 
@@ -116,13 +122,21 @@ These are the docs that should be treated as current:
 Run tests:
 
 ```powershell
-$env:PYTHONPATH='src'; python -m unittest discover
+$env:PYTHONPATH='src'; python -m pytest
 ```
 
 Run the app:
 
 ```powershell
 $env:PYTHONPATH='src'; python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
+```
+
+Enable the explicit development auth fallback:
+
+```powershell
+$env:PYTHONPATH='src'
+$env:NEW_ERA_ENABLE_DEV_AUTH='1'
+python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
 ```
 
 Run with SQLite persistence:
@@ -144,7 +158,7 @@ $env:PYTHONPATH='src'; python .\tools\evaluate_document_analysis.py
 The maintained baseline is the code plus the unit suite:
 
 ```powershell
-$env:PYTHONPATH='src'; python -m unittest discover
+$env:PYTHONPATH='src'; python -m pytest
 ```
 
 The suite currently covers:
@@ -166,5 +180,10 @@ The latest completed hardening pass delivered:
 - payload fingerprint idempotency checks
 - post-terminal artifact retention expiration
 - PWA handling for friendly blocking messages and read-only offline shell
+- backend-managed auth session bootstrap via `/api/auth/session`, login, and logout
+- local password login for the companion through `NEW_ERA_LOCAL_AUTH_USER_ID` and `NEW_ERA_LOCAL_AUTH_PASSWORD`
+- dev header auth moved behind an explicit `NEW_ERA_ENABLE_DEV_AUTH` gate
+- same-origin validation for cookie-authenticated writes
+- `current-user` session routes so the browser no longer needs `user_id` in companion URLs
 
 The next meaningful work is not more plumbing. It is finishing product-grade behavior around auth, browser E2E coverage, and the remaining modules.

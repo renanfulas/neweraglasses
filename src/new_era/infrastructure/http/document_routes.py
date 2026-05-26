@@ -32,6 +32,7 @@ from new_era.application.use_cases import (
 from new_era.domain.attention import AttentionMode
 from new_era.domain.jobs import JobStatus
 from new_era.infrastructure.http.dependencies import (
+    enforce_same_origin_browser_write,
     get_current_user_id,
     get_document_analysis_feedback_reader,
     get_document_analysis_feedback_recorder,
@@ -92,6 +93,62 @@ from new_era.infrastructure.http.support import (
 def create_document_router(*, static_dir: Path) -> APIRouter:
     router = APIRouter()
 
+    def _list_session_jobs_for(
+        *,
+        user_id: str,
+        session_id: str,
+        lister: ListJobsBySession,
+        policy_rejection_reader: GetRecentPolicyRejectionForSession,
+        session_reader: GetUserSession,
+        module: str | None,
+        status: JobStatus | None,
+        limit: int,
+    ) -> JobPageResponse:
+        session = session_reader.execute(
+            user_id=user_id,
+            session_id=session_id,
+        )
+        if session is None or (module is not None and session.module != module):
+            raise HTTPException(status_code=404, detail="session_not_found")
+        jobs = lister.execute(
+            user_id=user_id,
+            session_id=session_id,
+            module=module,
+            status=status,
+            limit=limit,
+        )
+        return JobPageResponse(
+            user_id=user_id,
+            session_id=session_id,
+            job_count=len(jobs),
+            jobs=[serialize_job(job) for job in jobs],
+            blocked_reason=serialize_policy_rejection(
+                policy_rejection_reader.execute(
+                    user_id=user_id,
+                    session_id=session_id,
+                    module=module or "documents",
+                )
+            ),
+        )
+
+    def _get_document_feedback_metrics_for(
+        *,
+        user_id: str,
+        session_id: str,
+        metrics_reader: GetDocumentFeedbackMetrics,
+        session_reader: GetUserSession,
+    ) -> DocumentFeedbackMetricsResponse:
+        session = session_reader.execute(user_id=user_id, session_id=session_id)
+        if session is None:
+            raise HTTPException(status_code=404, detail="session_not_found")
+        ensure_session_owned_by_current_user(session, user_id)
+        return serialize_document_feedback_metrics(
+            metrics_reader.execute(
+                user_id=user_id,
+                session_id=session_id,
+            )
+        )
+
     @router.get("/document-analyses/{analysis_id}/view")
     def analysis_detail_page(analysis_id: str) -> FileResponse:
         return FileResponse(static_dir / "index.html")
@@ -106,6 +163,7 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
         session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
         current_user_id: Annotated[str, Depends(get_current_user_id)],
+        _: Annotated[None, Depends(enforce_same_origin_browser_write)],
     ) -> SimulationResponse:
         if not request.document_text and not request.document_image_base64:
             raise_policy_http_error(
@@ -162,6 +220,7 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         session_trace_reader: Annotated[GetSessionTrace, Depends(get_session_trace_reader)],
         session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
         current_user_id: Annotated[str, Depends(get_current_user_id)],
+        _: Annotated[None, Depends(enforce_same_origin_browser_write)],
     ) -> SimulationResponse:
         validate_camera_content_type(request.content_type)
         user_id = enforce_authenticated_user(request.user_id, current_user_id)
@@ -227,6 +286,34 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         ]
 
     @router.get(
+        "/api/current-user/sessions/{session_id}/jobs",
+        response_model=JobPageResponse,
+    )
+    def list_current_user_session_jobs(
+        session_id: str,
+        lister: Annotated[ListJobsBySession, Depends(get_job_session_lister)],
+        policy_rejection_reader: Annotated[
+            GetRecentPolicyRejectionForSession,
+            Depends(get_recent_policy_rejection_reader),
+        ],
+        session_reader: Annotated[GetUserSession, Depends(get_user_session_reader)],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
+        module: str | None = None,
+        status: JobStatus | None = None,
+        limit: int = 25,
+    ) -> JobPageResponse:
+        return _list_session_jobs_for(
+            user_id=current_user_id,
+            session_id=session_id,
+            lister=lister,
+            policy_rejection_reader=policy_rejection_reader,
+            session_reader=session_reader,
+            module=module,
+            status=status,
+            limit=limit,
+        )
+
+    @router.get(
         "/api/users/{user_id}/sessions/{session_id}/jobs",
         response_model=JobPageResponse,
     )
@@ -244,32 +331,16 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         status: JobStatus | None = None,
         limit: int = 25,
     ) -> JobPageResponse:
-        authenticated_user_id = enforce_authenticated_user(user_id, current_user_id)
-        session = session_reader.execute(
+        authenticated_user_id = enforce_path_user(user_id, current_user_id)
+        return _list_session_jobs_for(
             user_id=authenticated_user_id,
             session_id=session_id,
-        )
-        if session is None or (module is not None and session.module != module):
-            raise HTTPException(status_code=404, detail="session_not_found")
-        jobs = lister.execute(
-            user_id=authenticated_user_id,
-            session_id=session_id,
+            lister=lister,
+            policy_rejection_reader=policy_rejection_reader,
+            session_reader=session_reader,
             module=module,
             status=status,
             limit=limit,
-        )
-        return JobPageResponse(
-            user_id=authenticated_user_id,
-            session_id=session_id,
-            job_count=len(jobs),
-            jobs=[serialize_job(job) for job in jobs],
-            blocked_reason=serialize_policy_rejection(
-                policy_rejection_reader.execute(
-                    user_id=authenticated_user_id,
-                    session_id=session_id,
-                    module=module or "documents",
-                )
-            ),
         )
 
     @router.get(
@@ -295,6 +366,26 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         )
 
     @router.get(
+        "/api/current-user/sessions/{session_id}/feedback-metrics",
+        response_model=DocumentFeedbackMetricsResponse,
+    )
+    def get_current_user_document_feedback_metrics(
+        session_id: str,
+        metrics_reader: Annotated[
+            GetDocumentFeedbackMetrics,
+            Depends(get_document_feedback_metrics_reader),
+        ],
+        session_reader: Annotated[GetUserSession, Depends(get_user_session_reader)],
+        current_user_id: Annotated[str, Depends(get_current_user_id)],
+    ) -> DocumentFeedbackMetricsResponse:
+        return _get_document_feedback_metrics_for(
+            user_id=current_user_id,
+            session_id=session_id,
+            metrics_reader=metrics_reader,
+            session_reader=session_reader,
+        )
+
+    @router.get(
         "/api/users/{user_id}/sessions/{session_id}/feedback-metrics",
         response_model=DocumentFeedbackMetricsResponse,
     )
@@ -308,16 +399,12 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         session_reader: Annotated[GetUserSession, Depends(get_user_session_reader)],
         current_user_id: Annotated[str, Depends(get_current_user_id)],
     ) -> DocumentFeedbackMetricsResponse:
-        enforce_path_user(user_id, current_user_id)
-        session = session_reader.execute(user_id=current_user_id, session_id=session_id)
-        if session is None:
-            raise HTTPException(status_code=404, detail="session_not_found")
-        ensure_session_owned_by_current_user(session, current_user_id)
-        return serialize_document_feedback_metrics(
-            metrics_reader.execute(
-                user_id=current_user_id,
-                session_id=session_id,
-            )
+        authenticated_user_id = enforce_path_user(user_id, current_user_id)
+        return _get_document_feedback_metrics_for(
+            user_id=authenticated_user_id,
+            session_id=session_id,
+            metrics_reader=metrics_reader,
+            session_reader=session_reader,
         )
 
     @router.post(
@@ -332,6 +419,7 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         artifact_deleter=Depends(get_document_artifact_deleter),
         worker=Depends(get_document_job_worker),
         current_user_id: Annotated[str, Depends(get_current_user_id)] = "",
+        _: Annotated[None, Depends(enforce_same_origin_browser_write)] = None,
     ) -> JobResponse:
         if not request.document_text and not request.document_image_base64:
             raise_policy_http_error(
@@ -382,12 +470,12 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
     )
     async def upload_document_contract_analysis(
         session_starter: Annotated[StartUserSession, Depends(get_user_session_starter)],
-        user_id: Annotated[str, Form(min_length=1)],
         artifact: Annotated[UploadFile, File()],
         enqueuer=Depends(get_document_job_enqueuer),
         artifact_registrar=Depends(get_document_artifact_registrar),
         artifact_deleter=Depends(get_document_artifact_deleter),
         worker=Depends(get_document_job_worker),
+        user_id: Annotated[str | None, Form()] = None,
         session_id: Annotated[str | None, Form()] = None,
         document_text: Annotated[str | None, Form(min_length=20)] = None,
         confidence: Annotated[float | None, Form(ge=0, le=1)] = 0.92,
@@ -398,6 +486,7 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         correlation_id: Annotated[str | None, Form()] = None,
         trace_id: Annotated[str | None, Form()] = None,
         current_user_id: Annotated[str, Depends(get_current_user_id)] = "",
+        _: Annotated[None, Depends(enforce_same_origin_browser_write)] = None,
     ) -> JobResponse:
         authenticated_user_id = enforce_authenticated_user(user_id, current_user_id)
         session = resolve_user_session(
@@ -494,6 +583,7 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
             Depends(get_document_artifact_deleter),
         ],
         current_user_id: Annotated[str, Depends(get_current_user_id)],
+        _: Annotated[None, Depends(enforce_same_origin_browser_write)],
     ) -> DocumentArtifactDeleteResponse:
         try:
             record = deleter.execute(
@@ -531,6 +621,7 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
         advancer: Annotated[AdvanceDocumentAnalysisJob, Depends(get_document_job_advancer)],
         reader: Annotated[GetJobStatus, Depends(get_job_status_reader)],
         current_user_id: Annotated[str, Depends(get_current_user_id)],
+        _: Annotated[None, Depends(enforce_same_origin_browser_write)],
     ) -> JobResponse:
         existing_job = reader.execute(job_id=job_id)
         if existing_job is None:
@@ -592,6 +683,7 @@ def create_document_router(*, static_dir: Path) -> APIRouter:
             Depends(get_document_analysis_feedback_recorder),
         ],
         current_user_id: Annotated[str, Depends(get_current_user_id)],
+        _: Annotated[None, Depends(enforce_same_origin_browser_write)],
     ) -> DocumentAnalysisFeedbackResponse:
         user_id = enforce_authenticated_user(request.user_id, current_user_id)
         result = recorder.execute(

@@ -13,9 +13,9 @@ def main() -> int:
     existing_pythonpath = env.get("PYTHONPATH")
     env["PYTHONPATH"] = src_path if not existing_pythonpath else f"{src_path}{os.pathsep}{existing_pythonpath}"
 
-    print("[validate] Running unittest discovery...")
+    print("[validate] Running pytest...")
     tests = subprocess.run(
-        [sys.executable, "-m", "unittest", "discover"],
+        [sys.executable, "-m", "pytest"],
         cwd=repo_root,
         env=env,
     )

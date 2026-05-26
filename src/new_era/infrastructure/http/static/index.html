@@ -24,6 +24,40 @@
         </div>
       </section>
 
+      <section class="auth-band" id="auth-band" data-state="loading" aria-live="polite">
+        <div class="auth-copy-block">
+          <p class="panel-kicker">Companion Access</p>
+          <h2 id="auth-title">Checking session</h2>
+          <p class="auth-copy" id="auth-copy">
+            Verifying whether this browser already has a valid companion session.
+          </p>
+          <dl class="auth-meta">
+            <div>
+              <dt>User</dt>
+              <dd id="auth-user-label">not signed in</dd>
+            </div>
+            <div>
+              <dt>Session expiry</dt>
+              <dd id="auth-expiry-label">unknown</dd>
+            </div>
+          </dl>
+        </div>
+        <form class="auth-form" id="auth-form">
+          <label>
+            <span>User ID</span>
+            <input id="auth-user-id" name="user_id" type="text" autocomplete="username" required>
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="auth-password" name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button id="auth-login-button" type="submit">Sign in</button>
+        </form>
+        <div class="auth-session-actions">
+          <button id="auth-logout-button" type="button" class="job-action-secondary">Sign out</button>
+        </div>
+      </section>
+
       <section class="session-rail" aria-label="Companion session state">
         <div class="session-pill">
           <span>Module</span>

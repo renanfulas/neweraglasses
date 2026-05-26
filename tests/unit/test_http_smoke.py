@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import time
 import unittest
 from tempfile import TemporaryDirectory
@@ -16,6 +17,18 @@ CONTRACT_TEXT = (
 
 
 class HttpSmokeTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls._previous_enable_dev_auth = os.environ.get("NEW_ERA_ENABLE_DEV_AUTH")
+        os.environ["NEW_ERA_ENABLE_DEV_AUTH"] = "1"
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        if cls._previous_enable_dev_auth is None:
+            os.environ.pop("NEW_ERA_ENABLE_DEV_AUTH", None)
+        else:
+            os.environ["NEW_ERA_ENABLE_DEV_AUTH"] = cls._previous_enable_dev_auth
+
     def setUp(self) -> None:
         self.temp_dir = TemporaryDirectory()
         self.database_path = f"{self.temp_dir.name}\\runtime.sqlite3"
