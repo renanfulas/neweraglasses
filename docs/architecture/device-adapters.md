@@ -55,6 +55,7 @@ Already real in the codebase:
 - browser simulation path works
 - external HTTP bridge delivery works
 - capability checks and delivery failure events exist
+- local bridge harness exists at `tools/device_bridge_harness.py`
 
 ## What Is Still Missing
 
@@ -64,6 +65,24 @@ Not implemented yet:
 - gesture/voice-specific interaction adapters
 - device pairing lifecycle
 - production-grade bridge auth and trust model
+
+## Local Validation Harness
+
+Run:
+
+```powershell
+$env:PYTHONPATH='src'; python .\tools\device_bridge_harness.py
+```
+
+The harness starts a local HTTP bridge, then validates:
+
+- capability discovery
+- sensitive metadata redaction
+- bearer-token delivery to `/lens-commands`
+- delivery failure surfacing as `DeviceDeliveryError`
+- delivery timeout surfacing as `DeviceDeliveryError`
+
+It does not emulate a vendor SDK, pairing lifecycle, or production trust model. Those remain future adapter responsibilities.
 
 ## Contract Boundary
 

@@ -98,6 +98,8 @@ These are the docs that should be treated as current:
   Latency classes, async boundaries, and current performance posture.
 - [docs/architecture/ai-prompt-contracts.md](docs/architecture/ai-prompt-contracts.md)  
   Current deterministic/OCR analysis posture and future prompt-contract shape.
+- [docs/architecture/mvp-execution-plan.md](docs/architecture/mvp-execution-plan.md)  
+  Execution checklist for the local MVP demo path, merge gates, and validation sequence.
 
 ### Specs
 
@@ -118,6 +120,15 @@ These are the docs that should be treated as current:
   How to run the local OCR/deterministic analysis eval harness.
 
 ## Development
+
+Local companion auth uses a backend-managed session cookie. For a local demo runtime, configure:
+
+```powershell
+$env:PYTHONPATH='src'
+$env:NEW_ERA_SQLITE_PATH='.new_era/runtime.sqlite3'
+$env:NEW_ERA_LOCAL_AUTH_USER_ID='local-demo-user'
+$env:NEW_ERA_LOCAL_AUTH_PASSWORD='local-demo-password'
+```
 
 Run tests:
 
@@ -144,7 +155,29 @@ Run with SQLite persistence:
 ```powershell
 $env:PYTHONPATH='src'
 $env:NEW_ERA_SQLITE_PATH='.new_era/runtime.sqlite3'
+$env:NEW_ERA_LOCAL_AUTH_USER_ID='local-demo-user'
+$env:NEW_ERA_LOCAL_AUTH_PASSWORD='local-demo-password'
 python -m uvicorn new_era.infrastructure.http.app:create_app --factory --reload
+```
+
+Run the MVP local validation pack:
+
+```powershell
+python .\tools\validate_local.py
+```
+
+Run the local HTTP device bridge harness:
+
+```powershell
+$env:PYTHONPATH='src'; python .\tools\device_bridge_harness.py
+```
+
+Run browser E2E smoke after installing Playwright browsers:
+
+```powershell
+python -m pip install -e .[e2e]
+python -m playwright install chromium
+python .\tools\validate_local.py --with-e2e
 ```
 
 Run the local document eval harness:
@@ -169,6 +202,8 @@ The suite currently covers:
 - SQLite-backed session, job, event, and analysis stores
 - PWA HTTP routes and static assets
 - browser simulation and HTTP device bridge adapters
+- local MVP smoke validation through `tools/validate_local.py`
+- optional browser E2E smoke through Playwright
 
 ## What Changed Recently
 

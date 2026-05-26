@@ -101,6 +101,7 @@ class EnqueueDocumentAnalysisJob:
         recent_category_count: int = 0,
         observation_id: str | None = None,
     ) -> JobRecord:
+        mode = AttentionMode(mode)
         payload_fingerprint = _build_payload_fingerprint(
             artifact_label=artifact_label,
             source_type=source_type,
