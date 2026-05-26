@@ -57,3 +57,13 @@ class PwaAssetTest(TestCase):
         self.assertIn("function isPolicyRejection(detail)", response.text)
         self.assertIn("return detail.message;", response.text)
         self.assertIn("payload.blocked_reason", response.text)
+
+    def test_companion_uses_current_user_routes_instead_of_user_scoped_paths(self) -> None:
+        client = TestClient(create_app())
+
+        response = client.get("/static/app.js")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("/api/current-user/sessions/", response.text)
+        self.assertNotIn("/api/users/", response.text)
+        self.assertIn("function getCurrentUserSessionBasePath(sessionId)", response.text)

@@ -4,6 +4,37 @@ Status: Active execution plan
 Last updated: 2026-05-26  
 Owner: Technical coordinator
 
+## Implementation Status
+
+Current local MVP validation is implemented.
+
+Validated command:
+
+```powershell
+python .\tools\validate_local.py --with-e2e
+```
+
+Latest local result:
+
+```text
+141 passed, 1 skipped
+authenticated smoke probes passed
+device bridge harness passed
+browser E2E smoke passed
+```
+
+The skipped item is the browser E2E module during the default pytest pass. It runs when `NEW_ERA_RUN_E2E=1`, which is set automatically by `tools/validate_local.py --with-e2e`.
+
+The browser smoke now validates the demonstrable MVP path across:
+
+- login and logout
+- grocery simulation plus feedback
+- contract simulation from text
+- multipart contract upload job from image
+- async job completion
+- session trace/history refresh
+- relogin after an authenticated `401`
+
 ## Purpose
 
 Close the MVP as a demonstrable and validated local product path:
@@ -236,6 +267,14 @@ Exit rule:
 - at least one browser smoke E2E passes locally
 - E2E command is documented
 
+Command:
+
+```powershell
+$env:PYTHONPATH='src'
+$env:NEW_ERA_RUN_E2E='1'
+python -m pytest tests/e2e -m e2e
+```
+
 ### Phase 5: Device bridge validation
 
 Owner: Agent 4
@@ -282,10 +321,8 @@ Final validation:
 
 ```powershell
 $env:PYTHONPATH='src'; python -m pytest
-python .\tools\validate_local.py
+python .\tools\validate_local.py --with-e2e
 ```
-
-Plus at least one browser smoke E2E command once Phase 4 lands.
 
 ## Agent Prompts
 

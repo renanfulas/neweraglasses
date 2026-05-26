@@ -630,6 +630,53 @@ class HttpAppTest(TestCase):
             "unsupported_camera_content_type",
         )
 
+    def test_camera_bridge_contract_review_derives_cookie_authenticated_user(self) -> None:
+        client = TestClient(
+            create_app(
+                enable_dev_auth=False,
+                local_auth_user_id="user_camera_cookie",
+                local_auth_password=self.LOCAL_AUTH_PASSWORD,
+            )
+        )
+        self._login(client, "user_camera_cookie")
+        image = Image.new("RGB", (1200, 240), "white")
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.load_default(size=48)
+        draw.text(
+            (40, 80),
+            "AUTOMATIC RENEWAL CANCELLATION FEE",
+            fill="black",
+            font=font,
+        )
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        image_base64 = base64.b64encode(buffer.getvalue()).decode("ascii")
+
+        response = client.post(
+            "/api/device-bridge/camera/document-contract-review",
+            json={
+                "session_id": "session_camera_cookie",
+                "image_base64": image_base64,
+                "content_type": "image/png",
+                "source_adapter": "phone_camera",
+                "mode": "balanced",
+                "recent_category_count": 0,
+                "observation_id": "obs_camera_cookie_1",
+                "correlation_id": "corr_camera_cookie_1",
+                "trace_id": "trace_camera_cookie_1",
+            },
+            headers={"Origin": "http://testserver"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["session_id"], "session_camera_cookie")
+        self.assertIsNotNone(payload["analysis_id"])
+        analysis_response = client.get(f"/api/document-analyses/{payload['analysis_id']}")
+
+        self.assertEqual(analysis_response.status_code, 200)
+        self.assertEqual(analysis_response.json()["source_type"], "camera:phone_camera")
+
     def test_document_analysis_read_model_endpoints_return_persisted_analysis(self) -> None:
         client = TestClient(create_app(), headers=self._auth_headers("user_1"))
 
@@ -1178,6 +1225,40 @@ class HttpAppTest(TestCase):
                 "job_completed",
             ],
         )
+
+    def test_document_analysis_job_with_sqlite_payload_store_accepts_json_mode(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            database_path = f"{temp_dir}\\runtime.sqlite3"
+            app = create_app(storage_path=database_path)
+            client = TestClient(app, headers=self._auth_headers("user_jobs_sqlite_payload"))
+
+            enqueue_response = client.post(
+                "/api/jobs/documents/contract-analysis",
+                json={
+                    "user_id": "user_jobs_sqlite_payload",
+                    "session_id": "session_jobs_sqlite_payload",
+                    "artifact_label": "contract-sqlite-payload.txt",
+                    "source_type": "pwa_text_entry",
+                    "idempotency_key": "idem-sqlite-payload",
+                    "document_text": (
+                        "Contrato com renovacao automatica, fidelidade de 12 meses "
+                        "e multa de cancelamento antecipado."
+                    ),
+                    "mode": "balanced",
+                    "trace_id": "trace_jobs_sqlite_payload",
+                },
+            )
+
+            self.assertEqual(enqueue_response.status_code, 200)
+            self.assertTrue(app.state.runtime.document_job_worker.wait_until_idle())
+
+            result_response = client.get(f"/api/jobs/{enqueue_response.json()['job_id']}/result")
+
+            self.assertEqual(result_response.status_code, 200)
+            self.assertEqual(
+                result_response.json()["analysis"]["summary_title"],
+                "Contract clause needs attention",
+            )
 
     def test_document_analysis_job_worker_accepts_uploaded_image_payload(self) -> None:
         app = create_app()
